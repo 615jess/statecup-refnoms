@@ -105,14 +105,10 @@
   .av-dt { font-size: 12px; opacity: 0.8; font-weight: 400; font-family: 'Source Sans 3', sans-serif; display: block; margin-bottom: 8px; }
 
   /* hotel sub-toggle */
-  .hotel-row { display: flex; align-items: center; gap: 7px; margin-top: 6px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); pointer-events: none; opacity: 0; transition: opacity .18s; }
-  .avail-opt input:checked ~ .hotel-row, .hotel-row.visible { pointer-events: auto; opacity: 1; }
-  .hotel-chk { width: 15px; height: 15px; border: 2px solid currentColor; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: transparent; transition: all .18s; }
-  .hotel-chk.on { background: currentColor; }
-  .hotel-chk.on::after { content: '✓'; font-size: 9px; color: #fff; font-weight: 700; line-height: 1; }
-  .hotel-lbl { font-size: 12px; font-weight: 500; font-family: 'Source Sans 3', sans-serif; line-height: 1.3; }
+  .hotel-row { display: flex; align-items: center; gap: 7px; margin-top: 6px; padding: 8px 15px 4px; border-top: 1px solid rgba(0,0,0,0.08); pointer-events: none; opacity: 0; max-height: 0; overflow: hidden; transition: opacity .18s, max-height .18s; }
+  .avail-opt.checked .hotel-row { pointer-events: auto; opacity: 1; max-height: 40px; }
+  .hotel-lbl { font-size: 12px; font-weight: 500; font-family: 'Source Sans 3', sans-serif; line-height: 1.3; color: var(--muted); }
   input[type=checkbox].hotel-input { position: static; opacity: 1; width: 15px; height: 15px; accent-color: var(--green); cursor: pointer; flex-shrink: 0; margin-top: 1px; }
-  .avail-opt:not(.checked) .hotel-row { pointer-events: none; opacity: 0.35; }
 
   /* sep */
   .sep { height: 1px; background: var(--border); margin: 16px 0; }
@@ -354,12 +350,12 @@ function addRef() {
             <span style="flex:1;">
               <span class="av-wk">Weekend 1</span>
               <span class="av-dt">May 16 &amp; 17</span>
-              <span class="hotel-row" id="r${n}_hotel1_row">
-                <input type="checkbox" class="hotel-input" id="r${n}_h1" name="r${n}_h1" value="yes" onclick="event.stopPropagation()">
-                <label for="r${n}_h1" class="hotel-lbl" onclick="event.stopPropagation()" style="cursor:pointer; font-weight:400; color:inherit; text-transform:none; letter-spacing:0; font-size:12px;">🛏 Needs hotel room</label>
-              </span>
             </span>
           </label>
+          <div class="hotel-row" id="r${n}_hotel1_row">
+            <input type="checkbox" class="hotel-input" id="r${n}_h1" name="r${n}_h1" value="yes">
+            <label for="r${n}_h1" class="hotel-lbl" style="cursor:pointer;">🛏 Needs hotel room</label>
+          </div>
         </div>
         <div class="avail-opt" id="r${n}_opt2">
           <input type="checkbox" id="r${n}_w2" name="r${n}_av" value="Weekend 2" onchange="toggleHotel(this,'r${n}_opt2')">
@@ -368,12 +364,12 @@ function addRef() {
             <span style="flex:1;">
               <span class="av-wk">Weekend 2</span>
               <span class="av-dt">May 23 &amp; 24</span>
-              <span class="hotel-row" id="r${n}_hotel2_row">
-                <input type="checkbox" class="hotel-input" id="r${n}_h2" name="r${n}_h2" value="yes" onclick="event.stopPropagation()">
-                <label for="r${n}_h2" class="hotel-lbl" onclick="event.stopPropagation()" style="cursor:pointer; font-weight:400; color:inherit; text-transform:none; letter-spacing:0; font-size:12px;">🛏 Needs hotel room</label>
-              </span>
             </span>
           </label>
+          <div class="hotel-row" id="r${n}_hotel2_row">
+            <input type="checkbox" class="hotel-input" id="r${n}_h2" name="r${n}_h2" value="yes">
+            <label for="r${n}_h2" class="hotel-lbl" style="cursor:pointer;">🛏 Needs hotel room</label>
+          </div>
         </div>
       </div>
 

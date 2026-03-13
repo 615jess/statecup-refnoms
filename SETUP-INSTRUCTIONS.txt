@@ -1,0 +1,149 @@
+================================================================
+  SPRING STATE CUP 2026 — REFEREE NOMINATION FORM
+  Google Sheets Integration Setup Instructions
+================================================================
+
+This form sends data to a Google Sheet automatically when DRAs
+submit referee nominations. Setup takes about 10 minutes and
+requires a Google account.
+
+----------------------------------------------------------------
+STEP 1 — Create the Google Sheet
+----------------------------------------------------------------
+1. Go to https://sheets.google.com and create a new spreadsheet.
+2. Name it: "Spring State Cup 2026 — Referee Nominations"
+3. In Row 1, add these column headers exactly:
+
+   A: Timestamp
+   B: DRA Name
+   C: DRA Email
+   D: District
+   E: Referee #
+   F: First Name
+   G: Last Name
+   H: Referee Email
+   I: Phone
+   J: Age
+   K: Max Age as AR
+   L: Max Age as Referee
+   M: Availability
+   N: Hotel — Weekend 1
+   O: Hotel — Weekend 2
+   P: Day-Specific Notes
+   Q: DRA Notes
+
+4. Share the sheet with anyone you want to see nominations
+   (e.g., SDRA Matt Hayes, SYRA Mark Herrington).
+
+----------------------------------------------------------------
+STEP 2 — Create the Apps Script
+----------------------------------------------------------------
+1. In your Google Sheet, click Extensions > Apps Script.
+2. Delete all existing code in the editor.
+3. Paste the following code:
+
+------- COPY FROM HERE ----------------------------------------
+
+function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = JSON.parse(e.postData.contents);
+    var rows = data.rows;
+
+    rows.forEach(function(r) {
+      sheet.appendRow([
+        r.timestamp,
+        r.dra,
+        r.email,
+        r.district,
+        r.ref_num,
+        r.first,
+        r.last,
+        r.ref_email,
+        r.phone,
+        r.age,
+        r.max_ar,
+        r.max_ref,
+        r.availability,
+        r.hotel_wk1,
+        r.hotel_wk2,
+        r.day_notes,
+        r.notes
+      ]);
+    });
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'ok' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+------- COPY TO HERE ------------------------------------------
+
+4. Click Save (floppy disk icon or Ctrl+S).
+   Name the project: "State Cup Nominations"
+
+----------------------------------------------------------------
+STEP 3 — Deploy as Web App
+----------------------------------------------------------------
+1. Click Deploy > New deployment.
+2. Click the gear icon next to "Select type" and choose Web app.
+3. Set these options:
+   - Description: Spring State Cup 2026
+   - Execute as: Me (your Google account)
+   - Who has access: Anyone
+4. Click Deploy.
+5. If prompted, click Authorize access and allow permissions.
+6. COPY the Web App URL — it looks like:
+   https://script.google.com/macros/s/XXXXXXXXXX.../exec
+
+----------------------------------------------------------------
+STEP 4 — Add the URL to the Nomination Form
+----------------------------------------------------------------
+1. Open spring-state-cup-nomination.html in a text editor.
+2. Find this line near the bottom of the file (in the <script>):
+
+   const SHEET_URL = "YOUR_GOOGLE_SCRIPT_URL";
+
+3. Replace YOUR_GOOGLE_SCRIPT_URL with the URL you copied.
+   Example:
+   const SHEET_URL = "https://script.google.com/macros/s/ABC123.../exec";
+
+4. Save the file.
+
+----------------------------------------------------------------
+STEP 5 — Test It
+----------------------------------------------------------------
+1. Open the HTML file in a browser.
+2. Fill out a test nomination and click Submit.
+3. Check your Google Sheet — the data should appear in a new row.
+4. If it doesn't appear, check that:
+   - The URL is correct (no extra spaces)
+   - You selected "Anyone" for access in Step 3
+   - You authorized the script in Step 3
+
+----------------------------------------------------------------
+OPTIONAL — Email Notification on Submission
+----------------------------------------------------------------
+To get an email whenever a DRA submits nominations, add this
+to your Apps Script BEFORE the closing } of doPost():
+
+   MailApp.sendEmail({
+     to: "jerickson@tnsoccer.org, syra@tnsoccer.org",
+     subject: "New State Cup Nominations — " + r.district + " District",
+     body: "New referee nominations submitted by " + r.dra +
+           " (" + r.district + " District).\n\nView the spreadsheet: " +
+           "YOUR_SPREADSHEET_LINK_HERE"
+   });
+
+Replace YOUR_SPREADSHEET_LINK_HERE with the link to your sheet.
+Add this inside the rows.forEach loop, after sheet.appendRow().
+
+================================================================
+  QUESTIONS? Contact the State Cup Assignor:
+  Jess Erickson — jerickson@tnsoccer.org
+================================================================

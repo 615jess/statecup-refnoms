@@ -44,13 +44,42 @@ STEP 2 — Create the Apps Script
 
 ------- COPY FROM HERE ----------------------------------------
 
+var VALID_DISTRICTS = [
+  'Western','Mid-Western','Central','Middle',
+  'South East','Eastern','North East'
+];
+
 function doPost(e) {
   try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var data = JSON.parse(e.postData.contents);
+
+    // Honeypot check — bots fill the hidden "website" field
+    if (data.website) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     var rows = data.rows;
+    if (!rows || !rows.length || rows.length > 50) {
+      throw new Error('Invalid submission');
+    }
+
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 
     rows.forEach(function(r) {
+      // Server-side validation
+      if (!r.first || !String(r.first).trim()) throw new Error('Missing first name');
+      if (!r.last  || !String(r.last).trim())  throw new Error('Missing last name');
+      var age = parseInt(r.age, 10);
+      if (!age || age < 13 || age > 80) throw new Error('Invalid age');
+      if (VALID_DISTRICTS.indexOf(r.district) === -1) throw new Error('Invalid district');
+
+      // Truncate all string fields to 500 chars
+      Object.keys(r).forEach(function(k) {
+        if (typeof r[k] === 'string') r[k] = r[k].trim().substring(0, 500);
+      });
+
       sheet.appendRow([
         r.timestamp,
         r.dra,
@@ -105,7 +134,7 @@ STEP 3 — Deploy as Web App
 STEP 4 — Add the URL to the Nomination Form
 ----------------------------------------------------------------
 1. Open spring-state-cup-nomination.html in a text editor.
-2. Find this line near the bottom of the file (in the <script>):
+2. Find this line near the top of the <script> section:
 
    const SHEET_URL = "YOUR_GOOGLE_SCRIPT_URL";
 
@@ -115,10 +144,15 @@ STEP 4 — Add the URL to the Nomination Form
 
 4. Save the file.
 
+NOTE: The Apps Script URL will be visible in your page source.
+This is unavoidable with static hosting (GitHub Pages). The
+server-side validation in the Apps Script protects against
+abuse of the endpoint — see the doPost() code in Step 2.
+
 ----------------------------------------------------------------
 STEP 5 — Test It
 ----------------------------------------------------------------
-1. Open the HTML file in a browser.
+1. Open the HTML file in a browser (or deploy to GitHub Pages).
 2. Fill out a test nomination and click Submit.
 3. Check your Google Sheet — the data should appear in a new row.
 4. If it doesn't appear, check that:

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spring State Cup 2026 — Referee Nominations | Tennessee Soccer Referee Program</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
 <style>
   :root {
     --navy:    #0d2148;
@@ -216,6 +216,10 @@
   </div>
 
   <form id="nom-form" novalidate>
+    <!-- Honeypot field — hidden from real users, catches bots -->
+    <div style="position:absolute;left:-9999px;" aria-hidden="true">
+      <input type="text" name="website" id="hp-field" tabindex="-1" autocomplete="off">
+    </div>
 
     <!-- Section 1 -->
     <div class="sec-head"><span class="sec-num">1</span><h2>District Administrator</h2></div>
@@ -298,7 +302,10 @@
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
 // Replace with your published Google Apps Script Web App URL:
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbz6avDBCLvA43TTDCtxDqhQ5_RtE_DIpITY_Qwo5Ha3irH6fKTyCc4HZaTb3zdv2AKU/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxRvGhqJZasc1AQ3EsGktGkKyHYhuAmSYouDxTcrH6OIdjdujGmq8J5m9owsv7d91Qe/exec";
+
+// HTML-escape user input to prevent XSS when rendering summaries
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 const AGES = ['U12','U13','U14','U15','U16','U17','U18','U19','Adult / Open'];
 let rc = 0;
@@ -443,19 +450,19 @@ document.getElementById('nom-form').addEventListener('submit', async function(e)
   document.getElementById('msg-er').style.display = 'none';
 
   try {
-    if (SHEET_URL === 'https://docs.google.com/spreadsheets/d/1tfAw54uENOyueJ_O3-5f6xFxkXYw6ZahBwpHva6x-MA') {
-      await new Promise(r => setTimeout(r, 800)); // demo delay
-    } else {
-      const res = await fetch(SHEET_URL, { method:'POST', body: JSON.stringify({ rows }) });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    }
-    let html = `<p style="margin:10px 0 8px;"><strong>DRA:</strong> ${draName} — ${draDist} District</p>`;
+    const hp = document.getElementById('hp-field').value;
+    const res = await fetch(SHEET_URL, {
+      method: 'POST',
+      body: JSON.stringify({ rows, website: hp })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    let html = `<p style="margin:10px 0 8px;"><strong>DRA:</strong> ${esc(draName)} — ${esc(draDist)} District</p>`;
     rows.forEach(r => {
       const hotelInfo = [];
       if (r.hotel_wk1 === 'Yes') hotelInfo.push('Weekend 1');
       if (r.hotel_wk2 === 'Yes') hotelInfo.push('Weekend 2');
       const hotelStr = hotelInfo.length ? '🛏 Hotel needed: ' + hotelInfo.join(', ') : '';
-      html += `<div class="sum-ref"><strong>${r.first} ${r.last}</strong><br>Age: ${r.age} &nbsp;|&nbsp; Max AR: ${r.max_ar||'—'} &nbsp;|&nbsp; Max Referee: ${r.max_ref||'—'}<br>Availability: ${r.availability}${hotelStr ? '<br>'+hotelStr : ''}${r.day_notes?'<br><em>'+r.day_notes+'</em>':''}</div>`;
+      html += `<div class="sum-ref"><strong>${esc(r.first)} ${esc(r.last)}</strong><br>Age: ${esc(r.age)} &nbsp;|&nbsp; Max AR: ${esc(r.max_ar)||'—'} &nbsp;|&nbsp; Max Referee: ${esc(r.max_ref)||'—'}<br>Availability: ${esc(r.availability)}${hotelStr ? '<br>'+hotelStr : ''}${r.day_notes?'<br><em>'+esc(r.day_notes)+'</em>':''}</div>`;
     });
     document.getElementById('summary').innerHTML = html;
     document.getElementById('msg-ok').style.display = 'block';
@@ -502,6 +509,12 @@ function handleUpload(file) {
   const resEl = document.getElementById('upload-result');
   errEl.style.display = 'none';
   resEl.style.display = 'none';
+
+  // File size limit: 5 MB
+  if (file.size > 5 * 1024 * 1024) {
+    showUploadErr('File is too large (max 5 MB). Please reduce the file size or use .csv format.');
+    return;
+  }
 
   const reader = new FileReader();
   reader.onload = function(e) {

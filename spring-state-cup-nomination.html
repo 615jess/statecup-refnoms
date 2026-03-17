@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spring State Cup 2026 — Referee Nominations | Tennessee Soccer Referee Program</title>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
 <style>
   :root {
@@ -23,30 +23,33 @@
     --r: 6px;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--off); color: var(--text); font-family: 'Source Sans 3', sans-serif; font-size: 15px; line-height: 1.55; }
+  body { background: var(--off); color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 15px; line-height: 1.55; }
 
   /* topbar */
   .topbar { height: 5px; background: linear-gradient(90deg, var(--navy), var(--red) 55%, var(--gold)); }
 
   /* header */
-  .site-header { background: var(--navy); padding: 22px 28px 0; }
+  .site-header { background: var(--white); padding: 22px 28px 0; }
   .header-inner { max-width: 860px; margin: 0 auto; }
-  .brand-row { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
-  .brand-divider { width: 3px; height: 44px; background: var(--red); border-radius: 2px; }
-  .brand-text .org { font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 3px; color: rgba(255,255,255,0.5); text-transform: uppercase; }
-  .brand-text .prog { font-family: 'Oswald', sans-serif; font-size: 19px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
 
-  .hero { padding: 24px 0 32px; }
-  .event-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--red); color: #fff; font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; padding: 5px 14px; border-radius: 2px; margin-bottom: 14px; }
-  .hero h1 { font-family: 'Oswald', sans-serif; font-size: clamp(28px, 5vw, 48px); font-weight: 700; color: #fff; line-height: 1.05; }
-  .hero h1 em { color: var(--gold); font-style: normal; }
-  .hero p { font-size: 14px; color: rgba(255,255,255,0.55); font-weight: 300; margin-top: 8px; }
 
-  .dates-row { background: rgba(255,255,255,0.06); border-top: 1px solid rgba(255,255,255,0.1); }
+  .hero { padding: 24px 0 32px; display: flex; align-items: center; gap: 24px; }
+  .hero-brand { height: 100px; width: auto; flex-shrink: 0; }
+  .hero-divider { width: 3px; align-self: stretch; background: var(--red); border-radius: 2px; flex-shrink: 0; }
+  .hero-content { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .hero-text { flex: 1; }
+  .hero-logo { height: 100px; width: auto; flex-shrink: 0; }
+  @media(max-width:560px){ .hero { flex-direction: column; text-align: center; } .hero-content { flex-direction: column; } .hero-brand { height: 70px; } .hero-logo { display: none; } .hero-divider { width: 60px; height: 3px; align-self: auto; } }
+  .event-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--red); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; padding: 5px 14px; border-radius: 2px; margin-bottom: 14px; }
+  .hero h1 { font-family: 'Open Sans', sans-serif; font-size: clamp(28px, 5vw, 48px); font-weight: 700; color: var(--navy); line-height: 1.05; }
+  .hero h1 em { color: var(--red); font-style: normal; }
+  .hero p { font-size: 14px; color: var(--muted); font-weight: 300; margin-top: 8px; }
+
+  .dates-row { background: var(--navy); border-top: 1px solid var(--border); }
   .dates-inner { max-width: 860px; margin: 0 auto; display: flex; }
   .date-blk { flex: 1; padding: 13px 20px; display: flex; align-items: center; gap: 12px; border-right: 1px solid rgba(255,255,255,0.1); }
   .date-blk:last-child { border-right: none; }
-  .wk-pill { background: var(--red); color: #fff; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 2px; padding: 3px 9px; border-radius: 2px; white-space: nowrap; }
+  .wk-pill { background: var(--red); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 10px; letter-spacing: 2px; padding: 3px 9px; border-radius: 2px; white-space: nowrap; }
   .wk-dt { font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 300; }
 
   /* main */
@@ -55,8 +58,8 @@
   /* section heading */
   .sec-head { display: flex; align-items: center; gap: 12px; margin: 32px 0 14px; }
   .sec-head:first-child { margin-top: 0; }
-  .sec-num { width: 26px; height: 26px; background: var(--navy); color: #fff; border-radius: 50%; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .sec-head h2 { font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); }
+  .sec-num { width: 26px; height: 26px; background: var(--navy); color: #fff; border-radius: 50%; font-family: 'Open Sans', sans-serif; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sec-head h2 { font-family: 'Open Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); }
 
   /* card */
   .card { background: #fff; border: 1px solid var(--border); border-radius: var(--r); box-shadow: 0 2px 12px rgba(13,33,72,0.09); padding: 24px; }
@@ -73,7 +76,7 @@
   .lbl .req { color: var(--red); }
   input[type=text], input[type=email], input[type=number], select, textarea {
     width: 100%; background: var(--off); border: 1.5px solid var(--border); border-radius: var(--r);
-    padding: 10px 12px; color: var(--text); font-family: 'Source Sans 3', sans-serif; font-size: 14px;
+    padding: 10px 12px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 14px;
     transition: border-color .18s, box-shadow .18s; outline: none; appearance: none; -webkit-appearance: none;
   }
   input:focus, select:focus, textarea:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13,33,72,0.09); background: #fff; }
@@ -101,13 +104,13 @@
   .avail-opt input:checked + label { border-color: var(--green); background: var(--green-bg); color: var(--green); font-weight: 600; }
   .avail-opt input:checked + label .chk-box { background: var(--green); border-color: var(--green); }
   .avail-opt input:checked + label .chk-box::after { content: '✓'; font-size: 11px; color: #fff; font-weight: 700; }
-  .av-wk { font-family: 'Oswald', sans-serif; font-size: 15px; letter-spacing: 0.5px; display: block; }
-  .av-dt { font-size: 12px; opacity: 0.8; font-weight: 400; font-family: 'Source Sans 3', sans-serif; display: block; margin-bottom: 8px; }
+  .av-wk { font-family: 'Open Sans', sans-serif; font-size: 15px; letter-spacing: 0.5px; display: block; }
+  .av-dt { font-size: 12px; opacity: 0.8; font-weight: 400; font-family: 'Open Sans', sans-serif; display: block; margin-bottom: 8px; }
 
   /* hotel sub-toggle */
   .hotel-row { display: flex; align-items: center; gap: 7px; margin-top: 6px; padding: 8px 15px 4px; border-top: 1px solid rgba(0,0,0,0.08); pointer-events: none; opacity: 0; max-height: 0; overflow: hidden; transition: opacity .18s, max-height .18s; }
   .avail-opt.checked .hotel-row { pointer-events: auto; opacity: 1; max-height: 40px; }
-  .hotel-lbl { font-size: 12px; font-weight: 500; font-family: 'Source Sans 3', sans-serif; line-height: 1.3; color: var(--muted); }
+  .hotel-lbl { font-size: 12px; font-weight: 500; font-family: 'Open Sans', sans-serif; line-height: 1.3; color: var(--muted); }
   input[type=checkbox].hotel-input { position: static; opacity: 1; width: 15px; height: 15px; accent-color: var(--green); cursor: pointer; flex-shrink: 0; margin-top: 1px; }
 
   /* sep */
@@ -117,18 +120,18 @@
   .ref-entry { background: #fff; border: 1.5px solid var(--border); border-radius: var(--r); overflow: hidden; margin-bottom: 10px; box-shadow: 0 1px 8px rgba(13,33,72,0.07); animation: fadeIn .2s ease; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
   .ref-hd { background: var(--navy); padding: 11px 16px; display: flex; justify-content: space-between; align-items: center; }
-  .ref-hd-title { font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
-  .rm-btn { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.65); border-radius: 3px; padding: 3px 10px; font-size: 11px; letter-spacing: 1px; cursor: pointer; font-family: 'Source Sans 3', sans-serif; transition: all .18s; }
+  .ref-hd-title { font-family: 'Open Sans', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
+  .rm-btn { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.65); border-radius: 3px; padding: 3px 10px; font-size: 11px; letter-spacing: 1px; cursor: pointer; font-family: 'Open Sans', sans-serif; transition: all .18s; }
   .rm-btn:hover { background: rgba(204,34,41,0.5); border-color: var(--red); color: #fff; }
   .ref-body { padding: 18px; }
 
   /* add btn */
-  .add-btn { width: 100%; background: transparent; border: 2px dashed var(--border); border-radius: var(--r); color: var(--navy); font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 13px; cursor: pointer; transition: all .18s; margin-top: 4px; }
+  .add-btn { width: 100%; background: transparent; border: 2px dashed var(--border); border-radius: var(--r); color: var(--navy); font-family: 'Open Sans', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 13px; cursor: pointer; transition: all .18s; margin-top: 4px; }
   .add-btn:hover { border-color: var(--navy); background: var(--slate); }
 
   /* submit */
   .submit-zone { margin-top: 36px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  .sub-btn { background: var(--red); border: none; border-radius: var(--r); color: #fff; font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; padding: 14px 52px; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(204,34,41,0.3); }
+  .sub-btn { background: var(--red); border: none; border-radius: var(--r); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; padding: 14px 52px; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(204,34,41,0.3); }
   .sub-btn:hover { background: var(--red-dk); transform: translateY(-1px); box-shadow: 0 6px 22px rgba(204,34,41,0.4); }
   .sub-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
   .sub-note { font-size: 12px; color: var(--muted); text-align: center; max-width: 460px; }
@@ -137,7 +140,7 @@
   .status { display: none; border-radius: var(--r); padding: 18px 22px; margin-top: 18px; }
   .status.ok { background: var(--green-bg); border: 1px solid #a3d4ae; }
   .status.er { background: #fef2f2; border: 1px solid #f5a0a3; }
-  .status h3 { font-family: 'Oswald', sans-serif; font-size: 17px; letter-spacing: 1px; margin-bottom: 5px; }
+  .status h3 { font-family: 'Open Sans', sans-serif; font-size: 17px; letter-spacing: 1px; margin-bottom: 5px; }
   .status.ok h3 { color: var(--green); } .status.er h3 { color: var(--red); }
   .status p { font-size: 13px; }
   .sum-ref { background: #fff; border: 1px solid #a3d4ae; border-left: 4px solid var(--green); border-radius: 4px; padding: 9px 13px; margin: 7px 0; font-size: 13px; }
@@ -160,19 +163,23 @@
   .upload-zone p { font-size: 14px; color: var(--muted); margin-bottom: 4px; }
   .upload-zone .upload-hint { font-size: 12px; color: var(--muted); opacity: 0.7; }
   .upload-actions { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
-  .upload-btn { background: var(--navy); color: #fff; border: none; border-radius: var(--r); padding: 8px 18px; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all .18s; }
+  .upload-btn { background: var(--navy); color: #fff; border: none; border-radius: var(--r); padding: 8px 18px; font-family: 'Open Sans', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all .18s; }
   .upload-btn:hover { background: #162d5a; }
-  .tpl-btn { background: transparent; color: var(--navy); border: 1.5px solid var(--border); border-radius: var(--r); padding: 7px 16px; font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all .18s; }
+  .tpl-btn { background: transparent; color: var(--navy); border: 1.5px solid var(--border); border-radius: var(--r); padding: 7px 16px; font-family: 'Open Sans', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all .18s; }
   .tpl-btn:hover { border-color: var(--navy); background: var(--slate); }
   .or-divider { display: flex; align-items: center; gap: 14px; margin: 18px 0; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; }
   .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
   .upload-result { background: var(--green-bg); border: 1px solid #a3d4ae; border-radius: var(--r); padding: 12px 16px; margin-bottom: 16px; display: none; font-size: 13px; }
   .upload-result .ur-head { display: flex; justify-content: space-between; align-items: center; }
-  .upload-result .ur-head strong { color: var(--green); font-family: 'Oswald', sans-serif; font-size: 14px; letter-spacing: 1px; }
+  .upload-result .ur-head strong { color: var(--green); font-family: 'Open Sans', sans-serif; font-size: 14px; letter-spacing: 1px; }
   .upload-result .ur-clear { color: var(--red); cursor: pointer; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
   .upload-result .ur-clear:hover { text-decoration: underline; }
   .upload-result .ur-detail { margin-top: 6px; color: var(--muted); }
   .upload-err { background: #fef2f2; border: 1px solid #f5a0a3; border-radius: var(--r); padding: 12px 16px; margin-bottom: 16px; display: none; font-size: 13px; color: var(--red); }
+
+  /* footer */
+  .site-footer { text-align: center; padding: 0 24px 48px; }
+  .footer-logo { height: 64px; width: auto; opacity: 0.7; }
 </style>
 </head>
 <body>
@@ -181,17 +188,17 @@
 
 <header class="site-header">
   <div class="header-inner">
-    <div class="brand-row">
-      <div class="brand-divider"></div>
-      <div class="brand-text">
-        <div class="org">Tennessee Soccer Association</div>
-        <div class="prog">Tennessee Soccer Referee Program</div>
-      </div>
-    </div>
     <div class="hero">
-      <div class="event-pill">⚽ Spring State Cup 2026</div>
-      <h1>Referee <em>Nomination</em><br>Submission Form</h1>
-      <p>Complete one submission per district. Add all nominees before submitting.</p>
+      <img src="logo.webp" alt="Tennessee State Cup 2025–2026" class="hero-brand">
+      <div class="hero-divider"></div>
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="event-pill">⚽ Spring State Cup 2026</div>
+          <h1>Referee <em>Nomination</em><br>Submission Form</h1>
+          <p>Complete one submission per district. Add all nominees before submitting.</p>
+        </div>
+        <img src="TNRefLOGO.png" alt="Tennessee Soccer Referee Program" class="hero-logo">
+      </div>
     </div>
   </div>
   <div class="dates-row">
@@ -283,7 +290,7 @@
     <!-- Submit -->
     <div class="submit-zone">
       <button type="submit" class="sub-btn" id="sub-btn">Submit Nominations</button>
-      <p class="sub-note">Submissions are sent to State Cup Assignor Jess Erickson for review and game assignment.</p>
+      <p class="sub-note">Submissions are sent to the SRA, SYRA, and State Cup Assignor for review and game assignment.</p>
     </div>
 
     <div class="status ok" id="msg-ok">
@@ -298,6 +305,10 @@
 
   </form>
 </main>
+
+<footer class="site-footer">
+  <img src="TNRefLOGO.png" alt="Tennessee Soccer Referee Program" class="footer-logo">
+</footer>
 
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────

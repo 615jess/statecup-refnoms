@@ -26,10 +26,10 @@ Build a token-based referee confirmation system on top of the existing nominatio
   2. Submitting the existing nomination form writes data to columns A-Q without error and without touching R-Y
   3. Column S (Status) displays "Not Sent" for all existing nomination rows
   4. No existing column indices in the Apps Script have shifted (verified by inspecting a test nomination submission)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 01-01: Add columns R-Y to sheet with headers and verify nomination form integrity
+- [ ] 01-01-PLAN.md -- Write setup and verification scripts for confirmation columns R-Y, Status backfill, dropdown validation, and ConfirmationDeadline named range
 
 ### Phase 2: Apps Script Backend
 **Goal**: The Apps Script has working doGet and doPost endpoints — doGet returns referee JSON by token, doPost writes confirmation data to columns V-Y and updates status in column S — and existing nomination submissions are unaffected
@@ -78,7 +78,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Sheet Schema | 0/TBD | Not started | - |
+| 1. Sheet Schema | 0/1 | Planned | - |
 | 2. Apps Script Backend | 0/TBD | Not started | - |
 | 3. Confirmation Page | 0/TBD | Not started | - |
 | 4. Email Admin Page | 0/TBD | Not started | - |

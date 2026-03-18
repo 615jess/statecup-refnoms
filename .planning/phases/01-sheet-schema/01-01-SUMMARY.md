@@ -33,7 +33,7 @@ key-decisions:
   - "Deferred token pre-generation (column R) to Phase 2 — keeps Phase 1 scope clean"
   - "ConfirmationDeadline named range points to Z1; label written to AA1 so assignor knows which cell to fill"
   - "Conditional formatting included in setup (Not Sent=gray, Pending=yellow, Confirmed=green, Declined=red)"
-  - "Verification paused at checkpoint:human-verify — user must run scripts on test copy and approve before Phase 2"
+  - "User verified: all checks PASS on test sheet — ConfirmationDeadline label in AA1 is acceptable"
 
 patterns-established:
   - "Column index reference: R=18, S=19, T=20, U=21, V=22, W=23, X=24, Y=25, Z=26 (all 1-based for getRange)"
@@ -53,8 +53,8 @@ completed: 2026-03-18
 
 - **Duration:** ~20 min
 - **Started:** 2026-03-18T16:35:57Z
-- **Completed:** 2026-03-18T16:55:00Z (approx — paused at checkpoint)
-- **Tasks:** 1 of 2 complete (Task 2 is a human-verify checkpoint)
+- **Completed:** 2026-03-18T18:37:00Z
+- **Tasks:** 2 of 2 complete
 - **Files modified:** 2
 
 ## Accomplishments
@@ -70,7 +70,9 @@ Each task was committed atomically:
 
 1. **Task 1: Write setup and verification scripts for sheet schema changes** - `dd1eaaf` (feat)
 
-**Plan metadata:** pending (will be committed after checkpoint approval)
+2. **Task 2: Verify sheet structure via human checkpoint** — approved by user (human-verify gate)
+
+**Plan metadata:** committed after checkpoint approval
 
 ## Files Created/Modified
 
@@ -102,14 +104,19 @@ External service (Google Apps Script) requires manual execution. The user must:
 4. Submit a test nomination, then run `verifyNominationIntegrity`
 5. Confirm all checks PASS
 
-This is the subject of the Task 2 checkpoint.
+This is the subject of the Task 2 checkpoint — verified PASS by user.
+
+After Phase 1 is confirmed complete:
+1. Apply the same scripts to the production sheet
+2. Enter the tournament confirmation deadline date in cell Z1
 
 ## Next Phase Readiness
 
-- Scripts are written and committed — ready for user to run on test copy
-- **Blocked on:** User verification checkpoint (Task 2) — Phase 2 cannot begin until the assignor confirms the schema is applied correctly and the nomination form still writes to A-Q only
-- After checkpoint approval: Apply scripts to production sheet, then Phase 2 (Apps Script backend for token generation and confirmation handling) can begin
-- Phase 2 will need the column constants confirmed here: R=18(17), S=19(18), T=20(19), U=21(20), V=22(21), W=23(22), X=24(23), Y=25(24)
+- All verification checks confirmed PASS by user on test copy of sheet
+- Scripts are ready to apply to the production sheet
+- Phase 2 (Apps Script backend) can begin — column constants are confirmed
+- Phase 2 will use: R=18(17), S=19(18), T=20(19), U=21(20), V=22(21), W=23(22), X=24(23), Y=25(24)
+- User still needs to enter the actual tournament confirmation deadline date in cell Z1 on the production sheet
 
 ---
 *Phase: 01-sheet-schema*

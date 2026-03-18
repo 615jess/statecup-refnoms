@@ -40,6 +40,18 @@ DRAs can nominate referees and those referees can confirm their own availability
 - Dashboard for tracking confirmations — spreadsheet column is sufficient
 - Game assignment tool — this system handles nominations and confirmations only
 
+## Current Milestone: v1.0 Referee Confirmation System
+
+**Goal:** Enable referees to confirm their availability via token-based email links, giving the assignor accurate data for game assignments.
+
+**Target features:**
+- Confirmation emails triggered manually by assignor
+- Unique token-based confirmation links (no login required)
+- Pre-filled confirmation form showing nominee's current data
+- Referee can confirm/decline weekends, update hotel needs, add notes
+- Confirmation status tracked in Google Sheet
+- Assignor can close confirmations when ready
+
 ## Context
 
 - **Hosting:** GitHub Pages (static site). No server-side backend except Google Apps Script.
@@ -69,4 +81,4 @@ DRAs can nominate referees and those referees can confirm their own availability
 | Manual email trigger | Assignor wants control over when emails go out | — Pending |
 
 ---
-*Last updated: 2026-03-17 after initialization*
+*Last updated: 2026-03-17 after milestone v1.0 started*

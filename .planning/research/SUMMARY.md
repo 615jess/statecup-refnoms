@@ -1,19 +1,20 @@
 # Project Research Summary
 
-**Project:** State Cup Referee Nominations — Confirmation System (v1.0)
-**Domain:** Token-based email RSVP / availability confirmation, Google Apps Script + Sheets + GitHub Pages
-**Researched:** 2026-03-17
-**Confidence:** HIGH overall (well-established platform, existing codebase confirms patterns; one MEDIUM area: email quota numbers)
+**Project:** State Cup Referee Nominations — v2.0 Milestone
+**Domain:** Token-secured self-service detail collection (subsequent milestone on existing Apps Script + Sheets + GitHub Pages system)
+**Researched:** 2026-03-19
+**Confidence:** HIGH
+**Replaces:** v1.0 SUMMARY.md (2026-03-17) — that document remains in git history; this document covers v2.0 only
 
 ---
 
 ## Executive Summary
 
-This is a small-scale, single-cycle event confirmation system for approximately 50–100 soccer referees. The assignor sends personalized emails via Google Apps Script; each email contains a unique link that takes the referee to a pre-filled confirmation page on GitHub Pages. The referee reviews their availability for two tournament weekends, adjusts if needed, and submits. That response writes back to the existing Google Sheet. The entire system runs on infrastructure already in place — no new hosting, no external services, no backend beyond Apps Script.
+v2.0 is a focused pivot, not a rebuild. The existing stack (Apps Script, Google Sheets, GitHub Pages static HTML) is validated and stays. What changes is the workflow: DRAs stop providing 14 fields per referee and instead provide only name + email. The referee then provides all remaining details — age, gender, phone, availability, hotel needs, day-specific notes — via a token-secured form linked from a manually-sent Outlook email. All four research areas converge on the same conclusion: the existing column schema accommodates v2.0 without adding columns (referee writes to I–P which DRA used to own), and the architecture needs three new components (simplified DRA form, referee detail form, email admin page) plus two new Apps Script endpoint categories (doGet and an expanded doPost router).
 
-The recommended approach is fully additive to the existing codebase: one new static HTML file (`confirm.html`) on GitHub Pages, three new Apps Script functions (`doGet`, `sendConfirmationEmails`, `closeConfirmations`), one extended `doPost` route, and eight new columns (R–Y) appended to the existing nominations sheet. `Utilities.getUuid()` generates tokens; `MailApp` sends email with `htmlBody`. The confirmation page fetches pre-fill data on load via a GET request, then POSTs the referee's response. A custom Google Sheet menu gives the assignor control over when emails go out and when the confirmation window closes.
+The assignment of column-writer responsibility is the single most important decision before any code is written. Columns I–P currently have DRA-provided data written at nomination time; in v2.0, they will be blank at nomination time and filled by the referee later. Every downstream system — the Apps Script backend, the sheet schema validation, the assignor's column expectations — depends on this being correctly handled. The research is unambiguous: referee writes to existing I–P columns (Option A), token is generated at nomination time in doPost, and status vocabulary updates from Confirmed/Declined to Submitted/Pending/Not Sent. These three decisions must be locked in Phase 1 before any code is written.
 
-The highest-consequence risks are not technical — they are process and data-integrity concerns: adding columns in the wrong position would silently corrupt the existing nomination data; failing to wrap email sends in try/catch leaves the assignor with false confidence about which referees were notified; and regenerating tokens on re-send breaks links for referees who haven't yet confirmed. All three are prevention-by-design issues that must be addressed in the build plan, not discovered in production.
+The primary risks are operational, not architectural. The biggest hazard is writing a referee detail submission using `appendRow` instead of `findRowByToken` + `setValues`, which creates silent duplicate rows. The second hazard is the v1.0 column S data validation dropdown rejecting v2.0 status values — this produces a silent cell-level warning the assignor won't notice until they see orange triangles in the sheet. Both are straightforward to prevent with explicit test assertions. The mailto 2000-character limit and timezone boundary on deadline checking are secondary risks requiring care but not additional research.
 
 ---
 
@@ -21,165 +22,176 @@ The highest-consequence risks are not technical — they are process and data-in
 
 ### Recommended Stack
 
-The confirmation system requires no new infrastructure. Everything runs on the same stack as the existing nomination form. `MailApp` (not `GmailApp`) is the correct email service: it requires a narrower OAuth scope, avoids polluting the assignor's Sent folder, and fully supports `htmlBody` and `replyTo`. `Utilities.getUuid()` is the correct token generator: built-in, cryptographically random (122-bit UUID v4), URL-safe, and stored once per referee row.
+The v1.0 stack is fully retained. No new libraries, frameworks, or services are introduced. The only explicit removals are SheetJS (xlsx-0.20.3) from the DRA form — it solved bulk entry of 14 fields, but is unnecessary overhead for a 2-field form — and MailApp/GmailApp, which was never correct for an Outlook-based assignor.
 
-The confirmation page lives on GitHub Pages as a static HTML file mirroring the nomination form's structure. It communicates with the existing Apps Script via JSON-returning `ContentService` responses — the same CORS-compatible pattern already proven by the nomination form. No new Apps Script deployment URL is needed; the existing `/exec` URL handles both GET (new) and POST (extended) after a version redeploy.
+New capabilities added within the existing stack:
+
+- **PropertiesService** — stores tournament constants (assignor email, weekend dates, confirm page URL) outside the sheet; read by doGet on every referee form load
+- **doGet endpoint** — not implemented in v1.0; v2.0 requires it to return referee identity, prior submission data, deadline state, and tournament context in one response
+- **Two-tier deadline enforcement** — server-side check in doPost is authoritative; client-side disables inputs for UX only; the `disabled` attribute (not `readonly`) is correct for full lockdown
 
 **Core technologies:**
-- `MailApp.sendEmail()` with `htmlBody`: personalized HTML confirmation emails — narrower OAuth scope than GmailApp, no Sent folder pollution
-- `Utilities.getUuid()`: token generation — built-in, cryptographically random, URL-safe
-- `doGet(e)` + `ContentService.createTextOutput()`: token validation endpoint — returns referee JSON to pre-fill confirmation form
-- `doPost(e)` with `action` routing: extended nomination endpoint — adds `submitConfirmation` branch without touching existing nomination logic
-- `SpreadsheetApp.getUi().createMenu()`: assignor email trigger and close mechanism — no separate admin UI needed
-- `LockService.getScriptLock()`: concurrent write guard — one-liner precaution for simultaneous submissions
-- Template literal `htmlBody` with inline styles: email HTML — avoids HtmlService (wrong tool for email), no CSS classes (stripped by email clients)
+- `Utilities.getUuid()`: token generation — generated at nomination time in doPost, stored in column R as element 17 (0-based) of the `appendRow` array
+- `PropertiesService.getScriptProperties()`: tournament constants — ASSIGNOR_EMAIL, TOURNAMENT_YEAR, WEEKEND_1_DATES, WEEKEND_2_DATES, CONFIRM_PAGE_URL
+- `LockService.getScriptLock()`: concurrent write guard on submitDetails doPost — unchanged pattern from v1.0
+- `ss.getRangeByName('ConfirmationDeadline')`: deadline read — unchanged from v1.0 Phase 1 setup
+- `mailto:` links with `encodeURIComponent()`: email sending — stay under 1800 characters to reliably open Outlook on Windows (2000-char hard limit; 1800 is the safe threshold)
 
-**Versions / quotas to verify before build:**
-- MailApp daily quota: 100 (personal Gmail) vs 1,500 (Workspace). `tnsoccer.org` is likely Workspace — confirm before implementation. See: https://developers.google.com/apps-script/guides/services/quotas
+**What NOT to add:**
+
+| Do Not Add | Use Instead |
+|------------|-------------|
+| SheetJS (xlsx) | Remove entirely — 2-field form makes upload overhead unjustifiable |
+| MailApp / GmailApp | mailto links in admin page — assignor is on Microsoft 365/Outlook |
+| SpreadsheetApp.getUi().createMenu() | Admin HTML page with mailto links |
+| JWT or session tokens | Utilities.getUuid() token-in-URL |
+| External storage | Existing Google Sheet handles 50–100 rows trivially |
+
+See STACK.md for full detail and all version references.
 
 ### Expected Features
 
-The feature set is well-defined. The system has a hard boundary: table stakes that are non-negotiable, a set of low-complexity differentiators that should be included given how easy they are, and a clear anti-feature list to keep scope from expanding.
+**Must have — P1 (system does not work without these):**
+- Simplified DRA form: name + email per referee only; no other referee fields; SheetJS removed
+- Token-secured referee detail form: availability (W1/W2), hotel per weekend (conditional), age, gender, phone, day-specific limitations, notes
+- doGet returns referee name, any prior submission data for pre-fill, deadline state, tournament context
+- doPost submitDetails writes referee fields to columns I–P + V–Y; sets Status to Submitted; sets LateFlag (col X) if past deadline
+- Admin page: all nominees in a table with pre-composed mailto links for Outlook
+- Status lifecycle: Not Sent / Pending / Submitted — replaces v1.0 Confirmed/Declined vocabulary
+- Referee can re-open link and re-submit until deadline (upsert, not guard against re-submission)
+- Late submissions: accepted with LateFlag = "Y" in column X; referee sees inline notice
+- Success screen summarizing what was submitted; error state with assignor contact
 
-**Must have (table stakes — do not cut):**
-- UUID token per referee row, generated once and stored permanently
-- Personalized HTML confirmation email with name, tournament dates, and a single CTA link
-- Confirmation page: `doGet` token validation + pre-filled form (weekend availability, hotel, notes)
-- Independent confirm/decline per weekend (Weekend 1 and Weekend 2 are separate)
-- Hotel field per weekend, conditional on that weekend being confirmed
-- `doPost` writes referee's response to separate columns (V–Y), preserving DRA's original data (M–O)
-- Confirmation Status column (R–Y block): `Not Sent` / `Pending` / `Confirmed` / `Declined`
-- Success screen summarizing what was submitted; error state with assignor contact on failure
-- Mobile-responsive form: 16px+ body font, 44px+ touch targets, single-column at 560px breakpoint, no horizontal scroll at 320–428px
-- Idempotent re-submission: the GET returns current sheet data; re-submitting updates the same row, not inserts a new one
+**Should have — P2 (reduces support burden significantly):**
+- "Past deadline" inline notice banner rendered when doGet response indicates deadline passed
+- Closed-form hard-stop state (distinct from late-but-still-accepting)
+- Edit pre-fill for returning visitors (shows their own prior submission data)
+- Visual de-emphasis of Submitted rows on admin page
 
-**Should have (differentiators — all low complexity, include in v1.0):**
-- Personalized subject line including referee name
-- Email body listing the referee's specific nominated weekends (not generic "the tournament")
-- Success screen summary of exactly what was submitted (prevents "did you get it?" emails)
-- Assignor contact address in email body (not just From field)
-- "Confirmations closed" response when assignor has closed the window
-- `COUNTIF` summary formula in sheet for Confirmed / Pending / Declined running totals (zero code, just formula)
+**Nice to have — P3:**
+- COUNTIF summary formula area in sheet header
+- Admin page visual de-emphasis for already-submitted rows
 
-**Defer to v2+ or never build (anti-features):**
-- Automated reminder emails / scheduled re-sends
+**Explicitly out of scope — do not build:**
+- Automated email sending on nomination submit
+- Automated reminder emails
 - Separate tracking dashboard outside the sheet
-- Login / authentication for referees
-- Full withdrawal / opt-out flow (phone call between referee and DRA is the correct channel)
-- Referee profile history across tournament years
-- Email open / click tracking (requires external service)
-- In-email one-click confirmation (email client prefetch breaks GET-with-side-effects)
-- SMS / push notifications
+- Full referee withdrawal self-service
+- In-email one-click submission
+- Login or OAuth
+- Persistent referee profile across tournament years
+
+See FEATURES.md for the full prioritization matrix and anti-features list.
 
 ### Architecture Approach
 
-The architecture is strictly additive to the existing system. The confirmation page (`confirm.html`) lives on GitHub Pages alongside the nomination form. It loads referee data via a GET to the existing Apps Script endpoint (new `doGet` function), renders a pre-filled form in one of four page states (loading / form / already-confirmed / error), and POSTs the referee's response back. The Apps Script routes requests by `action` parameter — existing nomination submissions continue unchanged. All confirmation data lands in new columns R–Y appended to the right of the existing 17-column sheet, preserving every existing column reference.
+Three GitHub Pages static HTML files call a single Apps Script `/exec` endpoint using action-based routing in doGet and doPost. All state lives in the existing Google Sheet. No new columns are needed: referee detail data writes to existing columns I–P (writer changes from DRA form to referee detail form; column positions do not change), and column X is repurposed from RefHotel to LateFlag.
+
+**System diagram (abbreviated):**
+
+```
+spring-state-cup-nomination.html  →  POST action=nominateV2  →  doPost: append row A-H+Q+R(token); I-P blank
+email-admin.html                  →  GET  action=getAllNominees  →  doGet: return all rows as JSON
+referee-details.html              →  GET  action=getDetails   →  doGet: return referee data + context
+                                  →  POST action=submitDetails →  doPost: write I-P, V-W, U, X, Y; S=Submitted
+                                                                     ↓
+                                                              Google Sheet
+                                                              A-H, Q: DRA-provided
+                                                              I-P: referee-provided (blank at nomination)
+                                                              R: Token
+                                                              S: Status
+                                                              U: SubmittedAt
+                                                              V-W: RefWeekend1/2
+                                                              X: LateFlag
+                                                              Y: RefNotes
+                                                              Z1: ConfirmationDeadline (named range)
+```
 
 **Major components:**
 
-1. `confirm.html` (GitHub Pages) — referee-facing page; manages 5 UI states; reads token from URL; GET on load, POST on submit; mirrors nomination form's CSS
-2. `doGet(e)` in Apps Script — receives `action=getConfirmation&token=...`; scans column R for token; returns referee JSON or error; enables CORS automatically via ContentService
-3. `doPost(e)` extended in Apps Script — adds `action=submitConfirmation` branch; validates token; writes referee response to columns V–Y; updates status in column S; existing nomination branch untouched
-4. `sendConfirmationEmails()` + `onOpen()` menu in Apps Script — assignor-facing trigger; scans for rows with email but no token; generates UUID, writes to col R, sets col S to Pending, sends `MailApp` email; wrapped in try/catch per row; reports results via `getUi().alert()`
-5. `closeConfirmations()` in Apps Script — sets remaining Pending rows to "Closed — No Response"; reachable via Sheet menu
-6. Google Sheet columns R–Y — confirmation token, status, timestamps, referee's confirmed availability/hotel/notes (separate from DRA's original data)
+1. **Simplified DRA nomination form** — DRA submits name + email per referee; nominateV2 appends row with A-H and Q filled, I-P blank, token in R
+2. **Referee detail form** (`referee-details.html`) — token-secured; six UI states: loading, form normal, form with late-notice banner, read-only (post-deadline + already submitted), error, success
+3. **Email admin page** (`email-admin.html`) — assignor-facing; loads all nominees via getAllNominees; renders status table with pre-composed mailto links; no write capability
+4. **Apps Script doGet** (new) — routes `getDetails` and `getAllNominees`
+5. **Apps Script doPost nominateV2** (new branch) — email deduplication, token generated at nomination time, append or update row
+6. **Apps Script doPost submitDetails** (new branch) — token lookup, deadline check, field writes, status transition
 
-**Key patterns:**
-- Action-based routing in `doGet`/`doPost` (Apps Script has no path routing)
-- Batch `getValues()` for token lookup — one API call regardless of sheet size; never call `.getValue()` per row in a loop
-- Idempotent writes — check existing status before writing; return success if already confirmed
-- Inline styles only in email HTML — no `<style>` blocks, no CSS variables, no Flexbox/Grid
-- Append-only column additions — never insert before existing columns
+**Key patterns to follow:**
+- Action-based routing: dispatcher is thin; each action delegates to a named handler function
+- Batch read: `getDataRange().getValues()` once per request; never `.getValue()` per row in a loop
+- Token reuse: `findRowByEmail()` before generating — if row exists, preserve existing token in col R
+- Deadline check: `ss.getRangeByName('ConfirmationDeadline').getValue()` — compare date-only (not raw Date objects) to avoid timezone false positives
+
+**Build order is determined by dependencies (cannot be reordered):**
+1. Schema update → 2. DRA form + nominateV2 → 3. getDetails + submitDetails → 4. getAllNominees → 5. referee-details.html → 6. email-admin.html
+
+See ARCHITECTURE.md for complete data flow diagrams and all pattern implementations.
 
 ### Critical Pitfalls
 
-1. **Sheet column insertion breaks existing nomination script** — Adding new columns anywhere but the right end shifts all existing column indices, causing silent data corruption in nomination submissions. Prevention: append columns R–Y after the existing 17 columns; verify the nomination form still works after adding them; freeze the sheet schema before writing any code.
+1. **Status dropdown rejects v2.0 values before any backend code runs** — Phase 1 locked column S to Not Sent / Pending / Confirmed / Declined. Writing "Submitted" triggers a silent cell-level warning, not an Apps Script exception — the write succeeds but the cell shows an orange triangle the assignor may not notice for days. Update the data validation rule to v2.0 values before any backend code is written. (PITFALLS.md Pitfall 8)
 
-2. **Apps Script deployment versioning** — Code changes do not go live on the `/exec` URL until a new deployment is explicitly created. Testing on `/dev` and forgetting to redeploy is the single most common Apps Script debugging trap. Prevention: always create a new deployment after changes; test against the `/exec` URL, not `/dev`; document the current deployment ID.
+2. **Referee detail submission uses appendRow instead of row update** — the codebase pattern throughout v1.0 is `appendRow`; the submitDetails handler must never call it. Always `findRowByToken()` + `sheet.getRange(row, col).setValue()`. Verify by asserting `sheet.getLastRow()` stays constant before and after a detail submission. Silent failure: duplicate orphaned rows. (PITFALLS.md Pitfall 3)
 
-3. **Token regeneration on re-send invalidates existing links** — If the email-send function regenerates tokens for rows that already have one, referees who received the first email but haven't confirmed yet have broken links. Prevention: check if column R is already populated before generating; only generate if empty: `const token = existingToken || Utilities.getUuid();`
+3. **Re-nomination via simplified DRA form overwrites referee-submitted I–P data** — the new DRA form must not include I–P fields at all, not submit them as empty strings. An empty-string write from a re-nomination silently overwrites the referee's previously-submitted phone, age, and availability. nominateV2 must write only A-H and Q. (PITFALLS.md Pitfall 1 + ARCHITECTURE.md Anti-Pattern 1)
 
-4. **Partial email batch send with no error reporting** — If `MailApp` throws mid-loop (quota exceeded, bad address), a naive loop aborts silently and leaves some rows in an unknown state. Prevention: wrap each `MailApp.sendEmail()` in try/catch; collect failures; report both sent and failed counts to assignor via `getUi().alert()`.
+4. **Token missing from appendRow array at nomination time** — if token generation is deferred (old v1.0 approach), admin page mailto links will contain `?token=` with no value. The token must be element 17 (0-based) of the appendRow call: array is 18 elements for columns A through R. (PITFALLS.md Pitfall 5)
 
-5. **Email HTML rendered broken** — Gmail and Outlook strip `<style>` blocks and CSS variables. Email built with `var(--navy)` or `class="header"` will arrive with no color or layout. Prevention: inline styles only, literal hex values, no CSS classes in email HTML. The email template in STACK.md follows this correctly.
+5. **Deadline timezone mismatch flags on-time referees as late** — Apps Script `new Date()` is UTC; the assignor thinks in CDT. Compare date-only (year/month/day) rather than raw Date objects to prevent midnight boundary false positives. (PITFALLS.md Pitfall 7)
 
-6. **CORS on GET requests** — Apps Script's `ContentService` automatically adds `Access-Control-Allow-Origin: *` for JSON responses, but this must be verified empirically from the GitHub Pages domain. Do not assume it works — test the GET endpoint from the actual confirmation page in a browser before moving to POST implementation.
+6. **Duplicate email in same DRA batch creates two rows for one referee** — the deduplication check scans the sheet for existing emails, but when processing a batch, row 1 may not be written yet when row 2 (same email) is checked. Also check the in-memory batch payload for duplicates before scanning the sheet. (PITFALLS.md Pitfall 4)
 
 ---
 
 ## Implications for Roadmap
 
-Research establishes a clear dependency chain. The sheet must exist before the script can write to it; the script endpoints must be deployed before the confirmation page can be tested end-to-end; the confirmation page URL must be finalized before emails can be sent (because the URL is embedded in the email body). This dictates build order.
+The dependency chain is strict and was validated by all four research files independently. The schema gate comes first; every subsequent phase depends on stable column indices and correct data validation rules.
 
-### Phase 1: Sheet Schema and Data Foundation
+### Phase 1: v2.0 Schema Update
+**Rationale:** Every other phase writes to the sheet. Column S data validation rejects v2.0 status values; column X purpose changes; the vocabulary change from Confirmed/Declined to Submitted is a prerequisite for any backend code. This phase costs almost nothing to do first and is catastrophic to skip.
+**Delivers:** Updated column S dropdown (Not Sent / Pending / Submitted), column X header renamed to LateFlag, confirmed column mapping document for all downstream phases.
+**Addresses:** Status vocabulary alignment (Pitfall 8); schema foundation for all referee-provided columns I-P.
+**Avoids:** Silent data validation failures; status semantics confusion in downstream phases.
+**Research flag:** Standard — direct update to existing setup scripts; no new platform APIs.
 
-**Rationale:** The Google Sheet is the prerequisite for everything else. No code can be written or tested without the columns in place. This is also the highest-consequence change to get wrong — wrong column placement silently breaks existing nomination submissions. Do it first, verify nominations still work, then freeze the schema.
+### Phase 2: Simplified DRA Nomination Form + nominateV2 Endpoint
+**Rationale:** DRA nominations are the entry point for all data. Nothing else can be tested until nomination rows exist with tokens. This phase is also the safest to build independently — it modifies the DRA form but does not touch the referee or admin pages.
+**Delivers:** Simplified DRA form (name + email per referee); doPost nominateV2 handler with email deduplication and token generation at append time; 18-element appendRow array with token in position 17; verified sheet rows after test submission.
+**Addresses:** Simplified DRA form (P1 table stake); token generated at nomination time (Pitfall 5); email deduplication within batch (Pitfall 4); SheetJS removal.
+**Avoids:** appendRow length mismatch (must send 18 elements: A-R, not just name+email); DRA accidentally sending empty strings for I-P that would overwrite future referee submissions (Anti-Pattern 1).
+**Research flag:** Standard — all patterns established; no new research needed.
 
-**Delivers:** Confirmed column layout R–Y; verified nominations still write correctly; column constants for the Apps Script (`TOKEN_COL = 18`, etc.)
+### Phase 3: Referee Detail Form + doGet/doPost Backend
+**Rationale:** The referee form is the core of v2.0. It requires two Apps Script endpoints (getDetails, submitDetails) and the new HTML page. This phase has the highest integration surface: token lookup, deadline check, field writes, status update, late flag, pre-fill, six UI states. Build and test endpoints before building the HTML page.
+**Delivers:** doGet getDetails endpoint; doPost submitDetails endpoint; `referee-details.html` with all six UI states; verified end-to-end flow from token link to submitted data in sheet.
+**Addresses:** All P1 table stakes — token-secured form, all referee detail fields, doGet returns prior submission, doPost writes to correct columns, status transitions, late submission flag, success and error states, mobile-responsive layout (reuse nomination form CSS).
+**Avoids:** appendRow in submitDetails (Pitfall 3 — must use row update, not append); blocking re-submission before deadline (Anti-Pattern 4); client-side-only required field validation (server-side validation required for availability and age, Pitfall 6); token URL containing PII beyond the UUID.
+**Research flag:** Needs careful integration testing. Use the PITFALLS.md "looks done but isn't" checklist (7 items) as the acceptance criteria gate before declaring phase complete.
 
-**Addresses:** "Confirmation Token", "Confirmation Status", timestamps, referee response columns (from FEATURES.md table stakes)
-
-**Avoids:** Pitfall — sheet column insertion breaking existing script; Pitfall — script referencing wrong column indices
-
-### Phase 2: Apps Script Backend (doGet + doPost + LockService)
-
-**Rationale:** The two Apps Script endpoints are the backbone of the system and can be built and unit-tested before the confirmation HTML page exists. Test `doGet` by hitting the `/exec?action=getConfirmation&token=TEST` URL directly in a browser. Test `doPost submitConfirmation` by POSTing a manually crafted payload with a token written directly into the sheet.
-
-**Delivers:** Working `doGet` returning referee JSON by token; working `doPost submitConfirmation` writing to columns V–Y and updating column S; `LockService` guard on writes; action-based routing that leaves existing nomination handling untouched
-
-**Uses:** `Utilities.getUuid()`, `ContentService.createTextOutput()`, `LockService.getScriptLock()`, batch `getValues()` for token lookup
-
-**Implements:** Components 2 and 3 from the architecture
-
-**Avoids:** Pitfall — doGet/doPost confusion; Pitfall — broken nomination flow after changes; Pitfall — race conditions on concurrent writes
-
-### Phase 3: Confirmation Page (confirm.html on GitHub Pages)
-
-**Rationale:** Built after the Apps Script endpoints are verified working. The page depends on both `doGet` (for pre-fill) and `doPost` (for submission). Building it third means the backend is stable and the frontend is the variable being tested, not both simultaneously.
-
-**Delivers:** `confirm.html` with all 5 UI states (loading, form, already-confirmed, error, success); pre-filled weekend availability and hotel fields; notes textarea; mobile-responsive layout matching nomination form; success screen summarizing what was submitted
-
-**Addresses:** All UX table stakes from FEATURES.md; mobile requirements; idempotent re-submission; "closed" response state; success/error feedback
-
-**Avoids:** Pitfall — mobile tap targets; Pitfall — loading state gap on cold-start Apps Script; Pitfall — CORS on GET (verify empirically here)
-
-### Phase 4: Email Sending and Assignor Controls
-
-**Rationale:** Email sending is last because the confirmation page URL must be finalized before it can be embedded in email bodies. This phase finalizes the assignor-facing workflow: the custom Sheet menu, the email batch function, error reporting, and the close-confirmations mechanism.
-
-**Delivers:** `sendConfirmationEmails()` with per-row try/catch and count reporting; `closeConfirmations()` for end-of-window cleanup; `onOpen()` menu with both actions; HTML email template with inline styles, referee name, nominated weekends, and confirmation CTA; `replyTo` / `name` set for deliverability
-
-**Uses:** `MailApp.sendEmail()` with `htmlBody`, `name`, `replyTo`; `SpreadsheetApp.getUi().createMenu()`; "confirmations closed" flag in script properties or sheet cell
-
-**Avoids:** Pitfall — partial batch send with no error reporting; Pitfall — token regeneration on re-send; Pitfall — email HTML broken in Gmail/Outlook; Pitfall — emails counted against wrong Google account
-
-### Phase 5: Hardening, Testing, and Deployment Checklist
-
-**Rationale:** All components exist and are wired. This phase validates the full end-to-end flow, confirms deployment is on the correct Google account, verifies the assignor can authorize new OAuth scopes, and produces the deployment checklist.
-
-**Delivers:** End-to-end test with real email addresses; confirmed MailApp quota account type (personal vs Workspace); assignor re-authorization completed; `COUNTIF` summary formulas added to sheet; `SETUP-INSTRUCTIONS.txt` updated with new columns and menu
-
-**Avoids:** Pitfall — script runs under developer account quota instead of assignor's; Pitfall — re-authorization not planned for; Pitfall — assignor has no documentation for new menu
+### Phase 4: Email Admin Page + getAllNominees Endpoint
+**Rationale:** Admin page depends on referee form URL being finalized — it embeds that URL in every mailto link body. doGet getAllNominees is a read-only batch operation, simpler than Phase 3 endpoints. This phase must come last in the sequence for this reason.
+**Delivers:** `email-admin.html` with nominee table, status display, and pre-composed Outlook mailto links; doGet getAllNominees endpoint; P3 features (visual de-emphasis for Submitted rows, COUNTIF formulas) can be added here at minimal cost.
+**Addresses:** Admin page with mailto links (P1 table stake for assignor workflow); status visibility per nominee.
+**Avoids:** Writing column T (SentAt) automatically — server never sends email, T cannot be auto-timestamped (Anti-Pattern 3); mailto URL body exceeding 1800 characters (STACK.md Section 5); getAllNominees returning tokens is acceptable per PROJECT.md security posture, but admin page URL must remain unlisted.
+**Research flag:** Standard — mailto link construction and Outlook length limit are fully documented in STACK.md with code examples.
 
 ### Phase Ordering Rationale
 
-- Sheet schema first because it is the single shared mutable resource; getting it wrong is the only change that could corrupt existing production data
-- Apps Script backend second because endpoints can be tested independently without a browser; catching logic errors early is cheaper than finding them while debugging the HTML page
-- Confirmation page third because it has no logic of its own — it delegates entirely to the two verified endpoints
-- Email sending fourth because it embeds the confirmation page URL and represents the point of no return (once referees receive emails, tokens are live)
-- Hardening fifth because it validates the complete system against real conditions, not simulated ones
+- Schema update must precede all other phases because column S data validation will silently corrupt status writes from any phase that runs against an unupdated schema.
+- Simplified DRA form (Phase 2) can be built and tested in isolation before referee or admin pages exist; it produces the rows the other phases need for end-to-end testing.
+- Referee form (Phase 3) requires working nominateV2 rows to test against but does not depend on the admin page existing.
+- Admin page (Phase 4) must come last because its mailto links embed the referee form URL, which isn't finalized until Phase 3 is deployed.
+- Token generation at nomination time (Phase 2) makes the admin page a pure read operation — no write-at-admin-load complexity, no race conditions.
 
 ### Research Flags
 
-Phases with standard, well-documented patterns (research-phase not needed):
-- **Phase 1 (Sheet Schema):** Pure spreadsheet column additions; no novel patterns
-- **Phase 2 (Apps Script Backend):** All patterns are documented in STACK.md and ARCHITECTURE.md with code examples
-- **Phase 3 (Confirmation Page):** HTML/CSS/JS pattern identical to existing nomination form; no new techniques
-- **Phase 5 (Hardening):** Checklist and testing, not implementation
+Phases needing deeper review during planning:
+- **Phase 3 (Referee Detail Form):** The six UI states, the "late submission" vs "past deadline — closed" distinction, and the server-side required-field validation are the most nuanced behaviors in v2.0. The phase plan should include explicit test assertions from PITFALLS.md as acceptance criteria, not just feature descriptions.
 
-Phases where one specific item warrants verification during build (not full research-phase, but a deliberate test-first step):
-- **Phase 3 — CORS on GET:** Do not assume `ContentService` GET responses include CORS headers. Open the `doGet` endpoint URL in a browser from the GitHub Pages domain and verify in DevTools before building the fetch call. This is a test, not research.
-- **Phase 4 — Account quota:** Confirm whether `tnsoccer.org` is Google Workspace before sending any batch. If personal Gmail, the 100/day quota is a real constraint. One-minute check; not a research project.
+Phases with standard patterns (skip research-phase):
+- **Phase 1 (Schema Update):** Direct update to existing setup scripts; confirmed column indices; no new platform APIs.
+- **Phase 2 (DRA Form):** Simplified version of already-working nomination form; removal is lower risk than addition.
+- **Phase 4 (Admin Page):** Read-only data fetch + mailto link construction; fully documented patterns.
 
 ---
 
@@ -187,44 +199,45 @@ Phases where one specific item warrants verification during build (not full rese
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All recommended APIs (MailApp, Utilities.getUuid, doGet/doPost, ContentService) are core Apps Script features stable since 2015; patterns confirmed by existing working nomination form |
-| Features | HIGH | Table stakes derived directly from system requirements in PROJECT.md; confirmation system patterns are well-established in email-RSVP domain |
-| Architecture | HIGH | Additive-only approach confirmed by reading existing codebase; action-based routing and column-append strategy are standard Apps Script patterns; CORS behavior confirmed by existing nomination form |
-| Pitfalls | HIGH | Apps Script deployment versioning, MailApp batch behavior, and email HTML client compatibility are well-documented platform characteristics; column index fragility is a known Apps Script anti-pattern |
+| Stack | HIGH | All decisions derived from existing working codebase or official Apps Script docs; MEDIUM item is the ~2000-char mailto limit (community-reported, consistent across sources, not in official Microsoft docs) |
+| Features | HIGH | Requirements from PROJECT.md; feature boundaries are explicit; MEDIUM item is final schema option A vs B — resolved by ARCHITECTURE.md recommendation (Option A) |
+| Architecture | HIGH | Based on direct codebase inspection; all column indices verified; no new platform APIs; CORS behavior already confirmed by v1.0 nomination form working cross-origin from GitHub Pages |
+| Pitfalls | HIGH | 8 critical pitfalls with specific column indices, Apps Script behavior, and test assertions; derived from codebase inspection + platform behavior documentation |
 
-**Overall confidence:** HIGH
+**Overall confidence: HIGH**
 
 ### Gaps to Address
 
-- **Email quota — account type:** MEDIUM confidence on the 100 vs 1,500 threshold. Verify `tnsoccer.org` account type before Phase 4. If personal Gmail, design the batch send to handle partial completion gracefully (it should anyway per the pitfall prevention, but the quota constraint affects how urgently that matters).
+- **Status vocabulary: "Submitted" vs "Completed"** — ARCHITECTURE.md and PITFALLS.md use "Completed" while FEATURES.md uses "Submitted." These are used interchangeably across the research files. Pick one before Phase 1 writes the data validation rule. This is a 30-second decision; it must happen before any code runs.
 
-- **CORS on doGet:** Apps Script documentation states ContentService responses include CORS headers for public deployments, but this must be verified empirically from the GitHub Pages domain. Address in Phase 3 before writing the fetch call.
+- **Schema option A confirmation with assignor** — Research recommends Option A (referee writes to I–P) with HIGH confidence. Phase 1 planning should confirm the assignor accepts that columns formerly associated with DRA data will now contain referee-provided data. No code risk — just an expectation-setting conversation.
 
-- **Column constants — exact indices:** The sheet currently has 17 columns (A–Q). New columns start at R (index 17, 0-based). These indices must be verified against the actual sheet before writing any Apps Script column references. Minor; verify during Phase 1.
+- **SentAt column T** — In v2.0 the server never sends email, so T cannot be auto-written. Leave blank, or provide an optional "mark as sent" button on the admin page. ARCHITECTURE.md identifies the gap; Phase 4 planning must resolve it before building the admin page.
 
-- **GitHub Pages URL for confirmation links:** The exact URL (`https://[org].github.io/StateCup_RefNoms/confirm.html`) depends on whether the repository is under a user or organization account. Confirm before Phase 4 (email sending embeds this URL).
+- **Spreadsheet upload on simplified DRA form** — ARCHITECTURE.md recommends retaining it with a 4-column template (name, last name, email, DRA notes); FEATURES.md marks it as an anti-feature given only 2-3 fields. This is a scope decision for Phase 2 planning; not a research gap.
 
-- **"Confirmations closed" flag mechanism:** Research recommends a sheet cell or Script Property for the closed flag. The exact implementation (cell in a "Config" row, named Script Property, etc.) should be decided before Phase 2 so the `doGet` and `doPost` handlers can check it consistently.
+- **"Truly closed" vs "late-but-accepting" states** — Research documents both concepts but the exact trigger for the hard-close state (a second Script Property? a separate named range?) is not specified. Phase 3 planning should define this before building the referee form's read-only state.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-
-- Apps Script platform training knowledge (cutoff August 2025) — MailApp, GmailApp, Utilities.getUuid, doGet/doPost, ContentService, LockService, SpreadsheetApp UI menu, HtmlService
-- Existing project codebase (`spring-state-cup-nomination.html`, Apps Script deployment) — confirmed CORS behavior, doPost pattern, sheet column structure, CSS variables and color palette
-- Project requirements (`PROJECT.md`) — confirmed scale (~50–100 referees), assignor workflow, infrastructure constraints
+- Existing codebase: `spring-state-cup-nomination.html` — confirmed TEMPLATE_HEADERS array, appendRow structure, SheetJS version, CSS variables
+- Existing codebase: `scripts/setup-confirmation-columns.gs` — confirmed v1.0 status values in requireValueInList(), column indices R=18, S=19 (1-based)
+- `.planning/phases/01-sheet-schema/01-01-SUMMARY.md` — confirmed Phase 1 decisions: ConfirmationDeadline named range at Z1, column S conditional formatting, four-value dropdown
+- `PROJECT.md` — v2.0 workflow decisions: token reuse, late submissions with flag, referee edits until deadline, mailto via Outlook, security posture
+- [Properties Service Guide — Google for Developers](https://developers.google.com/apps-script/guides/properties) — PropertiesService scoping and usage
+- [Class PropertiesService — Google for Developers](https://developers.google.com/apps-script/reference/properties/properties-service) — API reference
+- [Lock Service — Google for Developers](https://developers.google.com/apps-script/reference/lock) — LockService.getScriptLock()
+- [Named Range — Google for Developers](https://developers.google.com/apps-script/reference/spreadsheet/named-range) — getRangeByName() behavior
+- [HTML readonly attribute — MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/readonly) — disabled vs readonly behavior
 
 ### Secondary (MEDIUM confidence)
-
-- Apps Script quota documentation (training knowledge, not live-verified): 100 emails/day (personal Gmail), 1,500 emails/day (Workspace) — verify at https://developers.google.com/apps-script/guides/services/quotas before implementation
-
-### Tertiary (not applicable)
-
-No external web sources were available during research (WebSearch/WebFetch unavailable in this session). All findings are from training knowledge and direct codebase inspection. For a project of this complexity and maturity on a stable platform, this does not create meaningful gaps.
+- [Mailto links guide — mailslurp.com](https://www.mailslurp.com/blog/mailto-links-explained/) — URL encoding requirements; cross-verified with MDN URL encoding spec
+- [mailto character limit — geeklog.adamwilson.info](https://geeklog.adamwilson.info/article/96/There-is-a-maximum-length-on-mailto-links-on-windows) — ~2000-char Windows/Outlook limit; consistent across community sources, absent from official Microsoft docs
 
 ---
 
-*Research completed: 2026-03-17*
+*Research completed: 2026-03-19*
 *Ready for roadmap: yes*

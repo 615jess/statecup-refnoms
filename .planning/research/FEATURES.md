@@ -1,219 +1,250 @@
-# Features Research: Referee Confirmation System
+# Feature Research: v2.0 Referee Detail Collection
 
-**Domain:** Email-based RSVP / availability confirmation for a small-scale sports event
+**Domain:** Token-secured self-service detail collection form for sports event nominees
 **Project:** State Cup Referee Nominations — Tennessee Soccer
-**Researched:** 2026-03-17
-**Confidence:** HIGH for confirmation system patterns (well-established domain); MEDIUM for Google Apps Script specifics where not verified via Context7
+**Researched:** 2026-03-19
+**Confidence:** HIGH — patterns are well-established; all key behaviors derived from project constraints, existing codebase, and standard form UX practice
 
 ---
 
-## Context: What We Are Building
+## Context: What Has Changed in v2.0
 
-A referee receives an email, clicks a link, lands on a pre-filled web page, confirms or adjusts their availability for two tournament weekends, and submits. That response writes back to the assignor's Google Sheet.
+The v1.0 system (DRA provides all details, referee confirms them) is being replaced by a v2.0 system where:
 
-- ~50–100 referees receiving one confirmation email each
-- 1 assignor triggering emails and tracking responses
-- No login — token-in-URL is the identity mechanism
-- Backend: Google Apps Script only (no server-side rendering, no external services)
-- Frontend: static HTML on GitHub Pages
+- **DRA nominates with minimal effort:** Name + email only. No longer provides phone, age, availability, hotel, max ages, day-specific limitations, or DRA notes about the referee.
+- **Referee provides own details:** Receives a token-secured link, fills a comprehensive form covering all the fields the DRA used to enter — plus a new gender field.
+- **Assignor sends emails manually:** Opens an admin page, clicks mailto links to pre-compose Outlook emails for each nominee.
 
-Understanding what "good" looks like in this domain requires separating what makes the system function (table stakes) from what makes it noticeably better than a plain email asking referees to reply (differentiators), and what to deliberately avoid so scope stays under control (anti-features).
+This pivot changes the feature surface substantially. The v1.0 FEATURES.md covered a confirmation form (pre-filled, referee adjusts). The v2.0 form is a **first-time detail submission form** that happens to be personalized via token, not a confirmation of previously-entered data.
+
+**Existing assets that carry forward (already built):**
+- DRA nomination form HTML (will be simplified — scope of this milestone)
+- Apps Script doPost writing nominations to Google Sheet columns A-Q
+- Sheet columns R-Y appended (Token, Status, SentAt, ConfirmedAt, RefWeekend1, RefWeekend2, RefHotel, RefNotes)
+
+**Critical v2.0 schema question surfaced by this pivot:**
+The current sheet stores DRA-provided details in columns A-Q. In v2.0, those columns (phone, age, max ages, availability, hotel, day notes) will be empty when the DRA nominates. The referee provides those values later via the detail form. The research question: do referee-submitted values overwrite the DRA columns (A-Q), or go in separate referee columns?
+
+**Recommendation (HIGH confidence):** Referee data should overwrite the same semantic columns (or write to purpose-specific columns clearly labeled "Ref*"), not shadow DRA columns with a second set. The DRA no longer provides most fields, so there is no "DRA original" to preserve for those columns. The simpler architecture is: DRA writes first+last name and email → referee completes the same row in-place with all the remaining fields. This keeps the sheet flat and the assignor's view simple. Confirmed alignment: the existing RefWeekend1, RefWeekend2, RefHotel, RefNotes columns in R-Y are named with "Ref" prefix — this naming convention should extend to all referee-provided fields. See Feature Dependencies and Anti-Features sections for column-overwrite discussion.
 
 ---
 
 ## Table Stakes
 
-Features the confirmation system cannot function without. Absent any of these, the referee either cannot complete the task, or the assignor gets unreliable data.
+Features the v2.0 system cannot function without. Missing any of these means either the referee cannot complete the task, the assignor gets incomplete data, or the system cannot distinguish who is submitting what.
 
 | Feature | Why Expected | Complexity | Notes / Dependencies |
 |---------|--------------|------------|----------------------|
-| Unique token per referee in the confirmation URL | Identifies who is responding without requiring a login. Without this, responses cannot be attributed to individuals. | Low — Apps Script generates a UUID, stores it in the sheet row, appends it to the link | Token must be stored in the sheet before emails are sent |
-| Confirmation email with referee name and clear CTA | Referee must know the email is for them and what action to take. Generic emails get ignored or generate "which one is me?" replies to the assignor. | Low — MailApp template with basic personalization | Requires referee email address in sheet |
-| Pre-filled confirmation form showing current nomination data | Referees should not have to re-enter data already submitted by their DRA. Pre-filling reduces friction and errors. If the form is blank, referees guess or skip fields. | Medium — confirmation page fetches data via GET + token, then populates fields | Depends on GET endpoint in Apps Script returning referee row by token |
-| Ability to confirm or decline each nominated weekend independently | The core action. Weekend 1 and Weekend 2 are separate events; a referee may be available for one but not the other. The form must reflect this granularity. | Low — two checkboxes or radio groups, same pattern as nomination form | Must match the availability model already in the sheet |
-| Ability to update hotel needs per weekend | Hotel accommodation is tracked per weekend in the existing sheet. If a referee's hotel need changes after nomination, the confirmation is the right place to update it. | Low — same hotel checkbox pattern from nomination form, shown conditionally per weekend | Mirrors existing nomination form hotel UI |
-| Ability to add free-text notes to the assignor | Referees often have constraints that don't fit structured fields: "I can work Saturday but must leave by 3pm," "I'll be driving from Knoxville and might arrive late." A notes field captures this without requiring additional fields. | Low — single textarea | No dependency |
-| Confirmation submission writes back to Google Sheet | The entire purpose of the system. If responses don't reach the sheet, the assignor is managing confirmation status manually via email thread. | Medium — POST to Apps Script endpoint that updates the existing referee row by token | Requires the Apps Script to find the row by token and update specific columns |
-| Confirmation status column visible to assignor | Assignor needs to know who has responded, who is pending, and who declined — at a glance, in the sheet they already work in. | Low — Apps Script writes a status value (Pending / Confirmed / Declined / Partial) when emails are sent and when confirmations arrive | Status is a sheet column alongside existing data |
-| Success/failure feedback after submission | Referees must know whether their confirmation was received. Without this, they'll email the assignor asking "did you get my response?" | Low — success screen after POST completes, error message with retry if POST fails | Standard pattern from existing nomination form |
-| Mobile-friendly confirmation page | The majority of referees will open the email on a phone. If the page is not usable on mobile, confirmation rates drop and the assignor receives confused replies. | Medium — requires touch-friendly form controls, readable font sizes without zooming, single-column layout on small screens | Existing nomination form already has mobile CSS patterns to reuse |
-| Link expiry or idempotent re-submission | A referee clicking the link a second time to check what they submitted should not create a duplicate or overwrite a confirmed status with blank data. The form should load their most recent confirmed data (not a blank form). | Medium — Apps Script GET returns current sheet data; form pre-fills with it; re-submission updates same row | Token-based row lookup naturally handles this |
+| Token-secured personal link — no login required | Each nominee receives a unique URL. Without this, there's no way to know who is submitting the form, and the form would be open to anyone. Token-in-URL is the established no-login identity pattern. | LOW — UUID generated by Apps Script, stored in sheet, appended to URL | Token must exist in sheet before email is sent (Phase 2 prerequisite) |
+| Simplified DRA nomination form (name + email only) | DRAs only provide what they know: referee's name and email. All other fields are deferred to the referee. Without this, DRAs continue to be burdened with collecting details that referees can provide directly. | LOW — removes fields from existing form; reduces form validation surface | Existing form HTML needs fields removed; Apps Script doPost validation must be relaxed for those fields |
+| Referee detail form collects: availability (weekends 1 & 2), hotel per weekend, age, gender, phone, day-specific limitations, notes | This is the core data collection. Every field the assignor needs to make game assignments must be present. Missing any of these means the assignor has a gap in the sheet and must follow up individually. | MEDIUM — multiple field types (checkboxes, selects, text inputs, textarea); conditional hotel fields; some fields are required | Form must be comprehensive enough to replace what DRA used to provide PLUS add new gender field |
+| Required fields enforced: at minimum, weekend availability must be selected | Availability is the only truly mandatory assignment-relevant field. Without it, the assignor cannot assign the referee to a weekend. All other fields (age, phone, gender) are important but the system can flag missing values rather than hard-block. | LOW — client-side validation with clear error messaging; server-side doPost validation | Decision needed: which fields hard-block vs soft-warn? Recommendation: require availability selection; make all others strongly encouraged but not blocking |
+| Referee identified by name on the form on load | When the referee opens the link, their name (provided by the DRA at nomination time) should be displayed prominently. Without this, the referee does not know they're on the right form — particularly important if multiple referees share a device or email client. | LOW — doGet returns first+last name; form renders it in a header | Depends on doGet returning name from sheet row |
+| Referee detail submission writes to Google Sheet row | The entire purpose of the form. Referee-provided data must write back to the same sheet the assignor works in. | MEDIUM — POST to Apps Script doPost, finds row by token, writes fields to correct columns | Requires defined column mapping for all new referee-provided fields; token lookup by column R |
+| Status tracks Not Sent / Pending / Submitted | Assignor needs to see at a glance who has responded. "Not Sent" (email not yet triggered), "Pending" (email sent, no form submission), "Submitted" (referee submitted details). | LOW — Status column S already exists; values need to update from Pending to Submitted on form submit | "Confirmed" / "Declined" terminology from v1.0 no longer fits — referee is submitting details, not confirming/declining an invitation |
+| Referee can edit their submission until the deadline | A referee who submits, then realizes they made an error (wrong phone, forgot weekend 2), must be able to re-open the link and update. Without this, the assignor gets flooded with correction emails. | LOW — GET returns current sheet data; form pre-fills with it; re-submit is an upsert on the same row | Deadline enforcement must prevent edits after close, not prevent initial late submissions (those are allowed with a flag) |
+| Late submissions accepted with a visible flag | Referees who miss the deadline should still be able to submit — the assignor accepts late entries and decides whether to accommodate them. The late flag in the sheet and a notice to the referee prevents silent late submissions. | LOW — Apps Script checks deadline date; writes a "Late" flag or appends to status value; form shows a "past deadline" notice to referee | Deadline stored in named range ConfirmationDeadline (already set up in Phase 1) |
+| Success feedback after submission | Referee must know the form was submitted successfully. Without this, they email the assignor asking "did you get my form?" — common with any online submission. | LOW — success screen after POST completes; summary of what was submitted | Standard pattern; mirrors existing nomination form success state |
+| Error feedback with assignor contact on failure | If the POST fails, the referee must have a way to reach the assignor directly rather than assuming it worked silently. | LOW — error state shows assignor email and retry option | Assignor email is static; can be hardcoded in HTML |
+| Mobile-responsive detail form | Referees will open nomination emails on their phones. If the form is not usable on mobile, submission rates drop and the assignor receives confused replies. | MEDIUM — 16px+ body font, 44px+ touch targets, single-column at 560px, no horizontal scroll at 320-428px; reuse existing nomination form CSS patterns | Existing nomination form CSS already provides the breakpoints and field patterns |
+| Admin page: assignor sees all nominees with mailto links | Assignor triggers emails via Outlook by clicking pre-composed mailto links — one per referee. Without this page, the assignor must compose every email by hand, including the unique token URL for each referee. | MEDIUM — admin page fetches all nominees via doGet, renders a table with name, email, status, and a mailto link per row; clicking opens Outlook | Depends on token being generated and stored before admin page is rendered; SHEET_URL in admin page same as nomination form |
 
 ---
 
 ## Differentiators
 
-Features that go beyond bare functionality. None are required for the system to work, but each addresses a real friction point for either the referee (experience) or the assignor (visibility). Given the small scale (~50–100 referees, one assignor), the bar for "worth building" is high — only include things that meaningfully improve over a plain-email workflow.
+Features that make the v2.0 system noticeably better than a plain email asking referees to reply. For this scale (~50-100 referees, one assignor, annual event), the bar for "worth building" is high. Each item below addresses a real friction point with low added complexity.
 
 | Feature | Value Proposition | Complexity | Notes / Dependencies |
 |---------|-------------------|------------|----------------------|
-| Personalized email subject line including referee name and tournament | "State Cup Confirmation — Jane Smith" vs "State Cup Confirmation." Referees who share an email account (family, coach) can distinguish their email. Improves open rates for a low-effort addition. | Low — template variable in MailApp subject | No additional dependency |
-| Summary of what the referee confirmed, shown on the success screen | After submitting, show back the specific weekends confirmed and hotel needs. "You confirmed: Weekend 1 (May 16–17), hotel needed. Weekend 2 (May 23–24), no hotel." This prevents "I'm not sure if I submitted correctly" follow-up emails to the assignor. | Low — client-side, no server round-trip needed | Can be assembled from the submitted form data before the POST |
-| "Reply to assignor" email address in the confirmation email | If a referee has a question they cannot answer in the form ("I might be available but I'm not sure"), they should have a direct contact. Include the assignor's email address in the email body, not just in the From field. | Low — static text in email template | |
-| Assignor progress indicator in the sheet: count of Confirmed / Pending / Declined | A formula or Apps Script function that keeps running totals visible at the top of the sheet. "17 confirmed, 31 pending, 4 declined" is more useful than scrolling through rows. | Low — can be a COUNTIF formula in a summary area, no code required | Depends on consistent status values in the confirmation status column |
-| Re-open confirmation form for a referee who needs to change their response | If a confirmed referee later needs to update their availability (injured, conflict arose), the token link still works and they can resubmit. The form should load their current data, let them edit, and resubmit. Status updates to "Updated" or back to "Confirmed." | Low — naturally supported by the token/GET/POST flow if the POST is an upsert not an insert | No additional code required if the Apps Script does row-update not row-append |
-| Clear expiry messaging if confirmations have closed | When the assignor closes confirmations, a referee clicking an old link should see a friendly message ("Confirmations are now closed. Contact [assignor] with questions.") rather than a broken form or silent failure. | Low — Apps Script checks a "confirmations open" flag before processing; returns a closed message | Requires a "closed" state flag, either a sheet cell or a script property |
-| Distinct visual confirmation states in the email CTA | Rather than a single generic "Confirm Availability" button, the email body briefly lists the weekends the referee was nominated for: "You were nominated for Weekend 1 (May 16–17) and Weekend 2 (May 23–24). Click below to confirm." Reduces "I don't know what I'm confirming" calls. | Low — templated email body with referee's nominated weekends listed | Requires the availability data to be available when sending emails, which it already is in the sheet |
+| Form pre-fills with name prominently displayed | Referee sees their own name in the form header before filling anything. Builds confidence they're on the right page; reduces "is this for me?" confusion. | LOW — doGet returns name; rendered in H1 or prominent callout | Already required by table stakes (name display); this is about making the display prominent, not just present |
+| Success screen summarizes what the referee submitted | After submitting, show back the specific weekends selected, hotel needs, age, gender, and phone. "You told us: Weekend 1 available, Weekend 2 available, hotel needed both weekends, Age 28, Female." Prevents "I'm not sure if it submitted" follow-ups. | LOW — assembled client-side from submitted form values before POST completes; no extra server round-trip | No dependency beyond the POST success state |
+| Closed-form notice for post-deadline visitors | When the assignor closes the submission window, a referee clicking an old link (or one who never responded and tries late after the window is truly closed) sees a friendly message with the assignor's contact info, not a broken or blank form. | LOW — Apps Script checks a closed flag (ConfirmationDeadline named range + a "closed" script property); returns a closed status in doGet response; form renders a closed state | Requires the "closed" concept to be implemented in doPost; distinct from "past deadline" (late submissions allowed) vs "truly closed" (no submissions accepted) |
+| "Past deadline" notice shown inline when submitting late | A referee submitting after the deadline sees a notice at the top of the form: "The response deadline has passed. You can still submit — your response will be flagged as late." This is more informative than a silent submission or a hard block. | LOW — deadline check in doGet response; form conditionally renders the late-notice banner | Reuses ConfirmationDeadline named range; client-side conditional rendering |
+| Email body lists the referee's specific nominated weekends | "You were nominated for Weekend 1 (May 16-17) and Weekend 2 (May 23-24)" vs a generic message. Reduces "which tournament is this?" replies. | LOW — mailto template (assembled by admin page JS) includes the referee's availability data from the sheet | Depends on DRA nomination capturing which weekends are being nominated — note: in v2.0 the DRA form no longer captures availability, so the email may need to say "for both weekends" until the referee fills the form |
+| Personalized email subject line | "State Cup 2026 Referee Details Needed — Jane Smith" vs "State Cup 2026." Opens faster; referee recognizes it's for them. | LOW — mailto subject includes referee name; assembled in admin page JS from sheet data | No dependency beyond admin page having referee name |
+| Assignor contact in email body (not just From) | If a referee has a question, they should see a direct email address in the body, not just a reply-to header. Reduces friction for referees who have concerns they can't express in the form. | LOW — static text in mailto body template | No dependency |
+| Sheet summary formula for Submitted/Pending/Not Sent counts | A COUNTIF row at the top of the sheet showing running totals. "Submitted: 34, Pending: 18, Not Sent: 6." Assignor sees progress without scrolling. | LOW — zero code; a COUNTIF formula in a summary area or frozen row | Depends on consistent status values in column S |
+| Re-send to non-responders visible on admin page | Admin page shows each referee's current status. Referee with "Pending" or "Not Sent" status have an active mailto link; "Submitted" rows could visually de-emphasize the link (grey it out) so the assignor doesn't accidentally re-email someone who already submitted. | LOW — conditional CSS class on mailto links based on status value; status already returned by doGet that populates admin page | Depends on admin page fetching status per referee |
 
 ---
 
 ## Anti-Features
 
-Things to deliberately not build. Each represents scope creep or unnecessary complexity for this specific context (50–100 referees, one assignor, ~6-week lifecycle, one-time annual event).
+Things to deliberately not build. Each represents scope creep, unnecessary complexity, or a design direction that conflicts with the v2.0 architecture.
 
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| Automated email sending on nomination submit | The assignor explicitly wants control over when emails go out. They may need to review nominations, fix missing email addresses, or coordinate timing with the SRA/SYRA before referees are notified. Automating this removes that control. | Keep email trigger as a manual step: assignor runs a function (or clicks a button) when ready |
-| Email reminders / automated follow-up scheduling | Adds significant complexity (cron-like triggers, state tracking, unsubscribe handling). For ~50–100 referees with a manual-trigger model, the assignor can simply re-send to non-responders by hand, or re-run the send function targeting only Pending rows. | Assignor manually identifies Pending rows in the sheet and re-triggers email for those referees |
-| Dashboard separate from the Google Sheet | The assignor already works in the sheet. A separate tracking dashboard means maintaining two views of the same data. The sheet is the source of truth; keep tracking there via status columns and optional summary formulas. | Add a Confirmation Status column to the existing sheet |
-| Login / authentication | This is a one-off annual form for known, vetted referees. The data (name, availability, hotel preference) is low-sensitivity. Token-in-URL matches the security requirement without adding login UX, password resets, or session management. | Token-in-URL approach |
-| Full withdrawal / opt-out flow | Declining both weekends via the confirmation form is an edge case that should be handled with a phone call between the referee and their DRA, not a self-service UI. If a referee genuinely needs to withdraw, the DRA should be involved — that's outside the confirmation form's scope. | The form lets referees decline individual weekends; full withdrawal is out of scope |
-| Referee profile / history across years | Carry-forward data from prior tournaments adds persistence complexity. Each State Cup is a fresh nomination cycle. Data from prior years isn't needed for assignment decisions. | Start fresh each tournament cycle |
-| Email open / click tracking | Pixel tracking and click analytics require an external service (SendGrid, Mailchimp, etc.) or custom redirect infrastructure. For this scale, "did they submit the form?" is the only tracking that matters, and the sheet already captures that. | Use the Confirmation Status column as the only engagement signal |
-| In-email confirmation (clicking Yes/No directly in the email without loading a page) | Sometimes called one-click RSVP. Requires server-side handling of GET requests with side effects, which is possible in Apps Script but fragile: email clients prefetch links (breaking single-click responses), and there's no opportunity to review/edit data before confirming. | Always direct to the confirmation page so referees can review pre-filled data |
-| SMS / push notifications | Small scale, short event cycle, existing referee contact is via email. Adding another notification channel multiplies complexity without clear benefit. | Email only |
-| Bulk-action confirmation page for assignor | "Confirm all pending referees" type admin UI. For ~50–100 referees, granular per-person email sending is workable and gives the assignor appropriate oversight. | Assignor manages per-referee status in the sheet |
+| Feature | Why Avoid | What to Do Instead |
+|---------|-----------|-------------------|
+| Pre-filling the referee form with DRA-provided data (for fields the DRA no longer provides) | In v2.0, the DRA only submits name + email. There is no DRA-provided age, phone, availability, or hotel data to pre-fill. Attempting to pre-fill from "nothing" either shows blank fields (no change vs a blank form) or creates confusion if old v1.0 data is present. | Form starts blank for all fields except name (which identifies the person). Only pre-fill when a referee is *returning to edit* a previous submission — in that case, pre-fill with the referee's own prior submission data. |
+| Dual column schema: DRA columns + separate Referee columns for same data | Keeping DRA columns (I-P: phone, age, max_ar, max_ref, availability, hotel_wk1, hotel_wk2, day_notes) alongside new "Ref*" columns for the same data doubles the column count and confuses the assignor. "Which phone is the real one?" | Referee data writes to the existing semantic columns (or replaces them as the referee-provided canonical values). DRA no longer populates these columns in v2.0, so there is no conflict. Alternatively, extend the "Ref" prefix naming (RefPhone, RefAge, etc.) to new columns and leave old DRA columns blank — but then document clearly that old columns are unused in v2.0. Either way, there must be ONE canonical phone, ONE canonical age visible to the assignor, not two. |
+| Separate "referee profile" page distinct from the detail form | A profile page is a different product. The detail form collects what's needed for game assignment this tournament cycle. A persistent profile across years adds database design, carry-forward logic, and a concept of "identity" the system doesn't have. | Single-page detail form; fresh data each tournament cycle. |
+| Automated email sending on nomination submit | Assignor explicitly wants control over when emails go out. They may need to batch nominations, coordinate with SRA/SYRA timing, or fix missing email addresses before referees are notified. | Manual email trigger: assignor opens admin page, clicks mailto links, sends via Outlook. |
+| Automated reminder emails to non-responders | Adds cron-like trigger complexity, tracking of "reminded" state, and potential for spamming referees if run multiple times. For ~50-100 referees, the assignor can scan the admin page for Pending rows and re-click those mailto links. | Admin page shows current status; assignor identifies non-responders visually and re-clicks their mailto link. |
+| In-email one-click "submit availability" link | Would require a GET endpoint with side effects. Email clients (including Outlook) prefetch links before the user clicks, which would silently fire the submission. Also bypasses the form entirely, meaning referees can't provide phone, age, gender, etc. | Always direct to the detail form page. |
+| Login / password authentication | This is a low-sensitivity form for known, vetted referees. Token-in-URL provides sufficient identity for this use case without adding password reset flows, session management, or OAuth complexity. | Token-in-URL approach. |
+| Dashboard separate from Google Sheet | Assignor already works in the sheet. A second tracking UI means two places to check. | Add status columns and COUNTIF formulas to the existing sheet. Admin page is an email-sending tool, not a replacement for the sheet. |
+| Spreadsheet upload on DRA nomination form (v2.0) | The DRA form in v2.0 collects only name + email per referee. The upload/template feature exists to handle many fields at once. With only 2 fields, the upload overhead exceeds the value — DRAs can type name + email directly. | Remove the spreadsheet upload feature from the simplified DRA form. Manual entry of name + email is faster than preparing a spreadsheet for such a minimal data set. |
+| Full withdrawal flow via form | A referee needing to fully withdraw should contact their DRA — this is a process conversation, not a self-service UI action. The DRA should then contact the assignor. | Referee can simply not submit, or can submit with neither weekend selected. The assignor sees "no availability" and follows up with the DRA. |
+| SMS / push notifications | Small scale, short lifecycle, email is the established channel with existing Outlook workflow. | Email only via mailto links. |
+| Email open / click tracking | Requires external service (SendGrid, Mailchimp). The mailto/Outlook approach means all send/receive tracking lives in Outlook. The sheet status column ("Submitted") is the only engagement signal that matters. | Status column as the sole engagement indicator. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Token generation
-  └─> Email sending (token must exist before email is sent)
-        └─> Confirmation form (link contains token)
-              └─> GET endpoint (fetches data by token)
-              │     └─> Pre-filled form
-              └─> POST endpoint (updates row by token)
-                    └─> Confirmation Status column update
-                    └─> Success screen
+Token generation (Phase 2)
+  └─> Admin page — token must exist per referee before admin page renders mailto links
+        └─> Email send — mailto link contains the confirm.html?token=... URL
+              └─> Referee detail form — referee clicks link, loads form
+                    └─> doGet endpoint — fetches referee name + any prior submission by token
+                    │     └─> Form renders with name displayed; fields pre-filled only if editing
+                    └─> doPost endpoint — receives submission, writes to sheet
+                          └─> Status column update (Pending → Submitted)
+                          └─> Deadline check → Late flag if past deadline
+                          └─> Success screen rendered client-side
+
+Simplified DRA form (independent of above)
+  └─> doPost submitNomination branch (writes only first, last, email to sheet)
+        └─> Row created with blank availability/age/phone/hotel (referee fills these)
+
+ConfirmationDeadline named range (already created in Phase 1)
+  └─> doGet reads deadline → includes in response for client-side "past deadline" banner
+  └─> doPost reads deadline → writes Late flag if past deadline
 ```
 
-Hotel checkboxes on confirmation form depend on weekend availability checkboxes (hotel only shows when weekend is selected — same interaction pattern as the nomination form).
+### Dependency Notes
 
-Closing confirmations depends on a "closed" flag the assignor can set; the GET endpoint should respect this flag before returning data.
-
----
-
-## Confirmation States
-
-The sheet needs to track one status value per referee row. Four states cover all scenarios:
-
-| Status | Meaning | Set When |
-|--------|---------|----------|
-| Pending | Email sent, no response yet | Apps Script writes this when sending the confirmation email |
-| Confirmed | Referee submitted the form and confirmed at least one weekend | POST endpoint writes this on successful submission where at least one weekend is confirmed |
-| Declined | Referee submitted the form and declined all nominated weekends | POST endpoint writes this on successful submission where no weekends are confirmed |
-| Not Sent | Default state; email not yet sent | Initial state for all rows before email trigger runs |
-
-A "Partial" state (confirmed one weekend, declined the other) could be useful but adds assignor cognitive load. The Availability column already captures the specific weekends — the assignor can see the detail there. Keep the status to four simple values.
+- **Token required before admin page:** The admin page triggers token generation when the assignor accesses it. Tokens must be generated and stored in column R before the mailto links can embed the correct confirm.html URL. Same pattern as v1.0.
+- **doGet returns name, not form data:** In v2.0, doGet returns only the referee's name (provided by DRA) plus any previously-submitted values if the referee is returning to edit. On first visit, form fields start blank.
+- **DRA form simplification is independent:** The simplified DRA nomination form (name + email only) can be built and tested independently of the referee detail form. They share the Apps Script doPost endpoint but hit different branches.
+- **Status naming change:** v1.0 used Confirmed / Declined / Pending / Not Sent. v2.0 should use Submitted / Pending / Not Sent (plus Late variant). The status column S dropdown validation from Phase 1 will need to be updated to reflect v2.0 terminology.
+- **Column schema decision gates downstream work:** The decision of where referee-provided fields land in the sheet (overwrite existing DRA columns vs. new dedicated Ref* columns) must be made before writing doPost. This is the single most important architecture decision for v2.0 and should be resolved in Phase planning before any code is written.
 
 ---
 
-## Email Content Requirements
+## v2.0 Launch Definition
 
-What the confirmation email must contain to be actionable:
+### Must Have (do not cut)
 
-**Required:**
-- Referee's name (personalization — confirms the email is theirs)
-- Tournament name and dates ("Spring State Cup 2026, May 16–17 and May 23–24")
-- Which weekends the referee was nominated for (pulled from their sheet row)
-- Single prominent CTA link to the confirmation form
-- Assignor contact information for questions
-- Brief instruction: what the referee should do ("Review your availability below and click Confirm to let us know you're in")
+- [ ] Simplified DRA form — name + email per referee only, no other referee fields
+- [ ] doPost handles minimal nomination (name + email → row created, columns I-P left blank)
+- [ ] Token generation and storage per referee row (already designed in v1.0; confirmed for v2.0)
+- [ ] Admin page with mailto links — assignor sees all nominees, clicks to open Outlook
+- [ ] Email body: referee name, tournament dates, token-secured detail form URL, assignor contact
+- [ ] Referee detail form: weekend availability (W1/W2), hotel per weekend (conditional), age, gender, phone, day-specific limitations, notes to assignor
+- [ ] doGet returns referee name (for display) and any prior submission data (for edit pre-fill)
+- [ ] doPost writes referee-provided data to correct sheet columns, updates status to Submitted
+- [ ] Late submission flag: form shows "past deadline" notice; sheet records late flag
+- [ ] Referee can re-open link before deadline to update submission
+- [ ] After deadline: form is editable but flagged as late (not locked read-only)
+- [ ] Success screen: shows what was submitted; no "did you get it?" ambiguity
+- [ ] Error state: shows retry option and assignor email
+- [ ] Mobile-responsive form: 16px+ font, 44px+ touch targets, single-column at 560px
 
-**Not required (keep it simple):**
-- HTML email with logos and styling (plain text is fine; adds no value for this workflow)
-- Unsubscribe link (not a marketing email; referee opted into the process by being nominated)
-- Multiple links or buttons
+### Add After Core Is Working
 
----
+- [ ] "Past deadline" inline banner rendered when doGet response indicates deadline passed
+- [ ] "Confirmations closed" hard-stop state (distinct from "past deadline but still accepting")
+- [ ] Visual de-emphasis of Submitted rows on admin page (already-submitted referees)
+- [ ] COUNTIF summary formula in sheet (zero code; add after schema is finalized)
+- [ ] Personalized email subject line with referee name in mailto template
 
-## Confirmation Form UX Requirements
+### Explicitly Out of Scope (Do Not Build)
 
-What the confirmation page must do:
-
-**On load:**
-- Display referee name prominently (confirms they're on the right page)
-- Show tournament name and dates
-- Pre-fill weekend availability checkboxes matching current sheet data
-- Pre-fill hotel checkboxes matching current sheet data
-- Show existing notes in the textarea (if any were entered at nomination time)
-- If link is for a referee who already confirmed, show a banner: "You previously confirmed on [date]. You can update below and resubmit."
-
-**Form fields:**
-- Weekend 1 availability: confirm / not available (checkbox or two-option selector)
-- Weekend 1 hotel: needs room / no hotel (conditional — only shown if Weekend 1 is checked)
-- Weekend 2 availability: confirm / not available
-- Weekend 2 hotel: needs room / no hotel (conditional)
-- Notes to assignor: free-text textarea
-- Submit button
-
-**On submit:**
-- Disable button during POST to prevent double-submission
-- Show spinner / loading state
-- On success: clear success screen summarizing what was submitted
-- On failure: error message with retry; include assignor email so referee can contact directly if stuck
-
-**Mobile requirements:**
-- Minimum 16px body font (prevents iOS auto-zoom on input focus)
-- Touch targets minimum 44px tall (WCAG 2.5.5)
-- Single-column layout on screens under 560px (same breakpoint as nomination form)
-- Hotel checkboxes must be large enough to tap without precision (use the existing hotel-input pattern from the nomination form, but consider larger tap target for the label)
-- Page should not require horizontal scrolling at any common phone width (320px–428px)
-- CTA button full-width on mobile
-
----
-
-## Assignor Workflow Requirements
-
-What the assignor needs to do their job:
-
-1. **Send emails** — trigger confirmation emails for all nominees (or a filtered subset). Should be runnable from within the Google Sheet via a custom menu item or from Apps Script directly. Does not need to be a web UI.
-2. **Track responses** — Confirmation Status column shows Pending / Confirmed / Declined / Not Sent per row. Assignor scans the sheet normally.
-3. **Re-send to non-responders** — Assignor identifies Pending rows manually and re-triggers the email function. No automation required.
-4. **Close confirmations** — Assignor sets a flag when ready to stop accepting responses. A clear mechanism (a sheet cell value, or a script property) is sufficient.
-5. **No new UI required** — all assignor actions happen in the Google Sheet or via Apps Script functions. A custom Google Sheet menu is sufficient.
-
----
-
-## MVP Recommendation
-
-For v1.0, build exactly the table stakes. Every differentiator is low-complexity and can be included, but if scope pressure arises, cut in this order (last to cut first):
-
-**Must have (table stakes — do not cut):**
-1. Token generation and storage per referee row
-2. Confirmation email with referee name, tournament dates, and confirmation link
-3. Confirmation page: GET endpoint + pre-filled form
-4. Confirmation form: weekend availability, hotel, notes
-5. POST endpoint: writes back to sheet row, updates status column
-6. Success/error feedback after submission
-7. Mobile-responsive confirmation page
-
-**Can add after table stakes are working (differentiators worth including):**
-8. Personalized email subject line with referee name
-9. Email body listing the specific nominated weekends
-10. Success screen summary of what was submitted
-11. "Reply to assignor" contact in email
-12. Closed-confirmation messaging for expired links
-13. Assignor sheet summary formula (COUNTIF — zero code, just formula)
-
-**Explicitly not in v1.0 (anti-features — do not build):**
+- Automated email sending on nomination submit
 - Automated reminder emails
 - Separate tracking dashboard
-- Full opt-out flow
-- In-email one-click confirmation
+- Full referee withdrawal self-service
+- In-email one-click submission
+- Login / authentication
+- SMS / push notifications
+- Spreadsheet upload on simplified DRA form
+- Referee profile persistence across tournament years
+
+---
+
+## Feature Prioritization Matrix
+
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Simplified DRA form (name + email only) | HIGH — DRAs nominate in under a minute | LOW — remove fields from existing form | P1 |
+| Token-secured referee detail form | HIGH — core of v2.0 | MEDIUM — GET/POST endpoints + form HTML | P1 |
+| Availability + hotel collection | HIGH — assignor's primary need | LOW — existing UI patterns from nomination form | P1 |
+| Age + gender + phone collection | HIGH — needed for assignments | LOW — standard form fields | P1 |
+| Admin page with mailto links | HIGH — assignor cannot send emails without this | MEDIUM — fetch all rows, render table with mailto links | P1 |
+| Status tracking (Submitted/Pending/Not Sent) | HIGH — assignor tracks progress in sheet | LOW — already-designed column S; update values only | P1 |
+| Success screen with submission summary | MEDIUM — reduces "did you get it?" emails | LOW — assembled client-side | P2 |
+| Late submission notice + flag | MEDIUM — assignor needs to know what came in late | LOW — deadline check in doPost | P2 |
+| Edit pre-fill (returning to update submission) | MEDIUM — prevents "I can't change my response" emails | LOW — doGet returns prior data; form pre-fills | P2 |
+| Closed-form state (hard stop after window closes) | LOW — deadline handling covers most cases | LOW — one additional flag check | P3 |
+| Admin page visual de-emphasis for Submitted rows | LOW — nice to have for assignor UX | LOW — CSS conditional class | P3 |
+| COUNTIF summary formulas | LOW — helpful but assignor can filter/sort | LOW — no code, just sheet formula | P3 |
+
+**Priority key:**
+- P1: Must have for launch (system does not work without this)
+- P2: Should have; reduces support burden and friction significantly
+- P3: Nice to have; add when P1 and P2 are stable
+
+---
+
+## Schema Impact: Key Decision
+
+The v2.0 pivot creates a schema decision that the feature research must surface clearly.
+
+**Current schema (v1.0, columns A-Q):**
+
+| Columns | Written By | Contains |
+|---------|------------|---------|
+| A-D | DRA | Timestamp, DRA name/email/district |
+| E | Apps Script | Referee number |
+| F-H | DRA | Referee first, last, email |
+| I | DRA | Referee phone |
+| J | DRA | Referee age |
+| K-L | DRA | Max age as AR, max age as referee |
+| M | DRA | Availability (Weekend 1, Weekend 2, both) |
+| N-O | DRA | Hotel weekend 1, Hotel weekend 2 |
+| P | DRA | Day-specific limitations |
+| Q | DRA | DRA notes |
+| R-Y | System / Referee | Token, Status, SentAt, ConfirmedAt, RefWeekend1, RefWeekend2, RefHotel, RefNotes |
+
+**In v2.0, DRA provides only F-H (name + email). Columns I-Q will be empty after DRA nominates.**
+
+**Option A — Referee writes to existing DRA columns (overwrite):**
+- Referee submission writes availability to column M, hotel to N-O, phone to I, age to J, etc.
+- Columns remain the same; assignor's view is unchanged
+- Downside: columns are labeled "DRA Notes" (Q) but now contain referee notes; semantic mismatch
+- Maximum compatibility with existing assignor sheet layout
+
+**Option B — Referee writes to new dedicated Ref* columns (additive):**
+- New columns after Y: RefPhone, RefAge, RefGender, RefMaxAR, RefMaxRef, RefAvailability, RefHotelWk1, RefHotelWk2, RefDayNotes
+- Old DRA columns I-Q stay blank in v2.0 (labeled as DRA fields, just never populated)
+- Downside: doubles the column width; assignor must scroll further; blank DRA columns create confusion
+- Clean separation but requires schema change and more columns
+
+**Recommendation (MEDIUM confidence — final decision deferred to Phase planning):**
+
+Option A is preferred for simplicity and assignor UX, with one modification: rename column Q from "DRA Notes" to "Notes" (it's now referee-provided). The column letter stays the same; only the header changes. This is a one-time manual update in the sheet. All other columns (I-P) have neutral-enough names (Phone, Age, Availability, etc.) that they work for referee-provided data without renaming.
+
+The "RefWeekend1/2, RefHotel, RefNotes" columns in R-Y that were designed for v1.0 confirmation data would be repurposed: some may be redundant with Option A. Specifically, RefWeekend1/2 and RefHotel would overlap with columns M, N, O. The Phase planning step should resolve whether to retire those columns or remap them.
 
 ---
 
 ## Sources and Confidence
 
-This research is based on well-established patterns in email-based RSVP and availability confirmation systems, cross-referenced with the specific constraints of this project as documented in PROJECT.md.
-
 | Area | Confidence | Basis |
 |------|------------|-------|
-| Confirmation system patterns (token-URL, states, form UX) | HIGH | Well-established domain; consistent across email services, event systems, and sports scheduling tools |
-| Mobile UX requirements | HIGH | iOS auto-zoom behavior, WCAG touch target sizing are documented standards |
-| Google Apps Script capabilities (MailApp, sheet row update) | MEDIUM | Based on training knowledge of Apps Script; verify specific API calls during implementation |
-| Assignor workflow fit | HIGH | Derived directly from PROJECT.md requirements and constraints |
-| Scale estimates (50–100 referees) | HIGH | Stated in PROJECT.md |
+| Feature requirements (what the form must collect) | HIGH | PROJECT.md active requirements; directly stated by product owner |
+| Token-URL pattern for no-login identity | HIGH | Established pattern; confirmed working in existing codebase |
+| Editable-until-deadline behavior | HIGH | Standard in event registration and RSVP systems; confirmed in PROJECT.md key decisions |
+| Late submissions with flag (not hard-block) | HIGH | Explicitly decided in PROJECT.md key decisions (2026-03-19) |
+| Anti-feature list (automated emails, dashboard, etc.) | HIGH | Derived from out-of-scope list in PROJECT.md and REQUIREMENTS.md |
+| Schema recommendation (Option A vs B) | MEDIUM | Analysis of tradeoffs; final decision belongs in Phase planning with assignor input |
+| Status terminology (Submitted vs Confirmed) | MEDIUM | Logical inference from workflow change; needs confirmation from assignor that "Submitted" better reflects v2.0 than "Confirmed" |
+| Spreadsheet upload removal from DRA form | HIGH | With only 2 fields (name + email), upload feature has no practical value |
+
+---
+
+*Feature research for: v2.0 referee detail collection (token-secured self-service form)*
+*Researched: 2026-03-19*
+*Replaces: v1.0 FEATURES.md (referee confirmation system — DRA provides details, referee confirms)*

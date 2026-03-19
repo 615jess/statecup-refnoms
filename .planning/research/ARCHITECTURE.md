@@ -1,605 +1,813 @@
-# Architecture Research: Referee Confirmation System
+# Architecture Research: v2.0 Referee Detail Collection
 
-**Project:** State Cup Referee Nominations — Confirmation System (v1.0)
-**Researched:** 2026-03-17
-**Confidence:** HIGH for Apps Script fundamentals (well-established platform, existing codebase confirms patterns); MEDIUM for specific quota values (training data, unverified against current Google documentation)
+**Project:** State Cup Referee Nominations — v2.0 (DRA submits name+email; referee provides own details)
+**Researched:** 2026-03-19
+**Confidence:** HIGH — based on direct inspection of existing codebase and Apps Script platform knowledge
 
 ---
 
-## Existing Architecture (Baseline)
-
-Before defining integration points, the current system must be understood exactly.
+## Existing Architecture (What We're Building On)
 
 ```
 GitHub Pages (static hosting)
-  index.html           — meta-redirect to nomination form
-  spring-state-cup-nomination.html  — nomination form (inline CSS/JS, ~689 lines)
-  logo.webp, TNRefLOGO.png         — brand assets
+  index.html                         — meta-redirect to nomination form
+  spring-state-cup-nomination.html   — nomination form (~689 lines, inline CSS/JS)
+  logo.webp, TNRefLOGO.png           — brand assets
 
-Google Apps Script Web App (single deployment)
-  doPost(e)            — receives JSON from nomination form, validates, appends rows to sheet
-  No doGet() defined   — currently unused
+Google Apps Script Web App (single /exec deployment)
+  doPost(e)    — receives JSON from nomination form, validates, appends rows to sheet
+  (no doGet)   — currently undefined
 
 Google Sheet ("Spring State Cup 2026 — Referee Nominations")
-  Row 1: headers (A-Q, 17 columns)
+  Row 1: headers (A–Q = 17 columns, then R–Y = 8 columns added in v1.0 Phase 1)
   Rows 2+: one row per nominated referee
+  Z1: ConfirmationDeadline (named range)
+  AA1: "Confirmation Deadline:" label
+
+Named range: ConfirmationDeadline → Z1
 ```
 
-Data flow (nomination, already built):
+### Existing Sheet Schema (A–Y)
 
-```
-Referee clicks Submit on GitHub Pages form
-  → fetch() POST to Apps Script /exec URL with JSON body
-    → doPost validates, appends row to Google Sheet
-      → returns { status: "ok" } JSON
-        → form shows success message
-```
-
-Key existing constraints observed in code:
-- `SHEET_URL` is hardcoded in the HTML (visible in source — documented as acceptable)
-- No authentication on the Apps Script endpoint
-- Single active sheet (`getActiveSheet()`)
-- All server logic in one Apps Script project file
+| Col | Header | v1.0 writer | v2.0 status |
+|-----|--------|-------------|-------------|
+| A | Timestamp | DRA nomination form | Keep — written by doPost on nomination |
+| B | DRA Name | DRA nomination form | Keep |
+| C | DRA Email | DRA nomination form | Keep |
+| D | District | DRA nomination form | Keep |
+| E | Referee # | DRA nomination form | Keep |
+| F | First Name | DRA nomination form | Keep — DRA still provides name |
+| G | Last Name | DRA nomination form | Keep |
+| H | Referee Email | DRA nomination form | Keep — DRA still provides email |
+| I | Phone | DRA nomination form | **Now empty at nomination time — referee fills** |
+| J | Age | DRA nomination form | **Now empty at nomination time — referee fills** |
+| K | Max Age as AR | DRA nomination form | **Now empty at nomination time — referee fills** |
+| L | Max Age as Referee | DRA nomination form | **Now empty at nomination time — referee fills** |
+| M | Availability | DRA nomination form | **Now empty at nomination time — referee fills** |
+| N | Hotel Wk1 | DRA nomination form | **Now empty at nomination time — referee fills** |
+| O | Hotel Wk2 | DRA nomination form | **Now empty at nomination time — referee fills** |
+| P | Day Notes | DRA nomination form | **Now empty at nomination time — referee fills** |
+| Q | DRA Notes | DRA nomination form | Keep — DRA still provides notes about nominee |
+| R | Token | (setup script) | Keep — unchanged purpose |
+| S | Status | (setup script) | Keep — Not Sent / Pending / Completed |
+| T | SentAt | (Phase 2+) | Keep — timestamp when assignor sends email |
+| U | ConfirmedAt | (Phase 2+) | Keep — timestamp when referee submits |
+| V | RefWeekend1 | (Phase 2+) | Keep — Confirmed / Declined |
+| W | RefWeekend2 | (Phase 2+) | Keep — Confirmed / Declined |
+| X | RefHotel | (Phase 2+) | **Repurpose: replace single hotel field** |
+| Y | RefNotes | (Phase 2+) | Keep — referee free-text notes |
 
 ---
 
-## Integration Architecture: Token-Based Confirmation
+## Architectural Decision 1: Where Does Referee Detail Data Live?
 
-### Decision 1: Where Does the Confirmation Page Live?
+**The question:** In v2.0, the referee provides phone, age, max AR/ref ages, availability, hotel, and day notes. Should this data overwrite the empty DRA columns (I–P), or go in new columns?
 
-**Two options exist:**
+**Option A: Referee writes into existing DRA columns I–P (overwrite blanks)**
 
-**Option A: Confirmation page on GitHub Pages (static HTML)**
-
-```
-confirm.html (GitHub Pages)
-  → on load, reads ?token= from URL
-  → fetches Apps Script GET endpoint with token
-  → Apps Script looks up token in sheet, returns referee data as JSON
-  → page renders pre-filled form
-  → referee submits → POST to Apps Script
-  → Apps Script updates sheet row
-```
-
-**Option B: Confirmation page served by Apps Script HtmlService**
+The DRA nomination form is simplified to name + email only. Columns I–P are submitted empty (or omitted) at nomination time. The referee detail form then fills those same columns.
 
 ```
-Apps Script doGet(e)
-  → reads e.parameter.token
-  → looks up referee in sheet
-  → returns HtmlService.createTemplateFromFile(...).evaluate()
-  → sends fully-rendered HTML page to browser
+DRA submits → row created with A-H filled, I-P blank, Q filled, R-Y blank
+Referee submits → I-P filled in, V-Y updated
 ```
 
-**Recommendation: Option A (GitHub Pages static HTML)**
+Pro: Existing column layout is preserved exactly. No new columns needed.
+Pro: The sheet reads as a complete row — the assignor sees the final state without scanning two blocks.
+Pro: R-Y block (already built) covers all confirmation-tracking metadata.
+Con: The "I-P were blank" state cannot be distinguished from "I-P were cleared maliciously" without checking status column S.
+Con: If a referee edits their submission, the old DRA-entered data cannot be recovered — but in v2.0 the DRA never enters I-P at all, so there is nothing to recover.
+
+**Option B: Referee writes into new columns beyond Y (Z+ area)**
+
+The columns I–P remain blank (or carry legacy v1.0 data from old submissions). New columns are added for referee-provided details.
+
+Pro: Preserves separation between DRA and referee data.
+Con: Pushes meaningful data far to the right of the sheet, past the ConfirmationDeadline cell at Z1.
+Con: Requires another schema migration (more setup scripts, more testing).
+Con: ConfirmationDeadline is a named range at Z1 — appending new columns there is messy.
+
+**Option C: Referee writes into V–Y, expanding V–Y's scope**
+
+In v1.0, V–Y were: RefWeekend1, RefWeekend2, RefHotel, RefNotes. In v2.0, these columns expand to cover more referee-provided fields. If V–Y aren't enough columns, add more between Y and Z.
+
+Con: Z1 is the ConfirmationDeadline named range — inserting columns before Z would shift it.
+Con: V–Y currently have specific headers that don't match all referee detail fields.
+
+**Recommendation: Option A — referee writes into I–P**
 
 Rationale:
-- Consistent with existing architecture: all HTML/CSS/JS lives on GitHub Pages
-- Apps Script HtmlService has a different URL pattern (`/exec?token=...` still works, but the response is a full HTML page served from `script.google.com`, not your domain)
-- HtmlService pages are harder to style and debug — they render inside an iFrame in some contexts
-- Static file on GitHub Pages is simpler to maintain alongside `spring-state-cup-nomination.html`
-- CORS on Apps Script with `ContentService` (JSON) works fine for cross-origin fetch from GitHub Pages — this is already proven by the existing nomination form
-- Keeping HTML on GitHub Pages means the assignor can share the confirmation link and it uses the same domain as the nomination form
+- In v2.0, the DRA nominates name + email only. Columns I–P are intentionally empty at nomination time. There is no DRA data to preserve in those columns.
+- The v1.0 R–Y block was designed assuming DRA fills I–P and referee only confirms/modifies. In v2.0, the referee is the sole source for I–P data — so it belongs in I–P directly.
+- The existing sheet has no column conflicts to worry about: I–P will be empty for all new nominations.
+- The R–Y block covers all confirmation-tracking concerns: token (R), status (S), timestamps (T, U), weekend confirm/decline (V, W), and notes (Y).
+- Column X (RefHotel) in v1.0 was a single hotel field. For v2.0, hotel is per-weekend (hotel needed for Weekend 1, hotel needed for Weekend 2). The existing N (Hotel Wk1) and O (Hotel Wk2) columns already capture this per-weekend structure. The referee fills N and O directly.
+- Column X (RefHotel) becomes redundant — repurpose as a late-submission flag (see below) or leave unused.
 
-**Confidence:** HIGH — this matches the established pattern in the project and avoids Apps Script HtmlService complexity.
+**Exception — Late submission flag:** The v2.0 workflow requires flagging late submissions. Rather than add a new column, repurpose column X (currently "RefHotel") as "LateFlag" — write "Y" if the submission arrives after the ConfirmationDeadline. The per-weekend hotel data lives in N and O.
+
+**Revised column X purpose for v2.0:**
+
+| Col | Header (v2.0) | Content |
+|-----|---------------|---------|
+| X | LateFlag | "Y" if submitted after ConfirmationDeadline; blank otherwise |
 
 ---
 
-### Decision 2: How Does the Apps Script Web App Handle Both Nomination POSTs and Confirmation GETs/POSTs?
+## Architectural Decision 2: DRA Nomination Form — Simplify or Replace?
 
-Apps Script web apps support exactly one `doGet(e)` and one `doPost(e)` function per deployment. Both can be defined simultaneously in the same script file. The same `/exec` URL handles both HTTP methods.
+**The question:** The existing `spring-state-cup-nomination.html` collects ~14 fields per referee. In v2.0, the DRA provides only name + email. Should we modify the existing form or create a new one?
 
-**Routing strategy:** Use an `action` parameter to distinguish confirmation requests from nomination requests within each handler.
+**Option A: Modify the existing form**
+
+Remove the phone, age, capacity, availability, hotel, and day notes fields. Keep only first name, last name, email, and DRA notes.
+
+Pro: One fewer HTML file to maintain.
+Con: The existing form has ~689 lines — stripping fields while preserving the upload feature and visual layout is fiddly and risky.
+Con: The XLSX template download must be regenerated with a simpler header set.
+Con: Modifying in place risks breaking an existing working form.
+Con: v1.0 form is currently in production use — if v2.0 is being built alongside it, replacing the file mid-cycle is a problem.
+
+**Option B: Create a new file (nomination-v2.html or similar)**
+
+Build a fresh, smaller form for v2.0 with the exact fields needed.
+
+Pro: The existing form continues to work unchanged during the transition.
+Pro: The new form is simpler code — probably 200-300 lines instead of 689.
+Pro: The upload feature can be redesigned for the v2.0 template (name + email columns only).
+Pro: Clean break — no risk of accidentally breaking v1.0 nominations.
+Con: Two nomination form files exist briefly during transition.
+
+**Recommendation: Create a new file**
+
+The risk profile is clear: modifying an existing working form under time pressure is a higher-risk path than building a smaller new form. The new form is much simpler (no capacity dropdowns, no availability checkboxes, no hotel toggles). Name it `spring-state-cup-nomination.html` once the v2.0 workflow replaces v1.0, or name it differently during development to allow parallel testing.
+
+The spreadsheet upload feature is worth retaining. In v2.0, the upload template contains: First Name, Last Name, Email, DRA Notes — four columns instead of thirteen.
+
+---
+
+## Architectural Decision 3: Apps Script doPost Routing for v2.0
+
+**The question:** The simplified DRA nomination (name + email) and the new referee detail submission must both go through doPost. How does action-based routing look in v2.0?
+
+### Current doPost (v1.0)
+
+```
+doPost(e):
+  data = JSON.parse(e.postData.contents)
+  action = data.action  (not currently used — implicit "nominate")
+  → append nomination row to sheet (all 17 fields)
+```
+
+### v2.0 doPost Routing
+
+```
+doPost(e):
+  data = JSON.parse(e.postData.contents)
+  action = data.action
+
+  "nominateV2"        → handleNominationV2(data)
+                          receives: { draName, draEmail, district, refs: [{firstName, lastName, refEmail, draNotes}] }
+                          for each ref:
+                            check if refEmail already exists in sheet (token reuse logic)
+                            if exists: update DRA info, preserve existing token
+                            if new: append row with A-H, Q filled; I-P blank; R-Y blank
+                          → return { status: "ok", count: N }
+
+  "submitDetails"     → handleRefereeDetails(data)
+                          receives: { token, phone, age, maxAR, maxRef, availability, hotelWk1, hotelWk2, dayNotes, notes }
+                          find row by token
+                          check deadline: if past deadline, set LateFlag (col X) = "Y"
+                          check status: if Completed and past deadline, reject edit
+                          write to I, J, K, L, M, N, O, P (referee-provided fields)
+                          write to U (ConfirmedAt), V, W (per-weekend decisions), Y (notes)
+                          set S (Status) = "Completed"
+                          → return { status: "ok", late: boolean }
+
+  (legacy/no action)  → existing nomination logic OR error
+```
+
+### v2.0 doGet Routing
 
 ```
 doGet(e):
   action = e.parameter.action
 
-  if action == "getConfirmation":
-    → look up token, return referee JSON
-  else:
-    → return 404-equivalent error JSON
-
-doPost(e):
-  data = JSON.parse(e.postData.contents)
-  action = data.action
-
-  if action == "submitConfirmation":
-    → validate token, update sheet row
-  else (no action or action == "nominate"):
-    → existing nomination logic (unchanged)
+  "getDetails"        → handleGetDetails(e.parameter)
+                          receives: { token }
+                          find row by token
+                          check deadline: return context.isPastDeadline = true/false
+                          return {
+                            status: "ok",
+                            data: {
+                              firstName, lastName,
+                              draName, district,
+                              currentDetails: { phone, age, maxAR, maxRef, availability,
+                                                hotelWk1, hotelWk2, dayNotes, notes },
+                              weekends: { wk1Date: "May 16-17", wk2Date: "May 23-24" },
+                              assignorEmail: "...",
+                              confirmationStatus: col S value,
+                              isPastDeadline: boolean,
+                              deadline: col Z value (formatted date string)
+                            }
+                          }
+                          // if status is "Completed" and past deadline:
+                          //   return data with isPastDeadline: true (form renders read-only)
 ```
 
-**Why action-based routing over URL paths?**
-
-Apps Script web apps have a single endpoint (`/exec`). There is no path-based routing — `/exec/confirm` is not valid. All routing must happen via query parameters (for GET) or request body (for POST). Using an explicit `action` field is the conventional pattern.
-
-**Critical CORS note:** Apps Script's `ContentService.createTextOutput(...).setMimeType(JSON)` responses permit cross-origin requests when the deployment is set to "Anyone" access. This is already working for the nomination form. The same permissive behavior applies to `doGet()` returning JSON. No additional CORS headers need to be set — Apps Script handles this automatically for public deployments. (Confidence: HIGH, confirmed by existing working nomination form.)
-
-**Deployment consideration:** Adding `doGet()` to the existing script requires redeploying the Apps Script as a new version. The existing `/exec` URL remains the same — only the internal code version changes. The HTML file's `SHEET_URL` constant does not need to change.
+**Key routing insight:** In v2.0, the referee form is called `referee-details.html` (or `confirm.html` retained for URL stability). It fetches the referee's current data via doGet on load, renders a form, and POSTs the completed details via doPost with action `submitDetails`.
 
 ---
 
-### Decision 3: How to Structure the Google Sheet Columns for Confirmation Data?
+## Architectural Decision 4: Token Generation — When?
 
-**Existing columns (A–Q, 17 columns):**
+**The question:** When is the token created — on DRA nomination, or when the assignor opens the admin page?
 
-| Col | Header | Content |
-|-----|--------|---------|
-| A | Timestamp | Nomination submission time |
-| B | DRA Name | |
-| C | DRA Email | |
-| D | District | |
-| E | Referee # | Sequential within DRA submission |
-| F | First Name | |
-| G | Last Name | |
-| H | Referee Email | Used for sending confirmation email |
-| I | Phone | |
-| J | Age | |
-| K | Max Age as AR | |
-| L | Max Age as Referee | |
-| M | Availability | "Weekend 1, Weekend 2" or similar |
-| N | Hotel — Weekend 1 | Yes/No |
-| O | Hotel — Weekend 2 | Yes/No |
-| P | Day-Specific Notes | |
-| Q | DRA Notes | |
+**Option A: Token created at nomination time (doPost, when row is appended)**
 
-**New columns to append (R–X):**
+- Every row gets a token immediately when the DRA nominates.
+- The admin email page (which builds mailto links) finds tokens already present.
+- No token-generation step needed on the admin page.
 
-| Col | Header | Content | Notes |
-|-----|--------|---------|-------|
-| R | Confirmation Token | UUID (e.g. `a3f8-...`) | Generated when email is sent; blank until then |
-| S | Confirmation Status | `Pending` / `Confirmed` / `Declined` | Set to `Pending` when token generated |
-| T | Confirmation Sent At | ISO timestamp | When email was sent |
-| U | Confirmed At | ISO timestamp | When referee submitted confirmation form |
-| V | Ref: Availability | Referee's confirmed availability | May differ from DRA's original (col M) |
-| W | Ref: Hotel Wk1 | Referee's confirmed hotel need | May differ from col N |
-| X | Ref: Hotel Wk2 | Referee's confirmed hotel need | May differ from col O |
-| Y | Ref: Notes | Referee's free-text notes to assignor | New field, not in nomination form |
+Pro: Admin page is simpler — it reads tokens, it does not create them.
+Pro: Re-nomination of existing referee (same email) finds existing token and reuses it — no extra logic needed.
+Con: Tokens exist in the sheet for rows where no email will ever be sent (if assignor excludes some nominees).
 
-**Why separate "Ref:" columns rather than overwriting DRA columns:**
+**Option B: Token created when assignor accesses admin page**
 
-- Preserves the original nomination data as entered by the DRA
-- Allows assignor to see discrepancies between what DRA entered and what referee confirmed
-- Avoids destructive writes — simpler to implement safely
-- Assignor can sort/filter by Confirmation Status (col S) to track progress
+- Rows have no token until the assignor triggers the email workflow.
+- The admin page calls an Apps Script endpoint that generates tokens for rows that don't have one.
 
-**Token format recommendation:** Use `Utilities.getUuid()` in Apps Script (built-in, no library needed). Produces a standard UUID v4. Sufficient entropy for this scale (50-100 referees). Do not use row numbers or referee names as tokens.
+Pro: Tokens only exist for referees the assignor intends to contact.
+Con: Admin page now requires an Apps Script call before it can render links.
+Con: Re-nomination of existing referee requires the admin page to check for existing tokens before generating new ones — more logic.
 
-**Finding referee row by token:** Apps Script must scan column R to find the row matching the incoming token. With 50-100 rows this is trivially fast. Use `getDataRange().getValues()` to read all rows, then find matching token index. No database indexing needed at this scale.
-
----
-
-### Decision 4: How Should the "Send Emails" Trigger Work?
-
-**Three options exist:**
-
-**Option A: Apps Script menu item**
-- Custom menu added via `onOpen()` trigger: "State Cup > Send Confirmation Emails"
-- Runs a function that scans sheet for rows with email but no token, generates tokens, sends emails
-
-**Option B: Button in a separate admin HTML page (GitHub Pages)**
-- Admin page posts to Apps Script endpoint with an admin action
-- Apps Script sends emails and returns results
-
-**Option C: Manually run function in Apps Script editor**
-- Assignor opens Apps Script editor and runs function by hand
-
-**Recommendation: Option A (Apps Script menu item)**
+**Recommendation: Option A — generate token at nomination time**
 
 Rationale:
-- Assignor already works in the Google Sheet
-- Custom menus are a well-established Apps Script pattern for sheet-based admin actions
-- No additional HTML page to maintain
-- Natural workflow: assignor reviews nominations in sheet, then clicks menu to send emails
-- Menu can also include a "Close Confirmations" option for when assignments are ready
-- No need to expose an admin-authenticated endpoint
+- The re-nomination / token-reuse decision (same email = same token) is cleanest when token generation lives in the nomination doPost: check if a row with that email already exists, and if so, return the existing token and row update rather than appending a new row.
+- The admin page becomes a pure read operation: fetch all rows with emails, render mailto links using existing tokens. No write needed at admin page load time.
+- Token generation in doPost is one extra line: `var token = Utilities.getUuid()`. The cost is negligible.
 
-Implementation sketch:
+**Re-nomination / token-reuse logic in doPost (nominateV2 action):**
 
-```javascript
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('State Cup')
-    .addItem('Send Confirmation Emails', 'sendConfirmationEmails')
-    .addItem('Close Confirmations', 'closeConfirmations')
-    .addToUi();
-}
-
-function sendConfirmationEmails() {
-  // Scan sheet for rows with referee email (col H) but no token (col R)
-  // Generate token, write to col R, set status Pending in col S, send email
-  // Report results via SpreadsheetApp.getUi().alert()
-}
+```
+for each referee in the submitted refs array:
+  existing = findRowByEmail(sheet, refEmail)
+  if existing:
+    update cols B, C, D, Q (DRA info, DRA notes) on the existing row
+    token = existing row's col R value (preserve existing token)
+  else:
+    token = Utilities.getUuid()
+    append new row with A-H filled, Q filled, I-P blank, R = token, S = "Not Sent"
 ```
 
-The `onOpen()` trigger fires automatically when the sheet is opened — no manual setup by assignor after initial deployment.
-
-**Confidence:** HIGH — Apps Script custom menus are a core feature, well-documented.
+This handles the "same referee, new tournament cycle or re-nomination" scenario without breaking existing links.
 
 ---
 
-## Full Data Flow
+## Architectural Decision 5: Email Admin Page — Apps Script Menu vs. Static HTML
 
-### Flow 1: Token Generation and Email Sending
+**The constraint:** The assignor uses Microsoft 365/Outlook. Emails must be sent via `mailto:` links that open Outlook — not MailApp, not GmailApp.
 
-```
-Assignor opens Google Sheet
-  → onOpen() fires → "State Cup" menu appears
+**v1.0 recommendation was an Apps Script menu.** That was correct for MailApp-based sending. In v2.0, mailto links must be generated as HTML links. Apps Script's `SpreadsheetApp.getUi()` menu cannot render clickable mailto links. The assignor needs an HTML page.
 
-Assignor clicks "State Cup > Send Confirmation Emails"
-  → sendConfirmationEmails() runs in Apps Script
-    → reads all rows from sheet
-    → for each row where col H (ref email) is non-empty AND col R (token) is empty:
-        1. token = Utilities.getUuid()
-        2. confirmUrl = "https://[github-pages-url]/confirm.html?token=" + token
-        3. write token to col R
-        4. write "Pending" to col S
-        5. write timestamp to col T
-        6. MailApp.sendEmail({
-             to: refEmail,
-             subject: "State Cup 2026 — Please Confirm Your Availability",
-             body: [email with referee name, confirmUrl, deadline info]
-           })
-    → shows alert: "X emails sent. Y skipped (no email address)."
-```
+**Recommendation: Static HTML admin page on GitHub Pages**
 
-### Flow 2: Referee Opens Confirmation Link
+- The admin page (`email-admin.html` or similar) is a static HTML file on GitHub Pages.
+- On load, it fetches all nomination rows via a `doGet` call (new action: `getAllNominees`).
+- It renders a table of nominees, each with a clickable `mailto:` link pre-built with the referee's name, nominated weekends, and the token-secured detail form URL.
+- The assignor clicks each link (or uses "open all" or similar) to launch Outlook pre-composed emails.
+- Status is visible in the table (Not Sent / Pending / Completed).
+
+**New doGet action needed: getAllNominees**
 
 ```
-Referee receives email, clicks link:
-  https://[org].github.io/[repo]/confirm.html?token=a3f8-xxxx
-
-confirm.html loads in browser
-  → JS reads token from URL: new URLSearchParams(location.search).get('token')
-  → if no token: show "Invalid link" error state
-
-  → fetch(SCRIPT_URL + "?action=getConfirmation&token=" + token)
-      → Apps Script doGet(e):
-          action = e.parameter.action  // "getConfirmation"
-          token  = e.parameter.token
-          → scan sheet column R for token
-          → if not found: return { status: "error", message: "Invalid or expired link" }
-          → if found:
-              row = matching sheet row data
-              return {
-                status: "ok",
-                data: {
-                  firstName: row[F],
-                  lastName:  row[G],
-                  availability: row[M],   // DRA-entered
-                  hotelWk1: row[N],
-                  hotelWk2: row[O],
-                  draName: row[B],
-                  district: row[D],
-                  confirmationStatus: row[S]
-                }
-              }
-
-confirm.html receives JSON response
-  → if already Confirmed: show "You have already confirmed" state
-  → else: render pre-filled form with referee's current data
+doGet with action=getAllNominees:
+  read all rows from sheet
+  return array of: { firstName, lastName, refEmail, district, draName, token, status, availability (M), draWk1 (N), draWk2 (O) }
+  (token is needed to build the confirm URL in the client)
 ```
 
-### Flow 3: Referee Submits Confirmation
+This endpoint returns data for all nominees. The HTML page constructs the mailto links client-side, embedding the referee's detail form URL.
+
+**Security note:** The admin page has no authentication. The `getAllNominees` endpoint returns referee emails and tokens. This is the same level of security as the existing nomination form (the Apps Script URL is visible in the HTML source). The PROJECT.md explicitly states "security isn't a major concern" for this workflow. If the admin page URL is kept unlisted and not linked from any public page, the risk is acceptable.
+
+---
+
+## Full System Overview: v2.0
 
 ```
-Referee reviews pre-filled form, adjusts if needed, clicks "Confirm"
-  → confirm.html JS:
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: "submitConfirmation",
-          token: token,
-          availability: [selected weekends],
-          hotelWk1: boolean,
-          hotelWk2: boolean,
-          notes: string
-        })
-      })
-
-      → Apps Script doPost(e):
-          data = JSON.parse(e.postData.contents)
-          action = data.action  // "submitConfirmation"
-          token  = data.token
-          → scan sheet column R for token
-          → if not found: return error
-          → validate data (availability must be non-empty array, etc.)
-          → write to sheet row:
-              col S (Status): "Confirmed"
-              col U (Confirmed At): now()
-              col V (Ref Availability): data.availability joined string
-              col W (Ref Hotel Wk1): data.hotelWk1
-              col X (Ref Hotel Wk2): data.hotelWk2
-              col Y (Ref Notes): data.notes
-          → return { status: "ok" }
-
-confirm.html receives success response
-  → show "Thank you! Your availability has been confirmed." message
-  → disable form to prevent re-submission
-```
-
-### Flow 4: Assignor Closes Confirmations
-
-```
-Assignor clicks "State Cup > Close Confirmations"
-  → Apps Script closeConfirmations():
-      → For any remaining "Pending" rows (token exists, status = Pending):
-          Set col S = "Closed — No Response"
-      → Alert: "Confirmations closed. X referees marked as no response."
++----------------------------------+       +----------------------------------+
+|         GitHub Pages              |       |      Google Apps Script          |
+|                                  |       |          (/exec URL)             |
+|  spring-state-cup-nomination.html|  POST |                                  |
+|  (simplified: name+email only)  -------> | doPost action=nominateV2         |
+|                                  |       |   → token lookup by email        |
+|                                  |       |   → append or update row         |
+|                                  |       |   → return { ok, count }         |
+|                                  |       |                                  |
+|  email-admin.html                |  GET  |                                  |
+|  (assignor tool)                -------> | doGet action=getAllNominees       |
+|    renders nominee list          |       |   → return all rows as JSON      |
+|    with mailto: links            |       |                                  |
+|    (opens Outlook)               |       |                                  |
+|                                  |       |                                  |
+|  referee-details.html            |  GET  |                                  |
+|  (referee form, token-secured)  -------> | doGet action=getDetails          |
+|    on load: fetch pre-fill       |       |   → validate token               |
+|    on submit: POST details  -------POST->|   → return referee data + context|
+|                                  |       |                                  |
+|                                  |       | doPost action=submitDetails      |
+|                                  |       |   → validate token               |
+|                                  |       |   → check deadline               |
+|                                  |       |   → write I-P, U, V, W, X, Y    |
+|                                  |       |   → set S = "Completed"          |
+|                                  |       |   → return { ok, late }          |
++----------------------------------+       +----------------------------------+
+                                                       |
+                                                       | read/write
+                                                       v
+                                           +------------------------+
+                                           |      Google Sheet      |
+                                           |                        |
+                                           | A-H, Q: DRA-provided   |
+                                           |   (name, email, DRA    |
+                                           |    info, DRA notes)    |
+                                           |                        |
+                                           | I-P: referee-provided  |
+                                           |   (phone, age, avail,  |
+                                           |    hotel, day notes)   |
+                                           |   [blank until referee |
+                                           |    submits]            |
+                                           |                        |
+                                           | R: Token               |
+                                           | S: Status              |
+                                           | T: SentAt (unused in   |
+                                           |    v2.0 — no server    |
+                                           |    send, so optional)  |
+                                           | U: ConfirmedAt         |
+                                           | V: RefWeekend1         |
+                                           | W: RefWeekend2         |
+                                           | X: LateFlag            |
+                                           | Y: RefNotes            |
+                                           | Z: ConfirmationDeadline|
+                                           +------------------------+
 ```
 
 ---
 
-## New Components Required
+## Component Inventory
 
-### New Files (GitHub Pages)
+### New Components
 
-| File | Purpose | Relationship to Existing |
-|------|---------|--------------------------|
-| `confirm.html` | Referee confirmation page | New file; mirrors style of `spring-state-cup-nomination.html` |
+| Component | File | Purpose |
+|-----------|------|---------|
+| Simplified DRA nomination form | `spring-state-cup-nomination.html` (new version) | DRA submits name + email per referee; replaces existing form |
+| Referee detail form | `referee-details.html` | Referee fills own details via token-secured link |
+| Email admin page | `email-admin.html` | Assignor sees all nominees, clicks mailto: links to send Outlook emails |
 
-Note: `index.html` currently redirects to `spring-state-cup-nomination.html` — it does not need modification. The confirmation page is a separate entry point accessed only via email link.
+### Modified Apps Script Functions
 
-### Modified Files (GitHub Pages)
-
-| File | Change Needed |
-|------|---------------|
-| `spring-state-cup-nomination.html` | No changes needed — nomination flow is complete and separate |
-| `SETUP-INSTRUCTIONS.txt` | Should be updated to document the new columns and menu trigger setup |
-
-### Modified Apps Script (same project, same deployment URL)
-
-| Function | Status | Change |
-|----------|--------|--------|
-| `doPost(e)` | Existing | Add `action` routing — nomination submissions now pass without `action` or pass `action: "nominate"`. Add branch for `action: "submitConfirmation"`. |
-| `doGet(e)` | New | Handle `action: "getConfirmation"` — look up token, return referee data JSON |
-| `sendConfirmationEmails()` | New | Generate tokens, write to sheet, send emails via MailApp |
-| `closeConfirmations()` | New | Mark remaining Pending rows as no-response |
-| `onOpen()` | New | Add custom menu items |
-| `VALID_DISTRICTS` | Existing | No change |
-
-**Deployment:** Script changes require a new version deployment. The `/exec` URL stays the same. The HTML file's `SHEET_URL` constant does not change.
+| Function | Change |
+|----------|--------|
+| `doPost(e)` | Add routing: `action=nominateV2` for simplified nomination; `action=submitDetails` for referee detail submission |
+| `doGet(e)` | Add (new function): `action=getDetails` for referee pre-fill; `action=getAllNominees` for admin page |
 
 ### Modified Google Sheet
 
 | Change | Detail |
 |--------|--------|
-| Add columns R–Y | 8 new columns for confirmation tracking |
-| Column headers must be added manually | Or by a one-time setup script |
+| Column X repurposed | Header changes from "RefHotel" to "LateFlag"; v2.0 only writes "Y" or blank |
+| Columns I–P writer changes | These columns are now written by referee detail submission (doPost/submitDetails) instead of the DRA nomination form |
+| No new columns needed | All referee detail data fits in existing I–P and V–Y blocks |
+
+### Unchanged Components
+
+| Component | Status |
+|-----------|--------|
+| `index.html` | No change needed |
+| Brand assets (logo.webp, TNRefLOGO.png) | No change |
+| Sheet columns A–H, Q, R–W, Y, Z | Unchanged purpose and indices |
+| `ConfirmationDeadline` named range at Z1 | Unchanged |
 
 ---
 
-## Component Boundaries
+## Data Flows
+
+### Flow 1: DRA Nominates (v2.0 Simplified Submission)
 
 ```
-+---------------------------+        +--------------------------------+
-|      GitHub Pages         |        |      Google Apps Script        |
-|                           |        |                                |
-|  spring-state-cup-        |  POST  |  doPost(e)                     |
-|  nomination.html    ------>------->|    action: (none/nominate)     |
-|                           |        |    → append row to sheet       |
-|                           |        |                                |
-|  confirm.html       ------>------->|  doGet(e)                      |
-|    on load (GET)          |  GET   |    action: getConfirmation     |
-|    on submit (POST)  ----->------->|    → return referee JSON       |
-|                           |  POST  |                                |
-|                           |        |  doPost(e)                     |
-|                           |        |    action: submitConfirmation  |
-|                           |        |    → update sheet row          |
-+---------------------------+        +--------------------------------+
-                                               |
-                                               | read/write
-                                               v
-                                     +--------------------+
-                                     |   Google Sheet     |
-                                     |                    |
-                                     |  Cols A–Q: nomination data (existing)
-                                     |  Cols R–Y: confirmation data (new)
-                                     +--------------------+
-                                               ^
-                                               | read/write (direct, no HTTP)
-                                     +--------------------+
-                                     |  Apps Script       |
-                                     |  Menu Functions    |
-                                     |                    |
-                                     |  onOpen()          |
-                                     |  sendConfirmation  |
-                                     |  Emails()          |
-                                     |  closeConfirmations|
-                                     +--------------------+
+DRA selects name from dropdown (auto-fills district + email)
+DRA adds referees (first name, last name, email) — manually or via spreadsheet upload
+DRA submits
+
+  → fetch() POST to Apps Script /exec
+  → body: { action: "nominateV2", draName, draEmail, district,
+            refs: [{ firstName, lastName, refEmail, draNotes }, ...] }
+
+  → Apps Script doPost:
+      for each ref:
+        search col H for matching refEmail
+        if found (re-nomination):
+          update cols B (DRA Name), C (DRA Email), D (District), Q (DRA Notes)
+          DO NOT regenerate token — preserve existing col R value
+          set S = "Not Sent" (reset status for new cycle if needed — implementation decision)
+        if not found:
+          token = Utilities.getUuid()
+          append new row: A=timestamp, B=draName, C=draEmail, D=district,
+                          E=refNum, F=firstName, G=lastName, H=refEmail,
+                          I–P = blank, Q=draNotes,
+                          R=token, S="Not Sent", T–Y = blank
+      return { status: "ok", count: N }
+
+  → Form shows success message
 ```
+
+### Flow 2: Assignor Opens Admin Page
+
+```
+Assignor navigates to email-admin.html in browser
+
+email-admin.html on load:
+  → fetch(SCRIPT_URL + "?action=getAllNominees")
+
+  → Apps Script doGet:
+      read all rows from sheet
+      return JSON array of nominee objects:
+        [{ firstName, lastName, refEmail, district, draName,
+           token, status, wk1: col N, wk2: col O }, ...]
+
+email-admin.html renders table:
+  each row: [Name] [Email] [Status] [Weekends] [Click to Send Email]
+
+  "Click to Send Email" is a mailto: link:
+    mailto:{refEmail}
+    ?subject=State Cup 2026 — Your Referee Nomination
+    &body=Hi {firstName},%0D%0A%0D%0AYou have been nominated...%0D%0A%0D%0APlease fill out your details here:%0D%0Ahttps://[github-pages-url]/referee-details.html?token={token}
+
+Assignor clicks each link → Outlook opens with pre-composed email
+Assignor reviews and sends
+```
+
+**Note on SentAt (column T):** In v2.0 the server never sends email — the assignor sends manually via Outlook. Column T (SentAt) cannot be written automatically. It can either be left blank in v2.0, or the admin page can call a lightweight Apps Script endpoint to mark a row as emailed (writing T and setting S = "Pending") when the assignor clicks the mailto link. The simpler choice: omit writing T in v2.0; the assignor's Outlook Sent folder is the record of sent emails. Status S advances from "Not Sent" to "Pending" only when the referee opens their link (an optional enhancement) or the assignor marks it manually.
+
+**Revised status lifecycle for v2.0:**
+- "Not Sent" — row exists, no email sent
+- "Pending" — email sent (assignor manually updates, or auto-set when referee first opens their link)
+- "Completed" — referee submitted details (auto-set by doPost/submitDetails)
+
+"Declined" is no longer a primary status: in v2.0, the referee can decline individual weekends but still submits their details. A referee who declines all weekends still has status "Completed" with V and W both set to "Declined".
+
+### Flow 3: Referee Opens Detail Form
+
+```
+Referee receives email, clicks link:
+  https://[org].github.io/[repo]/referee-details.html?token=UUID
+
+referee-details.html on load:
+  → reads token from URL: new URLSearchParams(location.search).get('token')
+  → if no token: show error state with assignor contact
+
+  → fetch(SCRIPT_URL + "?action=getDetails&token=" + token)
+
+  → Apps Script doGet:
+      find row by token (scan col R)
+      if not found: return { status: "error", message: "Invalid link" }
+      read ConfirmationDeadline from named range Z1
+      isPastDeadline = (now() > deadline)
+      return {
+        status: "ok",
+        data: {
+          firstName, lastName, draName, district,
+          currentDetails: { phone: col I, age: col J, maxAR: col K,
+                            maxRef: col L, availability: col M,
+                            hotelWk1: col N, hotelWk2: col O,
+                            dayNotes: col P },
+          weekends: { wk1: "May 16-17, 2026", wk2: "May 23-24, 2026" },
+          assignorEmail: "[hardcoded or from script property]",
+          confirmationStatus: col S,
+          isPastDeadline: isPastDeadline,
+          deadline: formatted deadline string
+        }
+      }
+
+referee-details.html renders form:
+  if isPastDeadline AND status = "Completed": render read-only summary, no submit button
+  if isPastDeadline AND status != "Completed": render form with "LATE SUBMISSION" notice
+  if not past deadline: render normal form
+  pre-fill all fields from currentDetails (if referee has submitted before, their data is shown)
+```
+
+### Flow 4: Referee Submits Details
+
+```
+Referee completes form, clicks "Submit My Details"
+
+  → fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "submitDetails",
+        token: token,
+        phone: ..., age: ..., maxAR: ..., maxRef: ...,
+        wk1: "Confirmed" | "Declined",
+        wk2: "Confirmed" | "Declined",
+        hotelWk1: true/false,
+        hotelWk2: true/false,
+        dayNotes: ...,
+        notes: ...
+      })
+    })
+
+  → Apps Script doPost (submitDetails branch):
+      LockService.getScriptLock().waitLock(10000)
+      find row by token (scan col R)
+      if not found: return error
+      read deadline from ConfirmationDeadline named range
+      isPastDeadline = (now() > deadline)
+      if isPastDeadline AND status = "Completed":
+        return { status: "error", message: "Deadline has passed" }
+      write to sheet:
+        col I (Phone) = phone
+        col J (Age) = age
+        col K (MaxAR) = maxAR
+        col L (MaxRef) = maxRef
+        col M (Availability) = "Weekend 1, Weekend 2" | "Weekend 1" | "Weekend 2" | "None"
+        col N (HotelWk1) = "Yes" / "No"
+        col O (HotelWk2) = "Yes" / "No"
+        col P (DayNotes) = dayNotes
+        col U (ConfirmedAt) = now()
+        col V (RefWeekend1) = wk1
+        col W (RefWeekend2) = wk2
+        col X (LateFlag) = isPastDeadline ? "Y" : ""
+        col Y (RefNotes) = notes
+        col S (Status) = "Completed"
+      return { status: "ok", late: isPastDeadline }
+
+referee-details.html receives success:
+  if late = true: show "Submitted — note: this submission is past the deadline" notice
+  else: show "Thank you! Your details have been submitted." success screen
+```
+
+---
+
+## Sheet Schema: Before and After
+
+### v1.0 vs v2.0 Column Writers
+
+| Col | Header | v1.0 writer | v2.0 writer | Notes |
+|-----|--------|-------------|-------------|-------|
+| A–H | Core nomination fields | DRA form (all 17 fields) | DRA form (name+email only) | A–H scope unchanged |
+| I | Phone | DRA form | Referee detail form | **Writer changes** |
+| J | Age | DRA form | Referee detail form | **Writer changes** |
+| K | Max Age as AR | DRA form | Referee detail form | **Writer changes** |
+| L | Max Age as Referee | DRA form | Referee detail form | **Writer changes** |
+| M | Availability | DRA form | Referee detail form | **Writer changes** |
+| N | Hotel Wk1 | DRA form | Referee detail form | **Writer changes** |
+| O | Hotel Wk2 | DRA form | Referee detail form | **Writer changes** |
+| P | Day Notes | DRA form | Referee detail form | **Writer changes** |
+| Q | DRA Notes | DRA form | DRA form (retained) | Unchanged |
+| R | Token | Setup script / doPost | doPost nominateV2 | Token generation moves into nomination flow |
+| S | Status | Setup script default | doPost nominateV2 / submitDetails | Status transitions in nomination and detail submission |
+| T | SentAt | (Phase 4 planned) | Not auto-written (mailto, no server send) | Assignor must manually update or leave blank |
+| U | ConfirmedAt | Confirmation form (v1.0) | Referee detail form | Same purpose |
+| V | RefWeekend1 | Confirmation form (v1.0) | Referee detail form | Same purpose |
+| W | RefWeekend2 | Confirmation form (v1.0) | Referee detail form | Same purpose |
+| X | RefHotel | Confirmation form (v1.0) | **LateFlag** | **Purpose changes** |
+| Y | RefNotes | Confirmation form (v1.0) | Referee detail form | Same purpose |
+
+### Key Insight: No New Columns Required
+
+All v2.0 referee detail data (phone, age, max ages, availability, hotel, day notes) maps directly to the existing A–Q columns. The R–Y block covers confirmation/detail metadata. No schema migration is needed for v2.0 — the existing column structure (written by setup scripts in v1.0 Phase 1) accommodates v2.0 without changes, except repurposing column X.
+
+---
+
+## Suggested Build Order
+
+Build order follows the dependency chain: schema must be stable before scripts reference it; doPost/doGet must work before HTML pages can be tested end-to-end; the admin email page embeds the referee form URL so it must come last.
+
+### Step 1: Verify/Update Sheet Schema
+
+Confirm column X header changes from "RefHotel" to "LateFlag". Update Status dropdown validation if "Declined" is being demoted from a primary status. Verify the nomination form's doPost still writes correctly to A–H and Q only (not I–P).
+
+**This step is required before any doPost/doGet code is written.** Column indices must be confirmed stable.
+
+**Dependency:** Nothing. First step.
+
+### Step 2: Simplify DRA Nomination Form
+
+Build the v2.0 nomination form — DRA selects their name, then adds referees with just first name, last name, email, and optional DRA notes. Retain the spreadsheet upload feature with a simplified template (4 columns). The form posts `action=nominateV2` to doPost.
+
+This can be built and tested client-side (validations, upload parsing) before the Apps Script is updated, as long as the SHEET_URL endpoint exists. The doPost handler in Step 3 can be added in parallel or immediately after.
+
+**Dependency:** Schema from Step 1.
+
+### Step 3: Apps Script — doPost nominateV2 + doGet getDetails + doPost submitDetails
+
+All three endpoints can be written in a single script edit and deployed together. The three routes are independent of each other but all reference the same sheet schema.
+
+Sub-order within this step:
+1. `nominateV2` in doPost — simplest, extends existing nomination logic
+2. `getDetails` in doGet — new function, returns referee data by token
+3. `submitDetails` in doPost — writes referee fields back to sheet
+
+Test `nominateV2` by submitting the new DRA form and verifying sheet rows.
+Test `getDetails` by navigating to `[exec-url]?action=getDetails&token=TEST` in a browser.
+Test `submitDetails` by POSTing a manually crafted payload with a real token from the sheet.
+
+Redeploy as a new version after all three routes are added.
+
+**Dependency:** Schema from Step 1. Simplified form from Step 2 (to test nominateV2 end-to-end, but nominateV2 can be tested standalone with a manual POST first).
+
+### Step 4: doGet getAllNominees (admin endpoint)
+
+A straightforward doGet route that returns all rows. Add to the same deployment as Step 3 or as a follow-on redeploy.
+
+**Dependency:** Step 3 (same deployment, same script file).
+
+### Step 5: Referee Detail Form (referee-details.html)
+
+Build the referee-facing form. It fetches pre-fill data from `getDetails` (Step 3) and POSTs to `submitDetails` (Step 3). UI states: loading, form (normal), form (late notice), read-only (past deadline + completed), error, success.
+
+Style to match the existing nomination form (same CSS variables, same Open Sans, same color scheme).
+
+**Dependency:** Steps 3 must be deployed and working. The referee form URL must be finalized here — the admin email page (Step 6) embeds this URL in mailto links.
+
+### Step 6: Email Admin Page (email-admin.html)
+
+Build the assignor-facing page. On load, fetches `getAllNominees` (Step 4). Renders each referee with a mailto link pre-built with the token-secured referee form URL from Step 5.
+
+**Dependency:** Steps 4 and 5 must both be complete. The referee form URL is embedded in the mailto link body.
+
+### Summary Build Order
+
+```
+1. Verify/update sheet schema (X header, status values)
+2. Simplified DRA nomination form (client-side complete)
+3. Apps Script: doPost nominateV2 + doGet getDetails + doPost submitDetails → deploy
+4. Apps Script: doGet getAllNominees → redeploy (can be same edit as step 3)
+5. Referee detail form (referee-details.html)
+6. Email admin page (email-admin.html)
+```
+
+Steps 3 and 4 are a single script edit/deployment in practice.
+Steps 5 and 6 can be built in parallel once Step 3/4 are deployed, but Step 6 requires the URL from Step 5.
 
 ---
 
 ## Architecture Patterns to Follow
 
-### Pattern 1: Action-Based Routing in doPost / doGet
+### Pattern 1: Action-Based Routing — Explicit, Delegating
 
-Apps Script has no path routing. Use an `action` field in request body (POST) or query parameter (GET) as the discriminator. Keep each action's logic in its own named function; the handler delegates:
+Each doPost/doGet routes by action string to a named handler function. The dispatcher is thin; logic lives in handlers.
 
 ```javascript
 function doPost(e) {
   var data = JSON.parse(e.postData.contents);
-  if (data.action === 'submitConfirmation') return handleConfirmationSubmit(data);
-  return handleNomination(data); // existing logic, extracted to function
+  var action = data.action;
+  if (action === 'nominateV2') return handleNominationV2(data);
+  if (action === 'submitDetails') return handleSubmitDetails(data);
+  // Legacy path — handle original nomination format or return error
+  return handleLegacyNomination(data);
 }
 
 function doGet(e) {
   var action = e.parameter.action;
-  if (action === 'getConfirmation') return handleGetConfirmation(e.parameter);
+  if (action === 'getDetails') return handleGetDetails(e.parameter);
+  if (action === 'getAllNominees') return handleGetAllNominees();
   return jsonError('Unknown action');
 }
 ```
 
-This keeps the existing nomination code intact and isolated.
+### Pattern 2: Token Lookup — Single Batch Read
 
-### Pattern 2: Token Lookup by Column Scan
-
-With 50-100 rows, a full column scan is fast enough. Read all values once per request to minimize Sheets API calls:
+Read all row data once per request. Never call `.getValue()` per row in a loop (each is a separate Sheets API call with latency overhead).
 
 ```javascript
 function findRowByToken(sheet, token) {
   var data = sheet.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {  // skip header row
-    if (data[i][17] === token) {  // col R = index 17 (0-based)
-      return { rowIndex: i + 1, rowData: data[i] }; // 1-based for sheet ops
+  for (var i = 1; i < data.length; i++) {  // row 0 = header
+    if (data[i][17] === token) {            // col R = index 17, 0-based
+      return { rowIndex: i + 1, rowData: data[i] };  // rowIndex is 1-based for sheet ops
     }
   }
   return null;
 }
 ```
 
-### Pattern 3: Idempotent Confirmation Writes
+### Pattern 3: Token Reuse on Re-Nomination
 
-Before writing confirmation data, check current status. If status is already "Confirmed", return success without overwriting (referees may click the link again by accident):
+Before appending a new row, check if the referee email already exists. If so, update the existing row and preserve the token. The referee's link never changes across nomination cycles.
 
 ```javascript
-if (rowData[18] === 'Confirmed') {  // col S = index 18
-  return jsonOk({ alreadyConfirmed: true });
+function findRowByEmail(sheet, email) {
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][7] === email) {  // col H = index 7, 0-based
+      return { rowIndex: i + 1, rowData: data[i] };
+    }
+  }
+  return null;
 }
 ```
 
-### Pattern 4: Confirmation Page State Machine
+### Pattern 4: Deadline Check — Named Range Read
 
-`confirm.html` should handle four distinct states based on the GET response:
+Read the ConfirmationDeadline named range once per request that needs it. Do not hardcode the deadline date in the script.
+
+```javascript
+function isPastDeadline(ss) {
+  var deadline = ss.getRangeByName('ConfirmationDeadline').getValue();
+  if (!deadline) return false;  // no deadline set = never past
+  return new Date() > new Date(deadline);
+}
+```
+
+### Pattern 5: Referee Form UI States
+
+The referee detail form handles five distinct states. Only one is visible at a time.
 
 ```
-State 1: Loading      — spinner while fetching referee data
-State 2: Form         — pre-filled form, referee can edit and submit
-State 3: Already Done — "You confirmed on [date]" — no form shown
-State 4: Error        — invalid/expired token, or missing email
-State 5: Success      — post-submit thank-you message
+State 1: Loading        — spinner shown while fetching from doGet
+State 2: Form (normal)  — pre-filled form, editable, with submit button
+State 3: Form (late)    — same as State 2 but with a "LATE SUBMISSION" notice banner
+State 4: Read-only      — form fields shown but not editable; no submit button
+                          (past deadline AND status = "Completed")
+State 5: Error          — invalid token, network error, or server error
+                          Shows assignor contact email and retry option
+State 6: Success        — post-submit confirmation screen
+                          If late = true, includes "note: past the deadline" notice
 ```
-
-Only one state is visible at a time. Show/hide via CSS class or `display` property, same pattern as the nomination form's `.status.ok` / `.status.er` elements.
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Overwriting DRA Nomination Data
+### Anti-Pattern 1: Sending Referee Detail Data to Columns I–P from the DRA Form
 
-Do not write referee confirmation data into columns M, N, O (DRA's original availability and hotel entries). Write to separate columns V, W, X. The DRA's data is the source of record for what was nominated; the referee's data is their own confirmation. The assignor needs both.
+The DRA form in v2.0 must not write to columns I–P. Those fields should be absent from the form entirely (not just submitted as empty strings, which could overwrite existing referee-provided data on a re-nomination).
 
-### Anti-Pattern 2: Deploying a New Apps Script Web App
+**Do this:** The v2.0 DRA form submits only: draName, draEmail, district, refs[{firstName, lastName, refEmail, draNotes}]. The doPost nominateV2 handler writes only A–H and Q.
 
-Do not create a new web app deployment for the confirmation system. Add functions to the existing script project and redeploy as a new version. Creating a second deployment means maintaining two URLs, updating both in HTML files, and doubling the confusion.
+**Not this:** Submitting the full 14-field row from the old form with empty values for I–P, which would overwrite referee-provided data if the DRA re-nominates someone.
 
-### Anti-Pattern 3: Fetching Referee Data on Every Keystroke
+### Anti-Pattern 2: Generating a New Token for a Re-Nominated Referee
 
-The confirmation page fetches data once on load with the token. It does not call Apps Script again until the referee submits. Do not poll or re-fetch. The pre-filled form values live in the DOM after the initial GET.
+If a referee who received their detail form link in a previous cycle is re-nominated, generating a new token invalidates their existing link. If they try to use the old link, they get an "invalid token" error.
 
-### Anti-Pattern 4: Using Row Number as Token
+**Do this:** `findRowByEmail()` before generating a token. If a row exists, reuse the existing token from col R.
 
-Row number is guessable and changes if rows are inserted or deleted. Use `Utilities.getUuid()` for tokens. Do not use referee email or name — they are guessable and could expose other referees' confirmation pages.
+### Anti-Pattern 3: Writing to Column T (SentAt) Automatically
 
-### Anti-Pattern 5: Sending All Emails in a Single Loop Without Error Handling
+In v2.0, email is sent by the assignor via Outlook/mailto — the server never knows when email was sent. Attempting to write a SentAt timestamp in the `getAllNominees` doGet (when the admin page loads) would mark rows as "sent" before the assignor actually sends the email.
 
-If MailApp fails mid-batch (quota exceeded, invalid address), the loop stops and only some emails are sent. Wrap each send in try/catch, log failures, and continue. Report both sent and failed counts to the assignor via the UI alert.
+**Do this:** Leave col T blank in v2.0, or provide an optional "mark as sent" endpoint the admin page calls after the assignor confirms they sent the email (e.g., via a checkbox or button next to each mailto link).
 
----
+### Anti-Pattern 4: Blocking Re-Submission Before the Deadline
 
-## Build Order
+The referee must be able to edit their details until the deadline passes. The `submitDetails` handler should overwrite existing I–P data (not guard against re-submission).
 
-The confirmation system has clear dependencies. Build in this order:
+**Only block** when: `isPastDeadline AND status = "Completed"`.
 
-### Step 1: Sheet Columns (prerequisite for everything)
+### Anti-Pattern 5: Inserting Columns Into the Sheet
 
-Add columns R–Y to the Google Sheet with correct headers. This must happen before any Apps Script code can write to them. Low risk — purely additive.
-
-```
-R: Confirmation Token
-S: Confirmation Status
-T: Confirmation Sent At
-U: Confirmed At
-V: Ref: Availability
-W: Ref: Hotel Wk1
-X: Ref: Hotel Wk2
-Y: Ref: Notes
-```
-
-### Step 2: Apps Script — doGet (enables page to load data)
-
-Add `doGet(e)` with `getConfirmation` action. This is prerequisite for `confirm.html` to work at all. Test by calling the deployed URL directly in browser with `?action=getConfirmation&token=TEST` — should return a JSON error for unknown token.
-
-Redeploy script as new version after adding this function.
-
-### Step 3: Apps Script — doPost confirmation action (enables form submission)
-
-Extend `doPost(e)` with `action: "submitConfirmation"` routing. This can be built and tested independently from email sending — test by POSTing directly with a valid token written manually into the sheet.
-
-Redeploy after adding this handler.
-
-### Step 4: confirm.html (GitHub Pages static file)
-
-Build the confirmation page. It depends on Steps 2 and 3 being deployed and working. The page should handle all five states (loading, form, already-done, error, success). Style to match the nomination form.
-
-Test the full GET → form → POST → success flow before proceeding.
-
-### Step 5: Apps Script — sendConfirmationEmails() and onOpen() menu
-
-Build the email-sending function and custom menu. This is the trigger mechanism and depends on the confirmation page URL (from Step 4) being finalised. The email body includes the `confirm.html` link.
-
-Test with a small subset (one row with a real email address) before running against the full sheet.
-
-### Step 6: Apps Script — closeConfirmations()
-
-The cleanup function. Low risk, low priority. Can be added alongside Step 5 or after initial testing.
-
-### Summary Build Order
-
-```
-1. Sheet columns (R–Y)
-2. Apps Script: doGet → getConfirmation
-3. Apps Script: doPost → submitConfirmation
-4. confirm.html (GitHub Pages)
-5. Apps Script: sendConfirmationEmails() + onOpen() menu
-6. Apps Script: closeConfirmations()
-```
-
-Steps 2 and 3 can be done in the same script edit and deployed together. Steps 5 and 6 can similarly be combined in one deployment.
+Never use `sheet.insertColumns()` or `sheet.insertColumnAfter()`. Always append to the right end of the existing schema. Inserting shifts column indices for all existing Apps Script code and the nomination form's doPost, breaking them silently.
 
 ---
 
-## Scalability Considerations
+## Integration Points Summary
 
-| Concern | At 50-100 referees (current) | If scale grows |
-|---------|------------------------------|----------------|
-| Email quota | MailApp: 100 emails/day (free Google accounts); 1,500/day (Google Workspace) — 50-100 referees is within quota for a single batch | Use GmailApp if higher quota needed |
-| Sheet scan for token | Full column scan, O(n) — negligible at 100 rows | Add token index column or use VLOOKUP if >1000 rows |
-| Concurrent confirmation submits | Sheets race conditions possible if two requests write to same row simultaneously — extremely unlikely with 50-100 refs | Use LockService if needed |
-| Apps Script execution time | 6 min max per execution — batch of 100 emails is well within limits | Split into batches with triggers if needed |
-
-Note on MailApp quota: The 100/day limit applies to personal Google accounts. If the project uses a Google Workspace (formerly G Suite) account (which `tnsoccer.org` likely is), the quota is 1,500 emails/day — well above what's needed. Confidence: MEDIUM (quota numbers are from training data; verify against current Google quotas before relying on them for edge cases).
-
----
-
-## Key Integration Points Summary
-
-| Integration Point | What Changes | Risk |
-|-------------------|-------------|------|
-| Apps Script `/exec` URL | Unchanged — same URL used for GET and POST | Low |
-| `doPost(e)` | Add action-based routing branch; existing nomination code untouched | Low |
-| `doGet(e)` | New function — does not affect existing POST behavior | Low |
-| Google Sheet | Additive only — new columns R–Y appended | Low |
-| `spring-state-cup-nomination.html` | No changes | None |
-| New `confirm.html` | New file, standalone | Medium (new development) |
-| Apps Script menu functions | New functions, `onOpen()` trigger | Low |
-
-The existing nomination flow is fully insulated from the confirmation system changes. The only shared resource is the Google Sheet (which receives new columns) and the Apps Script deployment (which receives new functions). Neither change touches existing data or existing function logic.
+| Point | What Changes | Risk |
+|-------|-------------|------|
+| `doPost(e)` | Add `nominateV2` branch; add `submitDetails` branch | Low — existing nomination logic untouched if action routing is clean |
+| `doGet(e)` | Add new function; two new routes (`getDetails`, `getAllNominees`) | Low — does not affect doPost |
+| Columns A–H, Q | Written by new simplified DRA form — same fields, same doPost path | Low |
+| Columns I–P | No longer written by DRA form; now written by referee detail form | Medium — must ensure DRA form does NOT send these fields |
+| Column X | Header and purpose change from RefHotel to LateFlag | Low — one-time update, no impact on other columns |
+| Column S | Status values contract slightly (Declined becomes less common) | Low |
+| `spring-state-cup-nomination.html` | Replace with v2.0 simplified form | Medium — new form requires testing; old form stays available as backup until verified |
+| New `referee-details.html` | New file; full development | Medium — main new development |
+| New `email-admin.html` | New file; full development | Medium — simpler than referee form |
+| `SHEET_URL` constant | Unchanged — same Apps Script /exec URL | None |
+| `ConfirmationDeadline` named range | Unchanged | None |
 
 ---
 
 ## Confidence Assessment
 
-| Area | Level | Basis |
-|------|-------|-------|
-| doGet + doPost coexistence | HIGH | Core Apps Script platform feature, well-established |
-| CORS behavior (JSON via ContentService) | HIGH | Confirmed working by existing nomination form |
-| Custom menu via onOpen() | HIGH | Core Apps Script feature |
-| MailApp for sending confirmation emails | HIGH | Core Apps Script feature; exists in SETUP-INSTRUCTIONS.txt already |
-| Token generation via Utilities.getUuid() | HIGH | Standard Apps Script utility |
-| Email quota limits (100/day free, 1500/day Workspace) | MEDIUM | Training data — verify against current Google documentation |
-| Sheet column indexing (0-based in getValues()) | HIGH | Standard JavaScript array behavior |
-| Race conditions in sheet writes | LOW | Theoretical concern; at 50-100 users and manual confirmation, extremely unlikely in practice |
+| Area | Confidence | Basis |
+|------|------------|-------|
+| Sheet schema decisions (I–P writer change, X repurpose) | HIGH | Based on direct codebase inspection and clear v2.0 requirements |
+| Action-based routing in doPost/doGet | HIGH | Existing working doPost confirms this pattern; well-documented Apps Script behavior |
+| Token generation at nomination time | HIGH | Cleaner than admin-page generation; solves re-nomination / token-reuse elegantly |
+| Mailto email approach | HIGH | Confirmed project constraint (Microsoft 365/Outlook); no server-side email |
+| Admin page as static HTML (vs Apps Script menu) | HIGH | Apps Script UI menus cannot render clickable mailto: links in a useful way |
+| Token reuse for re-nominated referees | HIGH | findRowByEmail() is a trivial column scan at this scale |
+| No new columns required | HIGH | Verified by mapping all v2.0 referee detail fields to existing I–P and V–Y columns |
+| LockService for submitDetails | HIGH | Standard guard for concurrent writes; one-liner |
+| CORS behavior on doGet/doPost | HIGH | Confirmed by existing nomination form working cross-origin from GitHub Pages |
+
+---
+
+*Architecture research for: State Cup Referee Nominations v2.0 — DRA submits name+email, referee provides own details*
+*Researched: 2026-03-19*

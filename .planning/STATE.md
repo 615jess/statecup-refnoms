@@ -2,36 +2,26 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-17)
+See: .planning/PROJECT.md (updated 2026-03-19)
 
-**Core value:** DRAs can nominate referees and those referees can confirm their own availability — giving the assignor accurate, up-to-date data to make game assignments.
-**Current focus:** Phase 2 — Apps Script Backend
+**Core value:** DRAs nominate referees with minimal effort (name + email only), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
+**Current focus:** Milestone v2.0 — Defining requirements
 
 ## Current Position
 
-Phase: 2 of 4 (Apps Script Backend)
-Plan: 0 of 2 in current phase
-Status: Phase 1 complete — ready to plan Phase 2
-Last activity: 2026-03-18 — Phase 1 verified (6/6 must-haves), SHEET-03/04/05 complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v2.0 milestone
+Last activity: 2026-03-19 — Milestone v2.0 started (pivoted from v1.0 confirmation workflow)
 
-Progress: [███░░░░░░░] 25%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
+- Total plans completed: 1 (from v1.0)
 - Average duration: ~20 min
 - Total execution time: ~20 min (+ checkpoint wait)
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-sheet-schema | 1 complete | ~20 min | ~20 min |
-
-**Recent Trend:**
-- Last 5 plans: 01-01 (sheet schema setup scripts, 2-task plan with human-verify checkpoint)
-- Trend: On track
 
 *Updated after each plan completion*
 
@@ -42,15 +32,17 @@ Progress: [███░░░░░░░] 25%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **v2.0 PIVOT (2026-03-19):** Workflow changed from DRA-provides-all-details → referee-provides-own-details
 - Email sending uses mailto links opening Outlook (NOT MailApp/GmailApp) — assignor is on Microsoft 365
-- Sheet columns R-Y must be appended (never inserted) to preserve existing nomination column indices
-- Confirmation URL format: confirm.html?token=UUID
-- Token pre-generation (column R) deferred to Phase 2 — Phase 1 only adds the header, leaves column R blank
+- Sheet columns R-Y exist from v1.0 Phase 1 — may need rethinking for v2.0 column structure
+- Confirmation URL format: confirm.html?token=UUID (still valid)
 - ConfirmationDeadline named range at Z1; label "Confirmation Deadline:" written to AA1
-- Conditional formatting included in setup script (gray/yellow/green/red by status value)
-- User verified all checks PASS on test copy — ConfirmationDeadline label in AA1 is acceptable
+- Late submissions allowed with flag; referee sees a notice
+- Referee can edit until deadline, then locked (read-only after)
+- Reuse existing token for re-nominated referees (same referee = same link)
+- doGet response should include context (tournament dates, assignor contact, DRA name) + deadline
 
-### Column Index Constants (confirmed for Phase 2+)
+### Column Index Constants (from v1.0 Phase 1 — may need revision)
 
 These are 1-based values for getRange, and 0-based array indices for appendRow/getValues:
 
@@ -66,18 +58,29 @@ These are 1-based values for getRange, and 0-based array indices for appendRow/g
 | Y | 25 | 24 | RefNotes |
 | Z | 26 | 25 | ConfirmationDeadline (named range) |
 
+### v1.0 Phase 1 Status
+
+Phase 1 (Sheet Schema) was completed in v1.0:
+- Columns R-Y appended to sheet with correct headers
+- Status column with dropdown validation and conditional formatting
+- ConfirmationDeadline named range at Z1
+- Setup scripts verified on test copy
+- **NOTE:** Production sheet may not have these applied yet
+
 ### Pending Todos
 
-- Apply setup scripts to the production sheet (user action)
+- Apply v1.0 setup scripts to the production sheet (user action — if still applicable after v2.0 schema decisions)
 - Enter actual tournament confirmation deadline date in cell Z1 on production sheet
+- Decide whether v1.0 columns R-Y schema still fits v2.0 workflow or needs changes
 
 ### Blockers/Concerns
 
-- Verify tnsoccer.org account type (Google Workspace vs personal Gmail) before Phase 4 — affects MailApp quota if ever switching to server-side send
-- Confirm GitHub Pages URL (user vs org account) before Phase 4 — email mailto links embed this URL
+- Verify tnsoccer.org account type (Google Workspace vs personal Gmail) — affects MailApp quota if ever switching to server-side send
+- Confirm GitHub Pages URL (user vs org account) — email mailto links embed this URL
+- Existing DRA nomination form (columns A-Q) collects 14 fields per referee; v2.0 simplifies to name + email — need to decide: modify existing form or create new one?
 
 ## Session Continuity
 
-Last session: 2026-03-18
-Stopped at: Phase 1 complete — ready to plan Phase 2
+Last session: 2026-03-19
+Stopped at: Milestone v2.0 started — defining requirements
 Resume file: None

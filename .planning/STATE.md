@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 ## Current Position
 
 Phase: 1 of 4 (Schema Setup)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-19 — v2.0 roadmap created (4 phases, 38 requirements mapped)
+Plan: 1 of TBD in current phase
+Status: At checkpoint — awaiting human verification of 01-01 schema scripts
+Last activity: 2026-03-19 — Executed 01-01-PLAN.md Tasks 1 and 2; at Task 3 checkpoint
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] ~10% (Phase 1 plan 1 tasks complete, awaiting checkpoint approval)
 
 ## Performance Metrics
 
@@ -63,11 +63,18 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- Production sheet may not have v1.0 Phase 1 scripts applied yet — Phase 1 setup must account for this
 - Spreadsheet upload on simplified DRA form: retain with 4-col template or remove entirely? (resolve at Phase 2 plan time)
+- Column T (SentAt) writer mechanism still TBD — must resolve before Phase 4 planning
+
+### Phase 1 Artifacts (committed 2026-03-19)
+
+- `scripts/setup-schema-v2.gs` — v2.0 schema setup (setupSchemaV2 entry point)
+- `scripts/verify-schema-v2.gs` — v2.0 verification suite (verifySchemaV2 entry point)
+- `.planning/COLUMN-MAP.md` — authoritative A-Z column reference for all phases
+- v1.0 scripts removed: setup-confirmation-columns.gs, verify-sheet-structure.gs
 
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: v2.0 roadmap created — ready to plan Phase 1
-Resume file: None
+Stopped at: 01-01 Task 3 checkpoint — awaiting user verification of schema on Google Sheet
+Resume file: None (awaiting "approved" signal to create SUMMARY.md and close plan)

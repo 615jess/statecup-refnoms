@@ -1,50 +1,66 @@
-# Requirements: State Cup Referee Confirmation System
+# Requirements: State Cup Referee Nomination & Detail Collection
 
-**Defined:** 2026-03-18
-**Core Value:** DRAs can nominate referees and those referees can confirm their own availability — giving the assignor accurate, up-to-date data to make game assignments.
+**Defined:** 2026-03-19
+**Core Value:** DRAs nominate referees with minimal effort (name + email + max ages + notes), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
 
-## v1.0 Requirements
+## v2.0 Requirements
 
-Requirements for the referee confirmation system. Each maps to roadmap phases.
+Requirements for the referee nomination & detail collection system. Supersedes v1.0.
 
-### Token & Identity
+### Nomination (DRA Form)
 
-- [ ] **TOKEN-01**: Apps Script generates a unique UUID token per referee row and stores it in the sheet
-- [ ] **TOKEN-02**: Token is generated when assignor accesses the admin email page
-- [ ] **TOKEN-03**: Confirmation URL includes token as a query parameter (confirm.html?token=...)
+- [ ] **NOM-01**: New DRA nomination form collects per referee: first name, last name, email, max age as AR, max age as referee, and DRA notes
+- [ ] **NOM-02**: DRA form supports spreadsheet upload for bulk nominations (download template + file upload)
+- [ ] **NOM-03**: DRA form writes one row per referee to Google Sheet with DRA metadata (timestamp, DRA name, email, district)
+- [ ] **NOM-04**: Token generated at nomination time (UUID stored in sheet per referee row)
+- [ ] **NOM-05**: If referee email already exists in sheet, reuse existing token and update DRA-provided fields (no duplicate rows)
 
-### Email Delivery
+### Referee Detail Form
 
-- [ ] **EMAIL-01**: Admin page lists all nominated referees with mailto: links
-- [ ] **EMAIL-02**: Mailto link opens Outlook with pre-filled To (referee email), Subject (personalized with referee name + tournament), and Body (confirmation link + tournament details)
-- [ ] **EMAIL-03**: Email body includes referee's name, nominated weekends, confirmation link, and assignor contact info
-- [ ] **EMAIL-04**: Confirmation status updates to "Pending" when tokens are generated
+- [ ] **DETAIL-01**: Static HTML referee detail form hosted on GitHub Pages, secured by token in URL
+- [ ] **DETAIL-02**: Form reads token from URL and fetches referee data via GET request to Apps Script
+- [ ] **DETAIL-03**: Form collects: weekend 1 availability, weekend 2 availability, hotel need per confirmed weekend, age, gender, phone, day-specific limitations, and notes for assignor
+- [ ] **DETAIL-04**: Form shows tournament context: dates, assignor contact info, DRA name
+- [ ] **DETAIL-05**: Re-visiting the link pre-fills with previously submitted data (supports edits until deadline)
+- [ ] **DETAIL-06**: After deadline, form displays in read-only mode showing previously submitted data
+- [ ] **DETAIL-07**: Late submissions (after deadline but before hard close) are accepted with a late flag; referee sees a notice
+- [ ] **DETAIL-08**: After hard close, form shows a friendly "responses are closed" message with assignor contact
+- [ ] **DETAIL-09**: Submit button disabled during POST to prevent double-submission
+- [ ] **DETAIL-10**: Success screen displays summary of what was submitted (weekends, hotel, notes)
+- [ ] **DETAIL-11**: Error state (invalid token, server error) shows assignor contact email and retry option
 
-### Confirmation Form
+### Apps Script Backend
 
-- [ ] **FORM-01**: Static HTML confirmation page (confirm.html) hosted on GitHub Pages
-- [ ] **FORM-02**: Page reads token from URL and fetches referee data via GET request to Apps Script
-- [ ] **FORM-03**: Form pre-fills with referee's current nomination data (name, weekends, hotel)
-- [ ] **FORM-04**: Referee can confirm or decline each nominated weekend independently
-- [ ] **FORM-05**: Referee can update hotel needs per confirmed weekend (conditional — only shown when weekend is confirmed)
-- [ ] **FORM-06**: Referee can add free-text notes to the assignor
-- [ ] **FORM-07**: Submit button disabled during POST to prevent double-submission
-- [ ] **FORM-08**: Re-visiting the confirmation link loads current data (supports re-submission/updates)
+- [ ] **API-01**: doGet with valid token returns referee data as JSON (name, DRA, weekends, hotel, status, tournament context, deadline)
+- [ ] **API-02**: doGet with invalid or missing token returns a JSON error response (not a 500 or HTML error page)
+- [ ] **API-03**: doPost with action=nominateV2 creates referee rows from DRA form submission (with token, DRA data, "Not Sent" status)
+- [ ] **API-04**: doPost with action=submitDetails writes referee-provided data to the existing row (never appends a new row)
+- [ ] **API-05**: LockService guard on concurrent writes to prevent race conditions
+- [ ] **API-06**: Deadline enforcement: late submissions accepted with flag; hard-close submissions rejected with JSON error
+- [ ] **API-07**: doGet with action=getAllNominees returns all referee rows for the admin page
+- [ ] **API-08**: Tournament constants (dates, assignor email, form URL) stored in PropertiesService
 
-### Sheet Integration
+### Email Admin Page
 
-- [ ] **SHEET-01**: Apps Script doGet endpoint returns referee row data by token lookup
-- [ ] **SHEET-02**: Apps Script doPost endpoint updates the referee's existing row (not append) by token
-- [ ] **SHEET-03**: Confirmation status column tracks Not Sent / Pending / Confirmed / Declined per referee
-- [ ] **SHEET-04**: Confirmation timestamp recorded when referee submits
-- [ ] **SHEET-05**: New columns appended to right side of existing sheet (never insert — preserves nomination data)
+- [ ] **ADMIN-01**: Static HTML admin page hosted on GitHub Pages
+- [ ] **ADMIN-02**: Admin page fetches all nominees via doGet (action=getAllNominees) and displays name, email, DRA, and status
+- [ ] **ADMIN-03**: Mailto link per referee opens Outlook with pre-filled To, Subject (personalized), and Body (referee name, tournament details, token-secured form link, assignor contact)
+- [ ] **ADMIN-04**: Clicking a mailto link auto-marks the referee's status as "Sent" in the sheet via API call
+- [ ] **ADMIN-05**: Admin page supports filtering/sorting by status (Not Sent / Sent / Confirmed)
+
+### Sheet Schema
+
+- [ ] **SCHEMA-01**: Column structure supports DRA-submitted fields, system fields (token, status, timestamps), and referee-submitted fields
+- [ ] **SCHEMA-02**: Status column uses values: Not Sent / Sent / Confirmed
+- [ ] **SCHEMA-03**: Late flag column indicates post-deadline submissions
+- [ ] **SCHEMA-04**: Response deadline stored in sheet (named range at Z1 or equivalent)
+- [ ] **SCHEMA-05**: Existing nomination form (v1.0) continues to write correctly if used (backwards compatible)
 
 ### User Experience
 
-- [ ] **UX-01**: Confirmation page is mobile-responsive (16px min font, 44px touch targets, single-column under 560px)
-- [ ] **UX-02**: Success screen displays summary of what the referee confirmed (weekends, hotel, notes)
-- [ ] **UX-03**: Error state shows retry option and assignor contact email
-- [ ] **UX-04**: Page matches existing form's visual style (Open Sans, navy/red/gold color scheme)
+- [ ] **UX-01**: Referee detail form is mobile-responsive (16px min font, 44px touch targets, single-column under 560px)
+- [ ] **UX-02**: All pages match existing visual style (Open Sans, navy/red/gold color scheme)
+- [ ] **UX-03**: Admin page provides at-a-glance status overview of all nominees
 
 ## Future Requirements
 
@@ -52,14 +68,14 @@ Deferred to later milestones.
 
 ### Assignor Tools
 
-- **ADMIN-01**: Re-send capability targeting only Pending/Not Sent referees
-- **ADMIN-02**: Close confirmations with friendly message for late clickers
-- **ADMIN-03**: Sheet summary formula showing Confirmed/Pending/Declined counts
+- **FUTURE-01**: Re-send capability targeting only Not Sent referees
+- **FUTURE-02**: Sheet summary formula showing Not Sent / Sent / Confirmed counts
+- **FUTURE-03**: Batch "mark all as sent" for assignor who sent emails outside the admin page
 
 ### Automation
 
-- **AUTO-01**: Automated reminder emails for non-responders
-- **AUTO-02**: Microsoft Graph API integration for creating Outlook drafts directly
+- **FUTURE-04**: Automated reminder emails for non-responders
+- **FUTURE-05**: Microsoft Graph API integration for creating Outlook drafts directly
 
 ## Out of Scope
 
@@ -68,45 +84,58 @@ Deferred to later milestones.
 | MailApp/GmailApp auto-sending | Assignor uses Outlook (Microsoft 365), not Gmail |
 | Login / authentication | Token-in-URL sufficient; low-sensitivity data |
 | Separate tracking dashboard | Sheet is the dashboard |
-| Full withdrawal flow | Declining weekends is sufficient; full withdrawal is a DRA conversation |
-| In-email one-click confirmation | Email client prefetch breaks it; referees need to review pre-filled data |
-| Automated reminder emails | Manual re-send is sufficient at this scale |
+| Full withdrawal flow | Referee can decline weekends; full withdrawal is a DRA conversation |
+| Automated reminder emails | Manual re-send is sufficient at ~50-100 referees |
 | SMS / push notifications | Email-only workflow |
+| In-email one-click response | Email client prefetch breaks GET-with-side-effects; referees need to fill out the form |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TOKEN-01 | Phase 2 | Pending |
-| TOKEN-02 | Phase 2 | Pending |
-| TOKEN-03 | Phase 2 | Pending |
-| EMAIL-01 | Phase 4 | Pending |
-| EMAIL-02 | Phase 4 | Pending |
-| EMAIL-03 | Phase 4 | Pending |
-| EMAIL-04 | Phase 4 | Pending |
-| FORM-01 | Phase 3 | Pending |
-| FORM-02 | Phase 3 | Pending |
-| FORM-03 | Phase 3 | Pending |
-| FORM-04 | Phase 3 | Pending |
-| FORM-05 | Phase 3 | Pending |
-| FORM-06 | Phase 3 | Pending |
-| FORM-07 | Phase 3 | Pending |
-| FORM-08 | Phase 3 | Pending |
-| SHEET-01 | Phase 2 | Pending |
-| SHEET-02 | Phase 2 | Pending |
-| SHEET-03 | Phase 1 | Complete |
-| SHEET-04 | Phase 1 | Complete |
-| SHEET-05 | Phase 1 | Complete |
-| UX-01 | Phase 3 | Pending |
-| UX-02 | Phase 3 | Pending |
-| UX-03 | Phase 3 | Pending |
-| UX-04 | Phase 3 | Pending |
+| NOM-01 | TBD | Pending |
+| NOM-02 | TBD | Pending |
+| NOM-03 | TBD | Pending |
+| NOM-04 | TBD | Pending |
+| NOM-05 | TBD | Pending |
+| DETAIL-01 | TBD | Pending |
+| DETAIL-02 | TBD | Pending |
+| DETAIL-03 | TBD | Pending |
+| DETAIL-04 | TBD | Pending |
+| DETAIL-05 | TBD | Pending |
+| DETAIL-06 | TBD | Pending |
+| DETAIL-07 | TBD | Pending |
+| DETAIL-08 | TBD | Pending |
+| DETAIL-09 | TBD | Pending |
+| DETAIL-10 | TBD | Pending |
+| DETAIL-11 | TBD | Pending |
+| API-01 | TBD | Pending |
+| API-02 | TBD | Pending |
+| API-03 | TBD | Pending |
+| API-04 | TBD | Pending |
+| API-05 | TBD | Pending |
+| API-06 | TBD | Pending |
+| API-07 | TBD | Pending |
+| API-08 | TBD | Pending |
+| ADMIN-01 | TBD | Pending |
+| ADMIN-02 | TBD | Pending |
+| ADMIN-03 | TBD | Pending |
+| ADMIN-04 | TBD | Pending |
+| ADMIN-05 | TBD | Pending |
+| SCHEMA-01 | TBD | Pending |
+| SCHEMA-02 | TBD | Pending |
+| SCHEMA-03 | TBD | Pending |
+| SCHEMA-04 | TBD | Pending |
+| SCHEMA-05 | TBD | Pending |
+| UX-01 | TBD | Pending |
+| UX-02 | TBD | Pending |
+| UX-03 | TBD | Pending |
 
 **Coverage:**
-- v1.0 requirements: 24 total
-- Mapped to phases: 24
-- Unmapped: 0
+- v2.0 requirements: 38 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 38
 
 ---
-*Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 — Phase 1 complete (SHEET-03, SHEET-04, SHEET-05 verified)*
+*Requirements defined: 2026-03-19*
+*Last updated: 2026-03-19 — v2.0 milestone (supersedes v1.0)*

@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** DRAs can nominate referees and those referees can confirm their own availability — giving the assignor accurate, up-to-date data to make game assignments.
-**Current focus:** Phase 1 — Sheet Schema (Plan 1 complete; additional plans TBD)
+**Current focus:** Phase 2 — Apps Script Backend
 
 ## Current Position
 
-Phase: 1 of 4 (Sheet Schema)
-Plan: 1 of TBD in current phase
-Status: Plan 01-01 complete — Phase 1 in progress
-Last activity: 2026-03-18 — Completed 01-01-PLAN.md (all verification checks passed by user)
+Phase: 2 of 4 (Apps Script Backend)
+Plan: 0 of 2 in current phase
+Status: Phase 1 complete — ready to plan Phase 2
+Last activity: 2026-03-18 — Phase 1 verified (6/6 must-haves), SHEET-03/04/05 complete
 
-Progress: [█░░░░░░░░░] ~10%
+Progress: [███░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -79,5 +79,5 @@ These are 1-based values for getRange, and 0-based array indices for appendRow/g
 ## Session Continuity
 
 Last session: 2026-03-18
-Stopped at: Completed 01-01-PLAN.md — all tasks done, plan fully closed
+Stopped at: Phase 1 complete — ready to plan Phase 2
 Resume file: None

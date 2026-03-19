@@ -94,9 +94,9 @@ Deferred to later milestones.
 | FORM-08 | Phase 3 | Pending |
 | SHEET-01 | Phase 2 | Pending |
 | SHEET-02 | Phase 2 | Pending |
-| SHEET-03 | Phase 1 | Pending |
-| SHEET-04 | Phase 1 | Pending |
-| SHEET-05 | Phase 1 | Pending |
+| SHEET-03 | Phase 1 | Complete |
+| SHEET-04 | Phase 1 | Complete |
+| SHEET-05 | Phase 1 | Complete |
 | UX-01 | Phase 3 | Pending |
 | UX-02 | Phase 3 | Pending |
 | UX-03 | Phase 3 | Pending |
@@ -109,4 +109,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after roadmap created (all 24 requirements mapped)*
+*Last updated: 2026-03-18 — Phase 1 complete (SHEET-03, SHEET-04, SHEET-05 verified)*

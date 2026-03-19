@@ -10,7 +10,7 @@ Build a token-based referee confirmation system on top of the existing nominatio
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Sheet Schema** - Append columns R-Y to the sheet and verify existing nominations still write correctly
+- [x] **Phase 1: Sheet Schema** - Append columns R-Y to the sheet and verify existing nominations still write correctly
 - [ ] **Phase 2: Apps Script Backend** - Implement doGet (token lookup) and doPost (confirmation write) endpoints
 - [ ] **Phase 3: Confirmation Page** - Build confirm.html with pre-fill, form controls, and all UI states
 - [ ] **Phase 4: Email Admin Page** - Build the assignor-facing page with mailto links and token generation
@@ -29,7 +29,7 @@ Build a token-based referee confirmation system on top of the existing nominatio
 **Plans**: 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md -- Write setup and verification scripts for confirmation columns R-Y, Status backfill, dropdown validation, and ConfirmationDeadline named range
+- [x] 01-01-PLAN.md -- Write setup and verification scripts for confirmation columns R-Y, Status backfill, dropdown validation, and ConfirmationDeadline named range
 
 ### Phase 2: Apps Script Backend
 **Goal**: The Apps Script has working doGet and doPost endpoints — doGet returns referee JSON by token, doPost writes confirmation data to columns V-Y and updates status in column S — and existing nomination submissions are unaffected
@@ -78,7 +78,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Sheet Schema | 0/1 | Planned | - |
+| 1. Sheet Schema | 1/1 | ✓ Complete | 2026-03-18 |
 | 2. Apps Script Backend | 0/TBD | Not started | - |
 | 3. Confirmation Page | 0/TBD | Not started | - |
 | 4. Email Admin Page | 0/TBD | Not started | - |

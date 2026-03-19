@@ -93,49 +93,49 @@ Deferred to later milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NOM-01 | TBD | Pending |
-| NOM-02 | TBD | Pending |
-| NOM-03 | TBD | Pending |
-| NOM-04 | TBD | Pending |
-| NOM-05 | TBD | Pending |
-| DETAIL-01 | TBD | Pending |
-| DETAIL-02 | TBD | Pending |
-| DETAIL-03 | TBD | Pending |
-| DETAIL-04 | TBD | Pending |
-| DETAIL-05 | TBD | Pending |
-| DETAIL-06 | TBD | Pending |
-| DETAIL-07 | TBD | Pending |
-| DETAIL-08 | TBD | Pending |
-| DETAIL-09 | TBD | Pending |
-| DETAIL-10 | TBD | Pending |
-| DETAIL-11 | TBD | Pending |
-| API-01 | TBD | Pending |
-| API-02 | TBD | Pending |
-| API-03 | TBD | Pending |
-| API-04 | TBD | Pending |
-| API-05 | TBD | Pending |
-| API-06 | TBD | Pending |
-| API-07 | TBD | Pending |
-| API-08 | TBD | Pending |
-| ADMIN-01 | TBD | Pending |
-| ADMIN-02 | TBD | Pending |
-| ADMIN-03 | TBD | Pending |
-| ADMIN-04 | TBD | Pending |
-| ADMIN-05 | TBD | Pending |
-| SCHEMA-01 | TBD | Pending |
-| SCHEMA-02 | TBD | Pending |
-| SCHEMA-03 | TBD | Pending |
-| SCHEMA-04 | TBD | Pending |
-| SCHEMA-05 | TBD | Pending |
-| UX-01 | TBD | Pending |
-| UX-02 | TBD | Pending |
-| UX-03 | TBD | Pending |
+| SCHEMA-01 | Phase 1 | Pending |
+| SCHEMA-02 | Phase 1 | Pending |
+| SCHEMA-03 | Phase 1 | Pending |
+| SCHEMA-04 | Phase 1 | Pending |
+| SCHEMA-05 | Phase 1 | Pending |
+| NOM-01 | Phase 2 | Pending |
+| NOM-02 | Phase 2 | Pending |
+| NOM-03 | Phase 2 | Pending |
+| NOM-04 | Phase 2 | Pending |
+| NOM-05 | Phase 2 | Pending |
+| API-03 | Phase 2 | Pending |
+| API-05 | Phase 2 | Pending |
+| API-08 | Phase 2 | Pending |
+| UX-02 | Phase 2 | Pending |
+| DETAIL-01 | Phase 3 | Pending |
+| DETAIL-02 | Phase 3 | Pending |
+| DETAIL-03 | Phase 3 | Pending |
+| DETAIL-04 | Phase 3 | Pending |
+| DETAIL-05 | Phase 3 | Pending |
+| DETAIL-06 | Phase 3 | Pending |
+| DETAIL-07 | Phase 3 | Pending |
+| DETAIL-08 | Phase 3 | Pending |
+| DETAIL-09 | Phase 3 | Pending |
+| DETAIL-10 | Phase 3 | Pending |
+| DETAIL-11 | Phase 3 | Pending |
+| API-01 | Phase 3 | Pending |
+| API-02 | Phase 3 | Pending |
+| API-04 | Phase 3 | Pending |
+| API-06 | Phase 3 | Pending |
+| UX-01 | Phase 3 | Pending |
+| ADMIN-01 | Phase 4 | Pending |
+| ADMIN-02 | Phase 4 | Pending |
+| ADMIN-03 | Phase 4 | Pending |
+| ADMIN-04 | Phase 4 | Pending |
+| ADMIN-05 | Phase 4 | Pending |
+| API-07 | Phase 4 | Pending |
+| UX-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 38 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 38
+- Mapped to phases: 38
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 — v2.0 milestone (supersedes v1.0)*
+*Last updated: 2026-03-19 — v2.0 roadmap created; all 38 requirements mapped to phases 1-4*

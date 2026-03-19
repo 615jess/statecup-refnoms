@@ -32,10 +32,10 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
   3. A named range "ConfirmationDeadline" at Z1 exists and a date can be entered and read back via Apps Script
   4. Existing v1.0 nomination form (if used) still writes correctly to its expected columns without error
   5. A verified column map document lists every column A-Z with header, writer (DRA form / referee form / system), and 1-based index for use in all subsequent phases
-**Plans**: TBD (estimated 1-2 plans)
+**Plans**: 1 plan
 
 Plans:
-- [ ] 01-01: Update column S validation, rename column X header, verify named range, produce column map
+- [ ] 01-01-PLAN.md — Write v2.0 setup/verify scripts and column map, remove v1.0 scripts
 
 ### Phase 2: DRA Form + nominateV2
 **Goal**: A DRA can submit referee nominations (individually or via spreadsheet upload) and each nomination creates exactly one sheet row with a token, leaving referee-detail columns blank — ready for the referee to fill
@@ -90,7 +90,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Schema Setup | v2.0 | 0/TBD | Not started | - |
+| 1. Schema Setup | v2.0 | 0/1 | Planned | - |
 | 2. DRA Form + nominateV2 | v2.0 | 0/TBD | Not started | - |
 | 3. Referee Detail Form + Backend | v2.0 | 0/TBD | Not started | - |
 | 4. Email Admin Page + getAllNominees | v2.0 | 0/TBD | Not started | - |

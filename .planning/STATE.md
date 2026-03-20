@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email + max ages + notes), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** v2.0 Phase 2 — DRA Form + nominateV2 (execution complete, awaiting verification)
+**Current focus:** v2.0 Phase 3 — Referee Detail Form + Backend (Plan 01 complete)
 
 ## Current Position
 
-Phase: 2 of 4 (DRA Form + nominateV2) — All plans executed
-Plan: 2 of 2 complete in Phase 2
-Status: Phase 2 execution complete — all plans finished, awaiting phase verification
-Last activity: 2026-03-19 — Completed 02-02-PLAN.md: DRA form v2.0 verified end-to-end
+Phase: 3 of 4 (Referee Detail Form + Backend)
+Plan: 1 of 3 complete in Phase 3
+Status: In progress — Plan 01 (backend endpoints) complete; Plan 02 (referee form HTML) next
+Last activity: 2026-03-20 — Completed 03-01-PLAN.md: doGet + doPost submitDetails backend endpoints
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2)
-- Average duration: ~35 min
-- Total execution time: ~120 min (+ checkpoint waits)
+- Total plans completed: 5 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 1 from v2.0 Phase 3)
+- Average duration: ~29 min (updated with 3-min Plan 03-01)
+- Total execution time: ~123 min (+ checkpoint waits)
 
 *Updated after each plan completion*
 
@@ -71,6 +71,12 @@ Recent decisions affecting current work:
 
 - Column T (SentAt) writer mechanism still TBD — must resolve before Phase 4 planning
 
+### Phase 3 Plan 01 Artifacts (committed 2026-03-20)
+
+- `scripts/refdetails.gs` — doGet endpoint, _handleGetDetails, _handleSubmitDetails, _getDeadlineState, _findRowByToken helpers, Phase 3 COL_* constants
+- `scripts/nominatev2.gs` — submitDetails routing case added to doPost (Phase 3 handler in refdetails.gs)
+- Deployment: new deployment required after all Phase 3 plans complete (refdetails.gs must be pasted into Apps Script editor first)
+
 ### Phase 2 Artifacts (committed 2026-03-19)
 
 - `scripts/nominatev2.gs` — doPost handler with nominateV2 action, email dedup, UUID token gen, LockService, K-L column writes, setTournamentConstants
@@ -88,6 +94,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-19
-Stopped at: Phase 2 execution complete — all plans finished, proceeding to phase verification
+Last session: 2026-03-20
+Stopped at: Completed 03-01-PLAN.md — backend endpoints done, Plan 02 (referee form HTML) is next
 Resume file: None

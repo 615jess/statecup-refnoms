@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 ## Current Position
 
 Phase: 4 of 4 (Email Admin Page) — In progress
-Plan: 1 of 2 complete in Phase 4
-Status: Plan 04-01 complete — getAllNominees + markSent backend endpoints committed
-Last activity: 2026-03-20 — Completed 04-01-PLAN.md (adminemail.gs + routing extensions)
+Plan: 2 of 2 in Phase 4 (awaiting human verification checkpoint)
+Status: admin.html built and committed — awaiting deployment + user testing
+Last activity: 2026-03-20 — Completed 04-02 Task 1 (admin.html); at checkpoint
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -77,7 +77,9 @@ Recent decisions affecting current work:
 - `scripts/adminemail.gs` — `_handleGetAllNominees` (returns all nominees + tournament props), `_handleMarkSent` (LockService, idempotent, writes Status + SentAt), `COL_SENT_AT = 20`
 - `scripts/refdetails.gs` (modified) — doGet now routes `action=getAllNominees` before token lookup
 - `scripts/nominatev2.gs` (modified) — doPost now routes `action=markSent` alongside nominateV2 and submitDetails
+- `admin.html` — complete email admin page (617 lines): sortable/filterable nominee table, mailto links, auto-mark-Sent, summary counts
 - Plan 04-01 Commits: `388aab1` (adminemail.gs), `dbf64be` (routing extensions)
+- Plan 04-02 Commits: `9853359` (admin.html)
 
 ### Phase 3 Artifacts (committed 2026-03-20)
 
@@ -105,5 +107,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Completed 04-01-PLAN.md — adminemail.gs created, routing extended in refdetails.gs and nominatev2.gs
+Stopped at: 04-02 checkpoint — admin.html committed (9853359), awaiting deployment + human verify
 Resume file: None

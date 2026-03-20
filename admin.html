@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spring State Cup 2026 — Email Admin | Tennessee Soccer Referee Program</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:    #0d2148;
+    --red:     #cc2229;
+    --red-dk:  #a31b21;
+    --white:   #ffffff;
+    --off:     #f4f6f9;
+    --slate:   #e8edf5;
+    --border:  #d0d9e8;
+    --muted:   #5a6a88;
+    --text:    #1a2540;
+    --gold:    #c8912a;
+    --green:   #1a6b31;
+    --green-bg:#edf7f0;
+    --r: 6px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--off); color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 15px; line-height: 1.55; }
+
+  /* topbar */
+  .topbar { height: 5px; background: linear-gradient(90deg, var(--navy), var(--red) 55%, var(--gold)); }
+
+  /* header */
+  .site-header { background: var(--white); padding: 22px 28px 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; }
+
+  .hero { padding: 24px 0 32px; display: flex; align-items: center; gap: 24px; }
+  .hero-brand { height: 100px; width: auto; flex-shrink: 0; }
+  .hero-divider { width: 3px; align-self: stretch; background: var(--red); border-radius: 2px; flex-shrink: 0; }
+  .hero-content { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .hero-text { flex: 1; }
+  .hero-logo { height: 100px; width: auto; flex-shrink: 0; }
+  @media(max-width:700px){ .hero { flex-direction: column; text-align: center; } .hero-content { flex-direction: column; } .hero-brand { height: 70px; } .hero-logo { display: none; } .hero-divider { width: 60px; height: 3px; align-self: auto; } }
+  .event-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--red); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; padding: 5px 14px; border-radius: 2px; margin-bottom: 14px; }
+  .hero h1 { font-family: 'Open Sans', sans-serif; font-size: clamp(28px, 5vw, 48px); font-weight: 700; color: var(--navy); line-height: 1.05; }
+  .hero h1 em { color: var(--red); font-style: normal; }
+  .hero p { font-size: 14px; color: var(--muted); font-weight: 300; margin-top: 8px; }
+
+  .dates-row { background: var(--navy); border-top: 1px solid var(--border); }
+  .dates-inner { max-width: 1100px; margin: 0 auto; display: flex; }
+  .date-blk { flex: 1; padding: 13px 20px; display: flex; align-items: center; gap: 12px; border-right: 1px solid rgba(255,255,255,0.1); }
+  .date-blk:last-child { border-right: none; }
+  .wk-pill { background: var(--red); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 10px; letter-spacing: 2px; padding: 3px 9px; border-radius: 2px; white-space: nowrap; }
+  .wk-dt { font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 300; }
+
+  /* main */
+  .main { max-width: 1100px; margin: 0 auto; padding: 36px 24px 80px; }
+
+  /* section heading */
+  .sec-head { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; }
+  .sec-head h2 { font-family: 'Open Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); }
+
+  /* summary counts bar */
+  #summary {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    background: var(--white); border: 1px solid var(--border); border-radius: var(--r);
+    padding: 12px 16px; margin-bottom: 16px;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+  }
+  #summary .sum-total { color: var(--navy); font-size: 14px; font-weight: 700; margin-right: 4px; }
+  #summary .sum-sep { color: var(--border); user-select: none; }
+
+  /* status badges */
+  .badge {
+    display: inline-block; border-radius: 4px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 3px 9px; white-space: nowrap;
+  }
+  .badge-not-sent   { background: #e8eaed; color: #3c4043; }
+  .badge-sent       { background: #fef9c3; color: #854d0e; }
+  .badge-confirmed  { background: #dcfce7; color: #166534; }
+
+  /* summary count badges */
+  .sum-badge { display: inline-flex; align-items: center; gap: 5px; }
+  .sum-badge .badge { font-size: 12px; padding: 3px 9px; }
+
+  /* search box */
+  .search-wrap { margin-bottom: 12px; }
+  #search {
+    width: 100%; max-width: 380px; background: var(--white);
+    border: 1.5px solid var(--border); border-radius: var(--r);
+    padding: 9px 14px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 14px;
+    transition: border-color .18s, box-shadow .18s; outline: none; appearance: none; -webkit-appearance: none;
+  }
+  #search:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13,33,72,0.09); }
+
+  /* table */
+  .table-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--border); background: var(--white); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--navy); }
+  thead th {
+    color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 11px 14px; text-align: left; white-space: nowrap;
+    cursor: pointer; user-select: none; position: sticky; top: 0; z-index: 1;
+    transition: background .15s;
+  }
+  thead th:hover { background: #162d5a; }
+  thead th .sort-arrow { display: inline-block; margin-left: 5px; opacity: 0.5; font-size: 10px; }
+  thead th.sorted .sort-arrow { opacity: 1; color: var(--gold); }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--slate); }
+  tbody td { padding: 11px 14px; vertical-align: middle; }
+  tbody td.td-name { font-weight: 600; color: var(--navy); white-space: nowrap; }
+  tbody td.td-email { color: var(--muted); font-size: 12px; }
+  tbody td.td-wkd { font-size: 12px; color: var(--muted); text-align: center; }
+  tbody td.td-action { text-align: right; white-space: nowrap; }
+  .no-results td { text-align: center; padding: 32px 14px; color: var(--muted); font-style: italic; }
+
+  /* email button */
+  .btn-email {
+    background: var(--navy); border: none; border-radius: var(--r);
+    color: #fff; font-family: 'Open Sans', sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 16px;
+    cursor: pointer; transition: all .18s; white-space: nowrap; min-height: 36px;
+  }
+  .btn-email:hover:not(:disabled) { background: #162d5a; transform: translateY(-1px); }
+  .btn-email:disabled {
+    background: #e8eaed; color: #9aa0a6; cursor: not-allowed; transform: none;
+    box-shadow: none; letter-spacing: 1px;
+  }
+
+  /* loading / error states */
+  .state-card {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--r);
+    box-shadow: 0 2px 12px rgba(13,33,72,0.09); padding: 60px 32px;
+    text-align: center; max-width: 560px; margin: 40px auto;
+  }
+  .spin-dk { display: inline-block; width: 36px; height: 36px; border: 3px solid rgba(13,33,72,0.15); border-top-color: var(--navy); border-radius: 50%; animation: sp .8s linear infinite; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  .state-card.er h2 { color: var(--red); font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .state-card p { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+  .state-card .err-msg { font-size: 12px; color: var(--red); font-family: monospace; margin-top: 8px; background: #fef2f2; padding: 8px 12px; border-radius: 4px; word-break: break-all; }
+  .try-btn {
+    background: var(--navy); border: none; border-radius: var(--r);
+    color: #fff; font-family: 'Open Sans', sans-serif; font-size: 14px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; padding: 11px 28px;
+    cursor: pointer; transition: all .18s; margin-top: 16px; min-height: 44px;
+  }
+  .try-btn:hover { background: #162d5a; }
+
+  /* footer */
+  .site-footer { text-align: center; padding: 0 24px 48px; }
+  .footer-logo { height: 64px; width: auto; opacity: 0.7; }
+
+  @media(max-width:700px) {
+    .dates-inner { flex-direction: column; }
+    .date-blk { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    #search { max-width: 100%; }
+    #summary { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="hero">
+      <img src="logo.webp" alt="Tennessee State Cup 2025&ndash;2026" class="hero-brand">
+      <div class="hero-divider"></div>
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="event-pill">&#x26BD; Spring State Cup 2026</div>
+          <h1>Email <em>Admin</em></h1>
+          <p>Manage referee nomination emails</p>
+        </div>
+        <img src="TNRefLOGO.png" alt="Tennessee Soccer Referee Program" class="hero-logo">
+      </div>
+    </div>
+  </div>
+  <div class="dates-row">
+    <div class="dates-inner">
+      <div class="date-blk">
+        <span class="wk-pill">Weekend 1</span>
+        <span class="wk-dt">May 16 &amp; 17, 2026</span>
+      </div>
+      <div class="date-blk">
+        <span class="wk-pill">Weekend 2</span>
+        <span class="wk-dt">May 23 &amp; 24, 2026</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- loading state -->
+  <div id="state-loading">
+    <div class="state-card">
+      <div class="spin-dk" style="margin:0 auto 18px;"></div>
+      <p>Loading nominees&hellip;</p>
+    </div>
+  </div>
+
+  <!-- error state -->
+  <div id="state-error" style="display:none;">
+    <div class="state-card er">
+      <h2>Could not load nominees</h2>
+      <p>There was a problem connecting to the spreadsheet.</p>
+      <p class="err-msg" id="err-detail"></p>
+      <button class="try-btn" onclick="loadNominees()">Retry</button>
+    </div>
+  </div>
+
+  <!-- main content (shown after data loads) -->
+  <div id="state-content" style="display:none;">
+
+    <div class="sec-head">
+      <h2>Nominee Email Status</h2>
+    </div>
+
+    <!-- summary counts -->
+    <div id="summary"></div>
+
+    <!-- search -->
+    <div class="search-wrap">
+      <input type="text" id="search" placeholder="Search by name or email&hellip;" autocomplete="off">
+    </div>
+
+    <!-- table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort-col="name">Name <span class="sort-arrow">&#x2193;</span></th>
+            <th data-sort-col="email">Email <span class="sort-arrow">&#x2193;</span></th>
+            <th data-sort-col="dra">DRA <span class="sort-arrow">&#x2193;</span></th>
+            <th data-sort-col="status">Status <span class="sort-arrow">&#x2193;</span></th>
+            <th data-sort-col="wkd1" style="text-align:center;">Wkd 1 <span class="sort-arrow">&#x2193;</span></th>
+            <th data-sort-col="wkd2" style="text-align:center;">Wkd 2 <span class="sort-arrow">&#x2193;</span></th>
+            <th style="text-align:right; cursor:default;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="nominee-tbody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <img src="TNRefLOGO.png" alt="Tennessee Soccer Referee Program" class="footer-logo">
+</footer>
+
+<script>
+// ---------------------------------------------------------------------------
+// CONFIGURATION — paste the new Apps Script deployment URL here
+// ---------------------------------------------------------------------------
+var SCRIPT_URL = 'PASTE_NEW_DEPLOYMENT_URL_HERE';
+
+// ---------------------------------------------------------------------------
+// STATE
+// ---------------------------------------------------------------------------
+var allNominees = [];
+var tournamentProps = {};
+var sortState = { col: 'status', dir: 'asc' };
+var searchQuery = '';
+
+// ---------------------------------------------------------------------------
+// BOOTSTRAP
+// ---------------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', function() {
+  loadNominees();
+
+  document.getElementById('search').addEventListener('input', function() {
+    searchQuery = this.value.trim().toLowerCase();
+    renderTable();
+  });
+
+  var headers = document.querySelectorAll('thead th[data-sort-col]');
+  for (var i = 0; i < headers.length; i++) {
+    headers[i].addEventListener('click', handleHeaderClick);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// loadNominees — fetch all nominees from the backend
+// ---------------------------------------------------------------------------
+async function loadNominees() {
+  showState('loading');
+  try {
+    var res = await fetch(SCRIPT_URL + '?action=getAllNominees');
+    var data = await res.json();
+    if (!data.ok) {
+      throw new Error(data.message || 'Server returned ok:false');
+    }
+    allNominees = data.nominees || [];
+    tournamentProps = data.props || {};
+    renderSummary(allNominees);
+    renderTable();
+    showState('content');
+  } catch (err) {
+    document.getElementById('err-detail').textContent = String(err);
+    showState('error');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// showState — toggle which state panel is visible
+// ---------------------------------------------------------------------------
+function showState(which) {
+  document.getElementById('state-loading').style.display = (which === 'loading') ? '' : 'none';
+  document.getElementById('state-error').style.display   = (which === 'error')   ? '' : 'none';
+  document.getElementById('state-content').style.display = (which === 'content') ? '' : 'none';
+}
+
+// ---------------------------------------------------------------------------
+// renderSummary — update the counts bar
+// ---------------------------------------------------------------------------
+function renderSummary(nominees) {
+  var counts = { 'Not Sent': 0, 'Sent': 0, 'Confirmed': 0 };
+  for (var i = 0; i < nominees.length; i++) {
+    var s = nominees[i].status;
+    if (counts.hasOwnProperty(s)) counts[s]++;
+  }
+  var total = nominees.length;
+  var el = document.getElementById('summary');
+  el.innerHTML =
+    '<span class="sum-total">' + total + ' Total</span>' +
+    '<span class="sum-sep">|</span>' +
+    '<span class="sum-badge"><span class="badge badge-not-sent">' + counts['Not Sent'] + ' Not Sent</span></span>' +
+    '<span class="sum-sep">|</span>' +
+    '<span class="sum-badge"><span class="badge badge-sent">' + counts['Sent'] + ' Sent</span></span>' +
+    '<span class="sum-sep">|</span>' +
+    '<span class="sum-badge"><span class="badge badge-confirmed">' + counts['Confirmed'] + ' Confirmed</span></span>';
+}
+
+// ---------------------------------------------------------------------------
+// sortNominees — return a new sorted array (does not mutate allNominees)
+// ---------------------------------------------------------------------------
+function sortNominees(nominees, col, dir) {
+  var statusOrder = { 'Not Sent': 0, 'Sent': 1, 'Confirmed': 2 };
+  return nominees.slice().sort(function(a, b) {
+    var av, bv;
+    if (col === 'status') {
+      av = statusOrder.hasOwnProperty(a.status) ? statusOrder[a.status] : 99;
+      bv = statusOrder.hasOwnProperty(b.status) ? statusOrder[b.status] : 99;
+    } else if (col === 'name') {
+      av = (a.lastName + ' ' + a.firstName).toLowerCase();
+      bv = (b.lastName + ' ' + b.firstName).toLowerCase();
+    } else if (col === 'email') {
+      av = (a.refEmail || '').toLowerCase();
+      bv = (b.refEmail || '').toLowerCase();
+    } else if (col === 'dra') {
+      av = (a.draName || '').toLowerCase();
+      bv = (b.draName || '').toLowerCase();
+    } else if (col === 'wkd1') {
+      av = (a.refWeekend1 || '').toLowerCase();
+      bv = (b.refWeekend1 || '').toLowerCase();
+    } else if (col === 'wkd2') {
+      av = (a.refWeekend2 || '').toLowerCase();
+      bv = (b.refWeekend2 || '').toLowerCase();
+    } else {
+      av = ''; bv = '';
+    }
+    if (av < bv) return dir === 'asc' ? -1 : 1;
+    if (av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+// ---------------------------------------------------------------------------
+// renderTable — clear and rebuild tbody with current sort + filter
+// ---------------------------------------------------------------------------
+function renderTable() {
+  var sorted = sortNominees(allNominees, sortState.col, sortState.dir);
+
+  // Apply search filter
+  var filtered = sorted;
+  if (searchQuery) {
+    filtered = sorted.filter(function(n) {
+      var haystack = (n.firstName + ' ' + n.lastName + ' ' + n.refEmail).toLowerCase();
+      return haystack.indexOf(searchQuery) !== -1;
+    });
+  }
+
+  // Update column header sort indicators
+  var headers = document.querySelectorAll('thead th[data-sort-col]');
+  for (var i = 0; i < headers.length; i++) {
+    var th = headers[i];
+    var col = th.getAttribute('data-sort-col');
+    var arrow = th.querySelector('.sort-arrow');
+    th.classList.remove('sorted');
+    if (col === sortState.col) {
+      th.classList.add('sorted');
+      arrow.textContent = sortState.dir === 'asc' ? '\u2191' : '\u2193';
+    } else {
+      arrow.textContent = '\u2193';
+    }
+  }
+
+  var tbody = document.getElementById('nominee-tbody');
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    var noRow = document.createElement('tr');
+    noRow.className = 'no-results';
+    var noCell = document.createElement('td');
+    noCell.colSpan = 7;
+    noCell.textContent = searchQuery ? 'No nominees match your search.' : 'No nominees found.';
+    noRow.appendChild(noCell);
+    tbody.appendChild(noRow);
+    return;
+  }
+
+  var props = tournamentProps;
+
+  for (var j = 0; j < filtered.length; j++) {
+    var n = filtered[j];
+    var tr = document.createElement('tr');
+    tr.setAttribute('data-token', n.token);
+
+    var status = n.status || 'Not Sent';
+    var badgeClass = statusBadgeClass(status);
+    var isActionable = (status === 'Not Sent');
+    var mailtoHref = buildMailtoHref(n, props);
+
+    var btnText, btnDisabled;
+    if (status === 'Confirmed') {
+      btnText = 'Confirmed'; btnDisabled = true;
+    } else if (status === 'Sent') {
+      btnText = 'Sent'; btnDisabled = true;
+    } else {
+      btnText = 'Send Email'; btnDisabled = false;
+    }
+
+    tr.innerHTML =
+      '<td class="td-name">' + esc(n.lastName + ', ' + n.firstName) + '</td>' +
+      '<td class="td-email">' + esc(n.refEmail) + '</td>' +
+      '<td>' + esc(n.draName) + '</td>' +
+      '<td><span class="badge ' + badgeClass + '">' + esc(status) + '</span></td>' +
+      '<td class="td-wkd">' + esc(n.refWeekend1 || '\u2014') + '</td>' +
+      '<td class="td-wkd">' + esc(n.refWeekend2 || '\u2014') + '</td>' +
+      '<td class="td-action">' +
+        '<button class="btn-email" ' +
+          (btnDisabled ? 'disabled ' : '') +
+          'onclick="handleEmailClick(this)" ' +
+          'data-token="' + esc(n.token) + '" ' +
+          'data-mailto-href="' + escAttr(mailtoHref) + '">' +
+          btnText +
+        '</button>' +
+      '</td>';
+
+    tbody.appendChild(tr);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// statusBadgeClass — map status string to CSS class
+// ---------------------------------------------------------------------------
+function statusBadgeClass(status) {
+  if (status === 'Sent')      return 'badge-sent';
+  if (status === 'Confirmed') return 'badge-confirmed';
+  return 'badge-not-sent';
+}
+
+// ---------------------------------------------------------------------------
+// buildMailtoHref — construct a mailto: URL with pre-filled subject and body
+// ---------------------------------------------------------------------------
+function buildMailtoHref(nominee, props) {
+  var firstName    = nominee.firstName  || '';
+  var draName      = nominee.draName    || '';
+  var token        = nominee.token      || '';
+  var assignorEmail  = props.assignorEmail  || '';
+  var weekend1Dates  = props.weekend1Dates  || 'May 16 & 17, 2026';
+  var weekend2Dates  = props.weekend2Dates  || 'May 23 & 24, 2026';
+  var refFormUrl     = props.refFormUrl     || '';
+  var deadlineDisplay = props.deadlineDisplay || '';
+
+  var subject = 'State Cup Referee Nomination \u2014 Action Required';
+
+  var bodyLines = [
+    'Dear ' + firstName + ',',
+    '',
+    'You have been nominated to officiate at the Tennessee State Cup tournament by ' + draName + '.',
+    '',
+    'Tournament Dates:',
+    '  Weekend 1: ' + weekend1Dates,
+    '  Weekend 2: ' + weekend2Dates,
+    '',
+    'Please complete your referee details using the link below:',
+    refFormUrl + '?token=' + token
+  ];
+
+  if (deadlineDisplay) {
+    bodyLines.push('');
+    bodyLines.push('Please respond by ' + deadlineDisplay + '.');
+  }
+
+  if (assignorEmail) {
+    bodyLines.push('');
+    bodyLines.push('If you have questions, please contact:');
+    bodyLines.push(assignorEmail);
+  }
+
+  bodyLines.push('');
+  bodyLines.push('Thank you,');
+  bodyLines.push('Tennessee State Cup Assignor');
+
+  var body = bodyLines.join('\r\n');
+
+  return 'mailto:' + encodeURIComponent(nominee.refEmail) +
+    '?subject=' + encodeURIComponent(subject) +
+    '&body=' + encodeURIComponent(body);
+}
+
+// ---------------------------------------------------------------------------
+// handleEmailClick — mark Sent in sheet, then open Outlook
+// ---------------------------------------------------------------------------
+async function handleEmailClick(btn) {
+  var token = btn.getAttribute('data-token');
+  var href  = btn.getAttribute('data-mailto-href');
+
+  // Disable immediately to prevent double-click
+  btn.disabled = true;
+  btn.textContent = 'Sending\u2026';
+
+  try {
+    var res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'markSent', token: token })
+      // No Content-Type header — avoids CORS preflight (proven pattern from Phase 2/3)
+    });
+    var data = await res.json();
+    if (data.ok) {
+      updateRowStatus(token, 'Sent');
+    } else {
+      console.warn('markSent returned ok:false —', data.message || data.error);
+      // Still open Outlook; the admin can re-send next time
+      updateRowStatus(token, 'Sent'); // optimistic — UI reflects intent
+    }
+  } catch (err) {
+    console.warn('markSent network error (non-blocking):', err);
+    // Do not block Outlook from opening
+    updateRowStatus(token, 'Sent'); // optimistic
+  }
+
+  // Open Outlook (fires after await resolves)
+  window.location.href = href;
+}
+
+// ---------------------------------------------------------------------------
+// updateRowStatus — in-place DOM update after markSent
+// ---------------------------------------------------------------------------
+function updateRowStatus(token, newStatus) {
+  // Update the allNominees array so re-sorting preserves the change
+  for (var i = 0; i < allNominees.length; i++) {
+    if (allNominees[i].token === token) {
+      allNominees[i].status = newStatus;
+      break;
+    }
+  }
+
+  // Find the row by data-token and update it in place
+  var tr = document.querySelector('tr[data-token="' + CSS.escape(token) + '"]');
+  if (!tr) return;
+
+  // Update status badge
+  var badgeCell = tr.cells[3];
+  if (badgeCell) {
+    badgeCell.innerHTML = '<span class="badge ' + statusBadgeClass(newStatus) + '">' + esc(newStatus) + '</span>';
+  }
+
+  // Update button
+  var btn = tr.querySelector('.btn-email');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = newStatus === 'Confirmed' ? 'Confirmed' : 'Sent';
+  }
+
+  // Re-render summary counts with updated allNominees
+  renderSummary(allNominees);
+}
+
+// ---------------------------------------------------------------------------
+// handleHeaderClick — sort by column on th click
+// ---------------------------------------------------------------------------
+function handleHeaderClick() {
+  var col = this.getAttribute('data-sort-col');
+  if (sortState.col === col) {
+    sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortState.col = col;
+    sortState.dir = 'asc';
+  }
+  renderTable();
+}
+
+// ---------------------------------------------------------------------------
+// Utility: HTML-escape for text content
+// ---------------------------------------------------------------------------
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Utility: escape for attribute values (double quotes replaced)
+function escAttr(str) {
+  return String(str || '').replace(/"/g, '&quot;');
+}
+</script>
+
+</body>
+</html>

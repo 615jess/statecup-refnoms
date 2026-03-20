@@ -110,6 +110,11 @@ function doPost(e) {
       return _handleNominateV2(payload.rows);
     }
 
+    // Phase 3: Referee detail form submission — handler in refdetails.gs
+    if (payload.action === 'submitDetails') {
+      return _handleSubmitDetails(payload);
+    }
+
     return _jsonResponse({ ok: false, error: 'Unknown action: ' + payload.action });
 
   } catch (err) {

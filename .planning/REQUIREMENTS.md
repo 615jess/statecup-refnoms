@@ -9,11 +9,11 @@ Requirements for the referee nomination & detail collection system. Supersedes v
 
 ### Nomination (DRA Form)
 
-- [ ] **NOM-01**: New DRA nomination form collects per referee: first name, last name, email, max age as AR, max age as referee, and DRA notes
-- [ ] **NOM-02**: DRA form supports spreadsheet upload for bulk nominations (download template + file upload)
-- [ ] **NOM-03**: DRA form writes one row per referee to Google Sheet with DRA metadata (timestamp, DRA name, email, district)
-- [ ] **NOM-04**: Token generated at nomination time (UUID stored in sheet per referee row)
-- [ ] **NOM-05**: If referee email already exists in sheet, reuse existing token and update DRA-provided fields (no duplicate rows)
+- [x] **NOM-01**: New DRA nomination form collects per referee: first name, last name, email, max age as AR, max age as referee, and DRA notes
+- [x] **NOM-02**: DRA form supports spreadsheet upload for bulk nominations (download template + file upload)
+- [x] **NOM-03**: DRA form writes one row per referee to Google Sheet with DRA metadata (timestamp, DRA name, email, district)
+- [x] **NOM-04**: Token generated at nomination time (UUID stored in sheet per referee row)
+- [x] **NOM-05**: If referee email already exists in sheet, reuse existing token and update DRA-provided fields (no duplicate rows)
 
 ### Referee Detail Form
 
@@ -98,15 +98,15 @@ Deferred to later milestones.
 | SCHEMA-03 | Phase 1 | Complete |
 | SCHEMA-04 | Phase 1 | Complete |
 | SCHEMA-05 | Phase 1 | Complete (dropped — v2.0 clean-slate) |
-| NOM-01 | Phase 2 | Pending |
-| NOM-02 | Phase 2 | Pending |
-| NOM-03 | Phase 2 | Pending |
-| NOM-04 | Phase 2 | Pending |
-| NOM-05 | Phase 2 | Pending |
-| API-03 | Phase 2 | Pending |
-| API-05 | Phase 2 | Pending |
-| API-08 | Phase 2 | Pending |
-| UX-02 | Phase 2 | Pending |
+| NOM-01 | Phase 2 | Complete |
+| NOM-02 | Phase 2 | Complete |
+| NOM-03 | Phase 2 | Complete |
+| NOM-04 | Phase 2 | Complete |
+| NOM-05 | Phase 2 | Complete |
+| API-03 | Phase 2 | Complete |
+| API-05 | Phase 2 | Complete |
+| API-08 | Phase 2 | Complete |
+| UX-02 | Phase 2 | Complete |
 | DETAIL-01 | Phase 3 | Pending |
 | DETAIL-02 | Phase 3 | Pending |
 | DETAIL-03 | Phase 3 | Pending |
@@ -138,4 +138,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 — Phase 1 complete; SCHEMA-01 through SCHEMA-05 marked Complete*
+*Last updated: 2026-03-19 — Phase 2 complete; NOM-01 through NOM-05, API-03, API-05, API-08, UX-02 marked Complete*

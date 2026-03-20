@@ -17,7 +17,7 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
 
 - [x] **Phase 1: Schema Setup** — Rework column structure for v2.0 status values, late flag, and referee-provided fields
 - [x] **Phase 2: DRA Form + nominateV2** — Simplified nomination form with token generation and email deduplication
-- [ ] **Phase 3: Referee Detail Form + Backend** — Token-secured detail form with all doGet/doPost endpoint logic
+- [x] **Phase 3: Referee Detail Form + Backend** — Token-secured detail form with all doGet/doPost endpoint logic
 - [ ] **Phase 4: Email Admin Page + getAllNominees** — Assignor-facing nominee table with pre-composed mailto links
 
 ## Phase Details
@@ -67,9 +67,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Build doGet getDetails and doPost submitDetails backend endpoints (refdetails.gs + nominatev2.gs routing)
-- [ ] 03-02-PLAN.md — Build referee-details.html with all six UI states, conditional hotel fields, pre-fill support, and mobile-responsive layout
-- [ ] 03-03-PLAN.md — Deploy updated Apps Script, wire deployment URL, and verify end-to-end flow
+- [x] 03-01-PLAN.md — Build doGet getDetails and doPost submitDetails backend endpoints (refdetails.gs + nominatev2.gs routing)
+- [x] 03-02-PLAN.md — Build referee-details.html with all six UI states, conditional hotel fields, pre-fill support, and mobile-responsive layout
+- [x] 03-03-PLAN.md — Deploy updated Apps Script, wire deployment URL, and verify end-to-end flow
 
 ### Phase 4: Email Admin Page + getAllNominees
 **Goal**: The assignor can open the admin page, see every nominee's name, email, DRA, and status at a glance, click a mailto link to open Outlook with a pre-written personalized email, and have the referee's status auto-updated to Sent after clicking
@@ -92,5 +92,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1. Schema Setup | v2.0 | 1/1 | Complete | 2026-03-19 |
 | 2. DRA Form + nominateV2 | v2.0 | 2/2 | Complete | 2026-03-19 |
-| 3. Referee Detail Form + Backend | v2.0 | 0/3 | Planned | - |
+| 3. Referee Detail Form + Backend | v2.0 | 3/3 | Complete | 2026-03-20 |
 | 4. Email Admin Page + getAllNominees | v2.0 | 0/TBD | Not started | - |

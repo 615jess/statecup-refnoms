@@ -17,26 +17,26 @@ Requirements for the referee nomination & detail collection system. Supersedes v
 
 ### Referee Detail Form
 
-- [ ] **DETAIL-01**: Static HTML referee detail form hosted on GitHub Pages, secured by token in URL
-- [ ] **DETAIL-02**: Form reads token from URL and fetches referee data via GET request to Apps Script
-- [ ] **DETAIL-03**: Form collects: weekend 1 availability, weekend 2 availability, hotel need per confirmed weekend, age, gender, phone, day-specific limitations, and notes for assignor
-- [ ] **DETAIL-04**: Form shows tournament context: dates, assignor contact info, DRA name
-- [ ] **DETAIL-05**: Re-visiting the link pre-fills with previously submitted data (supports edits until deadline)
-- [ ] **DETAIL-06**: After deadline, form displays in read-only mode showing previously submitted data
-- [ ] **DETAIL-07**: Late submissions (after deadline but before hard close) are accepted with a late flag; referee sees a notice
-- [ ] **DETAIL-08**: After hard close, form shows a friendly "responses are closed" message with assignor contact
-- [ ] **DETAIL-09**: Submit button disabled during POST to prevent double-submission
-- [ ] **DETAIL-10**: Success screen displays summary of what was submitted (weekends, hotel, notes)
-- [ ] **DETAIL-11**: Error state (invalid token, server error) shows assignor contact email and retry option
+- [x] **DETAIL-01**: Static HTML referee detail form hosted on GitHub Pages, secured by token in URL
+- [x] **DETAIL-02**: Form reads token from URL and fetches referee data via GET request to Apps Script
+- [x] **DETAIL-03**: Form collects: weekend 1 availability, weekend 2 availability, hotel need per confirmed weekend, age, gender, phone, day-specific limitations, and notes for assignor
+- [x] **DETAIL-04**: Form shows tournament context: dates, assignor contact info, DRA name
+- [x] **DETAIL-05**: Re-visiting the link pre-fills with previously submitted data (supports edits until deadline)
+- [x] **DETAIL-06**: After deadline, form displays in read-only mode showing previously submitted data
+- [x] **DETAIL-07**: Late submissions (after deadline but before hard close) are accepted with a late flag; referee sees a notice
+- [x] **DETAIL-08**: After hard close, form shows a friendly "responses are closed" message with assignor contact
+- [x] **DETAIL-09**: Submit button disabled during POST to prevent double-submission
+- [x] **DETAIL-10**: Success screen displays summary of what was submitted (weekends, hotel, notes)
+- [x] **DETAIL-11**: Error state (invalid token, server error) shows assignor contact email and retry option
 
 ### Apps Script Backend
 
-- [ ] **API-01**: doGet with valid token returns referee data as JSON (name, DRA, weekends, hotel, status, tournament context, deadline)
-- [ ] **API-02**: doGet with invalid or missing token returns a JSON error response (not a 500 or HTML error page)
-- [ ] **API-03**: doPost with action=nominateV2 creates referee rows from DRA form submission (with token, DRA data, "Not Sent" status)
-- [ ] **API-04**: doPost with action=submitDetails writes referee-provided data to the existing row (never appends a new row)
-- [ ] **API-05**: LockService guard on concurrent writes to prevent race conditions
-- [ ] **API-06**: Deadline enforcement: late submissions accepted with flag; hard-close submissions rejected with JSON error
+- [x] **API-01**: doGet with valid token returns referee data as JSON (name, DRA, weekends, hotel, status, tournament context, deadline)
+- [x] **API-02**: doGet with invalid or missing token returns a JSON error response (not a 500 or HTML error page)
+- [x] **API-03**: doPost with action=nominateV2 creates referee rows from DRA form submission (with token, DRA data, "Not Sent" status)
+- [x] **API-04**: doPost with action=submitDetails writes referee-provided data to the existing row (never appends a new row)
+- [x] **API-05**: LockService guard on concurrent writes to prevent race conditions
+- [x] **API-06**: Deadline enforcement: late submissions accepted with flag; hard-close submissions rejected with JSON error
 - [ ] **API-07**: doGet with action=getAllNominees returns all referee rows for the admin page
 - [ ] **API-08**: Tournament constants (dates, assignor email, form URL) stored in PropertiesService
 
@@ -58,7 +58,7 @@ Requirements for the referee nomination & detail collection system. Supersedes v
 
 ### User Experience
 
-- [ ] **UX-01**: Referee detail form is mobile-responsive (16px min font, 44px touch targets, single-column under 560px)
+- [x] **UX-01**: Referee detail form is mobile-responsive (16px min font, 44px touch targets, single-column under 560px)
 - [ ] **UX-02**: All pages match existing visual style (Open Sans, navy/red/gold color scheme)
 - [ ] **UX-03**: Admin page provides at-a-glance status overview of all nominees
 
@@ -107,22 +107,22 @@ Deferred to later milestones.
 | API-05 | Phase 2 | Complete |
 | API-08 | Phase 2 | Complete |
 | UX-02 | Phase 2 | Complete |
-| DETAIL-01 | Phase 3 | Pending |
-| DETAIL-02 | Phase 3 | Pending |
-| DETAIL-03 | Phase 3 | Pending |
-| DETAIL-04 | Phase 3 | Pending |
-| DETAIL-05 | Phase 3 | Pending |
-| DETAIL-06 | Phase 3 | Pending |
-| DETAIL-07 | Phase 3 | Pending |
-| DETAIL-08 | Phase 3 | Pending |
-| DETAIL-09 | Phase 3 | Pending |
-| DETAIL-10 | Phase 3 | Pending |
-| DETAIL-11 | Phase 3 | Pending |
-| API-01 | Phase 3 | Pending |
-| API-02 | Phase 3 | Pending |
-| API-04 | Phase 3 | Pending |
-| API-06 | Phase 3 | Pending |
-| UX-01 | Phase 3 | Pending |
+| DETAIL-01 | Phase 3 | Complete |
+| DETAIL-02 | Phase 3 | Complete |
+| DETAIL-03 | Phase 3 | Complete |
+| DETAIL-04 | Phase 3 | Complete |
+| DETAIL-05 | Phase 3 | Complete |
+| DETAIL-06 | Phase 3 | Complete |
+| DETAIL-07 | Phase 3 | Complete |
+| DETAIL-08 | Phase 3 | Complete |
+| DETAIL-09 | Phase 3 | Complete |
+| DETAIL-10 | Phase 3 | Complete |
+| DETAIL-11 | Phase 3 | Complete |
+| API-01 | Phase 3 | Complete |
+| API-02 | Phase 3 | Complete |
+| API-04 | Phase 3 | Complete |
+| API-06 | Phase 3 | Complete |
+| UX-01 | Phase 3 | Complete |
 | ADMIN-01 | Phase 4 | Pending |
 | ADMIN-02 | Phase 4 | Pending |
 | ADMIN-03 | Phase 4 | Pending |
@@ -138,4 +138,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 — Phase 2 complete; NOM-01 through NOM-05, API-03, API-05, API-08, UX-02 marked Complete*
+*Last updated: 2026-03-20 — Phase 3 complete; DETAIL-01 through DETAIL-11, API-01, API-02, API-04, API-06, UX-01 marked Complete*

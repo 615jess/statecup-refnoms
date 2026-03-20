@@ -47,11 +47,11 @@ Plans:
   3. Nominating the same referee email a second time updates the existing row's DRA fields without creating a duplicate row and without overwriting columns I-P
   4. Submitting a spreadsheet with multiple referees creates one row per referee with no duplicates, even if the same email appears twice in the upload
   5. Tournament constants (assignor email, weekend dates, form URL) are stored in PropertiesService and readable by the backend
-**Plans**: TBD (estimated 2 plans)
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Build nominateV2 doPost handler (token generation, email dedup, appendRow 18-element array, LockService)
-- [ ] 02-02: Build simplified DRA nomination form (single-entry + spreadsheet upload, SheetJS removed, UX-02 styling)
+- [ ] 02-01-PLAN.md — Write nominateV2 Apps Script handler (doPost, email dedup, token gen, LockService, PropertiesService)
+- [ ] 02-02-PLAN.md — Rewrite DRA nomination form for v2.0 (6-field cards, append-mode upload, nominateV2 payload, new/updated summary)
 
 ### Phase 3: Referee Detail Form + Backend
 **Goal**: A referee who opens their token link can view tournament context, fill out their availability and contact details, submit, and return to edit until the deadline — and the assignor sees the submitted data in the sheet
@@ -91,6 +91,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Schema Setup | v2.0 | 1/1 | Complete | 2026-03-19 |
-| 2. DRA Form + nominateV2 | v2.0 | 0/TBD | Not started | - |
+| 2. DRA Form + nominateV2 | v2.0 | 0/2 | Planned | - |
 | 3. Referee Detail Form + Backend | v2.0 | 0/TBD | Not started | - |
 | 4. Email Admin Page + getAllNominees | v2.0 | 0/TBD | Not started | - |

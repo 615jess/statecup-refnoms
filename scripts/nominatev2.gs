@@ -6,10 +6,10 @@
  * WHAT THIS SCRIPT DOES:
  *   Handles DRA nomination form submissions via HTTP POST.
  *   For each submitted referee row:
- *     - If referee email is NEW to the sheet: appends a row with columns A-H, Q, R, S
- *       (I-P left blank for the referee to fill in Phase 3)
- *     - If referee email ALREADY EXISTS: updates only columns A-H and Q
- *       (preserves I-P, R/Token, and S/Status — never overwrites referee or system data)
+ *     - If referee email is NEW to the sheet: appends a row with columns A-H, K-L, Q, R, S
+ *       (I, J, M-P left blank for the referee to fill in Phase 3)
+ *     - If referee email ALREADY EXISTS: updates only columns A-H, K-L, and Q
+ *       (preserves I, J, M-P, R/Token, and S/Status — never overwrites referee or system data)
  *   Deduplicates within a single batch (same email appearing twice = one row)
  *   Uses LockService to serialize concurrent writes
  *
@@ -30,7 +30,11 @@
  *   F =  6  First Name      — from DRA form
  *   G =  7  Last Name       — from DRA form
  *   H =  8  Referee Email   — from DRA form (dedup key)
- *   I-P 9-16 Referee detail fields — written by referee form (Phase 3), never touched here
+ *   I =  9  Phone            — referee fills in Phase 3, never touched here
+ *   J = 10  Age              — referee fills in Phase 3, never touched here
+ *   K = 11  Max Age as AR    — from DRA form
+ *   L = 12  Max Age as Ref   — from DRA form
+ *   M-P 13-16 Referee detail fields — written by referee form (Phase 3), never touched here
  *   Q = 17  DRA Notes       — from DRA form
  *   R = 18  Token           — UUID generated at nomination time (new rows only, never updated)
  *   S = 19  Status          — 'Not Sent' on initial creation (never updated here)
@@ -53,6 +57,8 @@ var COL_REF_NUMBER   =  5; // E
 var COL_FIRST_NAME   =  6; // F
 var COL_LAST_NAME    =  7; // G
 var COL_REF_EMAIL    =  8; // H — dedup key
+var COL_MAX_AGE_AR   = 11; // K — DRA-provided max age as AR
+var COL_MAX_AGE_REF  = 12; // L — DRA-provided max age as referee
 var COL_DRA_NOTES    = 17; // Q
 var COL_TOKEN        = 18; // R — UUID, set on append only
 var COL_STATUS       = 19; // S — 'Not Sent' on append only
@@ -126,7 +132,7 @@ function doPost(e) {
  *   3. Deduplicate within the submitted batch (last-wins for same email)
  *   4. Load existing email index from column H (email -> rowNumber map)
  *   5. For each deduped row:
- *      - If email exists in sheet: update columns A-H and Q only
+ *      - If email exists in sheet: update columns A-H, K-L, and Q only
  *      - If email is new: generate UUID token, append full row, update local index
  *   6. Release lock (in finally — always runs)
  *   7. Return per-nominee new/updated status
@@ -272,12 +278,13 @@ function _loadEmailIndex(sheet) {
 // ---------------------------------------------------------------------------
 
 /**
- * Updates columns A-H and Q for an existing referee row.
- * NEVER modifies columns I-P (referee details), R (token), or S (status).
+ * Updates columns A-H, K-L, and Q for an existing referee row.
+ * NEVER modifies columns I, J, M-P (referee details), R (token), or S (status).
  *
- * Uses two range writes:
+ * Uses three range writes:
  *   1. Columns A-H (8 columns) as a single range for efficiency
- *   2. Column Q (DRA Notes) as a separate single-cell write
+ *   2. Columns K-L (2 columns) for DRA-provided max age values
+ *   3. Column Q (DRA Notes) as a separate single-cell write
  *
  * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
  * @param {number} rowNum — 1-based row number of the existing referee row
@@ -299,10 +306,16 @@ function _updateDraColumns(sheet, rowNum, row) {
   // Write A-H as a single 8-column range (COL_TIMESTAMP = 1, width = 8)
   sheet.getRange(rowNum, COL_TIMESTAMP, 1, 8).setValues(draValues);
 
+  // Write K-L (Max Age as AR, Max Age as Ref) — DRA-provided, not adjacent to A-H
+  sheet.getRange(rowNum, COL_MAX_AGE_AR, 1, 2).setValues([[
+    row.max_ar  || '',                     // K: Max Age as AR
+    row.max_ref || ''                      // L: Max Age as Ref
+  ]]);
+
   // Write Q (DRA Notes) separately — it's column 17, not adjacent to A-H
   sheet.getRange(rowNum, COL_DRA_NOTES).setValue(row.notes || '');
 
-  Logger.log('_updateDraColumns: Row ' + rowNum + ' updated (A-H, Q). I-P, R, S preserved.');
+  Logger.log('_updateDraColumns: Row ' + rowNum + ' updated (A-H, K-L, Q). I, J, M-P, R, S preserved.');
 }
 
 
@@ -338,8 +351,8 @@ function _appendNewRow(sheet, row, token) {
     row.ref_email  || '',       // H (index 7):  Referee Email (dedup key)
     '',                         // I (index 8):  Phone — referee fills in Phase 3
     '',                         // J (index 9):  Age — referee fills in Phase 3
-    '',                         // K (index 10): Max Age as AR — referee fills in Phase 3
-    '',                         // L (index 11): Max Age as Ref — referee fills in Phase 3
+    row.max_ar     || '',       // K (index 10): Max Age as AR — DRA-provided
+    row.max_ref    || '',       // L (index 11): Max Age as Ref — DRA-provided
     '',                         // M (index 12): Availability — referee fills in Phase 3
     '',                         // N (index 13): Gender — referee fills in Phase 3
     '',                         // O (index 14): Hotel Weekend 1 — referee fills in Phase 3

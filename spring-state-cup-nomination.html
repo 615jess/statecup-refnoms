@@ -217,13 +217,10 @@
             <option value="Tony Moran|moran.ant4@gmail.com|South East">Tony Moran — South East</option>
             <option value="Jason Odell|jodell32@hotmail.com|Eastern">Jason Odell — Eastern</option>
             <option value="Steve Cullen|steve.cullen.08@gmail.com|North East">Steve Cullen — North East</option>
-            <!-- TODO: Confirm Don Eubank's email and district before go-live -->
-            <option value="Don Eubank|TODO_eubank@email.com|TODO_District">Don Eubank</option>
-            <!-- TODO: Confirm Mark Herrington's email before go-live (SRA role) -->
-            <option value="Mark Herrington (SRA)|TODO_herrington@email.com|SRA">Mark Herrington (SRA)</option>
-            <!-- TODO: Confirm SYRA name and email before go-live -->
-            <option value="TODO_SYRA_Name|TODO_syra@email.com|SYRA">SYRA</option>
-            <option value="Jess Erickson (Assignor)|jerickson@tnsoccer.org|Assignor">Jess Erickson (Assignor)</option>
+            <!-- TODO: Confirm Don Eubank's email before go-live -->
+            <option value="Don Eubank|TODO_eubank@email.com|SRA">Don Eubank (SRA)</option>
+            <!-- TODO: Confirm Mark Herrington's email before go-live -->
+            <option value="Mark Herrington|TODO_herrington@email.com|SYRA">Mark Herrington (SYRA)</option>
           </select>
         </div>
         <div class="fld">
@@ -423,7 +420,7 @@ document.getElementById('nom-form').addEventListener('submit', async function(e)
     document.getElementById('msg-ok').style.display = 'block';
     document.getElementById('msg-ok').scrollIntoView({ behavior:'smooth' });
   } catch(err) {
-    document.getElementById('err-txt').textContent = 'Submission failed: ' + err.message + '. Please retry or contact Jess Erickson (jerickson@tnsoccer.org) directly.';
+    document.getElementById('err-txt').textContent = 'Submission failed: ' + err.message + '. Please retry or contact the assignor at jerickson@tnsoccer.org directly.';
     document.getElementById('msg-er').style.display = 'block';
     document.getElementById('msg-er').scrollIntoView({ behavior:'smooth' });
   } finally {

@@ -22,8 +22,8 @@ This document defines every column A-Z in the nomination Google Sheet for v2.0. 
 | H | 8 | 7 | Referee Email | DRA form | Phase 2 |
 | I | 9 | 8 | Phone | Referee form | Phase 3 |
 | J | 10 | 9 | Age | Referee form | Phase 3 |
-| K | 11 | 10 | Max Age as AR | Referee form | Phase 3 |
-| L | 12 | 11 | Max Age as Ref | Referee form | Phase 3 |
+| K | 11 | 10 | Max Age as AR | DRA form | Phase 2 |
+| L | 12 | 11 | Max Age as Ref | DRA form | Phase 2 |
 | M | 13 | 12 | Availability | Referee form | Phase 3 |
 | N | 14 | 13 | Gender | Referee form | Phase 3 |
 | O | 15 | 14 | Hotel Weekend 1 | Referee form | Phase 3 |
@@ -134,9 +134,9 @@ var COL_LABEL        = 27; // AA — "Confirmation Deadline:" label
 
 | Writer | Columns | Trigger |
 |--------|---------|---------|
-| DRA form (Google Form) | A, B, C, D, E, F, G, H, Q | Form submission via `doPost` nominateV2 |
+| DRA form (Google Form) | A, B, C, D, E, F, G, H, K, L, Q | Form submission via `doPost` nominateV2 |
 | System (`nominateV2`) | A (Timestamp), R (Token), S (initial "Not Sent") | Same `doPost` handler |
-| Referee form (web form) | I, J, K, L, M, N, O, P, V, W, Y | `submitDetails` endpoint |
+| Referee form (web form) | I, J, M, N, O, P, V, W, Y | `submitDetails` endpoint |
 | System (`submitDetails`) | U (SubmittedAt), X (LateFlag) | Same submission handler |
 | System (Phase 4 TBD) | T (SentAt) | Admin page action — exact mechanism TBD |
 | Assignor (manual) | Z (deadline date) | Direct cell entry in Google Sheet |

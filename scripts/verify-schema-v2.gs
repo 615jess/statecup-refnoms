@@ -259,8 +259,8 @@ function verifySchemaV2() {
       var ruleText = (ruleValues && ruleValues.length > 0) ? ruleValues[0] : null;
       var expectedText = EXPECTED_FORMAT_STATUSES[r];
 
-      if (ruleType !== SpreadsheetApp.BooleanCriteria.TEXT_EQ) {
-        cfFails.push('Rule ' + (r + 1) + ': expected TEXT_EQ criteria, got ' + ruleType);
+      if (ruleType !== SpreadsheetApp.BooleanCriteria.TEXT_EQUAL_TO) {
+        cfFails.push('Rule ' + (r + 1) + ': expected TEXT_EQUAL_TO criteria, got ' + ruleType);
       } else if (ruleText !== expectedText) {
         cfFails.push('Rule ' + (r + 1) + ': expected "' + expectedText +
                      '", got "' + ruleText + '"');

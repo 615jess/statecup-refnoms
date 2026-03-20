@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email + max ages + notes), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** v2.0 Phase 2 — DRA Form + nominateV2
+**Current focus:** v2.0 Phase 2 — DRA Form + nominateV2 (execution complete, awaiting verification)
 
 ## Current Position
 
-Phase: 2 of 4 (DRA Form + nominateV2) — In Progress
-Plan: 1 of 2 complete in Phase 2 (02-01 nominateV2 handler ✓)
-Status: In progress — Plan 02-01 complete, ready for Plan 02-02 (DRA form HTML)
-Last activity: 2026-03-19 — Completed 02-01-PLAN.md: nominateV2 handler deployed and verified
+Phase: 2 of 4 (DRA Form + nominateV2) — All plans executed
+Plan: 2 of 2 complete in Phase 2
+Status: Phase 2 execution complete — all plans finished, awaiting phase verification
+Last activity: 2026-03-19 — Completed 02-02-PLAN.md: DRA form v2.0 verified end-to-end
 
-Progress: [███░░░░░░░] 33%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 1 from v2.0 Phase 2)
+- Total plans completed: 4 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2)
 - Average duration: ~35 min
-- Total execution time: ~90 min (+ checkpoint waits)
+- Total execution time: ~120 min (+ checkpoint waits)
 
 *Updated after each plan completion*
 
@@ -35,16 +35,21 @@ Recent decisions affecting current work:
 - **v2.0 PIVOT (2026-03-19):** Workflow changed from DRA-provides-all-details to referee-provides-own-details
 - Status values locked: Not Sent / Sent / Confirmed (replaces v1.0 Confirmed/Declined)
 - Column X repurposed: LateFlag (was RefHotel in v1.0)
-- Token generated at nomination time in doPost nominateV2 (not at admin-page-load) — prevents token churn on re-nomination
-- Referee writes to columns I-P (same columns DRA used in v1.0 — writer changes, positions stay)
+- Token generated at nomination time in doPost nominateV2 (not at admin-page-load)
+- Columns K-L (Max Age as AR, Max Age as Ref) are DRA-provided, not referee-provided (corrected from initial column map)
+- DRA dropdown: Don Eubank = SRA, Mark Herrington = SYRA, State Cup Assignor (no personal name)
+- Apps Script requires new deployment per code change — cannot update existing deployment in-place
 - Email via mailto links opening Outlook — NOT MailApp (assignor is on Microsoft 365)
-- Admin page is static HTML on GitHub Pages (not Apps Script menu)
 
-### Column Index Constants (v2.0 — verify in Phase 1)
+### Column Index Constants (v2.0)
 
 | Col | 1-based | 0-based | Header | Writer |
 |-----|---------|---------|--------|--------|
-| I-P | 9-16 | 8-15 | Referee detail fields | Referee form |
+| I | 9 | 8 | Phone | Referee form |
+| J | 10 | 9 | Age | Referee form |
+| K | 11 | 10 | Max Age as AR | DRA form |
+| L | 12 | 11 | Max Age as Ref | DRA form |
+| M-P | 13-16 | 12-15 | Referee detail fields | Referee form |
 | R | 18 | 17 | Token | System (nominateV2) |
 | S | 19 | 18 | Status | System |
 | T | 20 | 19 | SentAt | TBD (Phase 4 decision) |
@@ -60,16 +65,18 @@ Recent decisions affecting current work:
 - Enter actual tournament deadline date in cell Z1 on production sheet
 - Confirm GitHub Pages URL (referee form URL embedded in every admin mailto link)
 - Resolve SentAt column T behavior before Phase 4 (server never sends email — auto-write not possible)
+- Update DRA dropdown placeholder emails for Don Eubank and Mark Herrington before go-live
 
 ### Blockers/Concerns
 
-- Spreadsheet upload on simplified DRA form: retain with 4-col template or remove entirely? (resolve at Phase 2 plan time)
 - Column T (SentAt) writer mechanism still TBD — must resolve before Phase 4 planning
 
 ### Phase 2 Artifacts (committed 2026-03-19)
 
-- `scripts/nominatev2.gs` — doPost handler with nominateV2 action, email dedup, UUID token gen, LockService, setTournamentConstants
-- Deployment URL: `https://script.google.com/macros/s/AKfycbxYnpu2W6DpxJFkaU-nRF_DsHPhR9dPoSerN6kD7E89e_qJpKsOwFRb-WsD-4NApos/exec`
+- `scripts/nominatev2.gs` — doPost handler with nominateV2 action, email dedup, UUID token gen, LockService, K-L column writes, setTournamentConstants
+- `spring-state-cup-nomination.html` — v2.0 DRA nomination form (6 fields, append-mode upload, nominateV2 payload)
+- `.planning/COLUMN-MAP.md` — updated: K-L writer corrected to DRA form
+- Deployment URL: `https://script.google.com/macros/s/AKfycbyK7iYFG7dx8eAaiUreQAC5yowwxzW8vg2QrtGc6z3WKO2K3OWQlR_YnwLDiz3eTQs/exec`
 - Script Properties set: ASSIGNOR_EMAIL, WEEKEND_1_DATES, WEEKEND_2_DATES, REF_FORM_URL (TBD)
 
 ### Phase 1 Artifacts (committed 2026-03-19)
@@ -82,5 +89,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Completed 02-01-PLAN.md — nominateV2 handler deployed and verified, ready for Plan 02-02 (DRA form HTML)
+Stopped at: Phase 2 execution complete — all plans finished, proceeding to phase verification
 Resume file: None

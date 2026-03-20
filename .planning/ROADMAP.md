@@ -80,11 +80,11 @@ Plans:
   2. Clicking a referee's mailto link opens Outlook with To, Subject, and Body pre-filled — body includes referee name, tournament details, the token-secured form link, and assignor contact; body stays under 1800 characters
   3. After clicking a mailto link, the referee's sheet status updates to Sent without requiring the assignor to take any additional action
   4. The assignor can filter or sort the table by status to identify Not Sent referees at a glance
-**Plans**: TBD (estimated 2 plans)
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: Build doGet getAllNominees endpoint (returns all rows as JSON; marks status Sent when mailto clicked)
-- [ ] 04-02: Build email-admin.html (nominee table, mailto link construction, status filter/sort, ADMIN-04 auto-mark via API call)
+- [ ] 04-01-PLAN.md — Build adminemail.gs backend (getAllNominees + markSent) and wire doGet/doPost routing
+- [ ] 04-02-PLAN.md — Build admin.html page (nominee table, mailto links, sort/filter, markSent auto-update)
 
 ## Progress
 
@@ -93,4 +93,4 @@ Plans:
 | 1. Schema Setup | v2.0 | 1/1 | Complete | 2026-03-19 |
 | 2. DRA Form + nominateV2 | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 3. Referee Detail Form + Backend | v2.0 | 3/3 | Complete | 2026-03-20 |
-| 4. Email Admin Page + getAllNominees | v2.0 | 0/TBD | Not started | - |
+| 4. Email Admin Page + getAllNominees | v2.0 | 0/2 | Not started | - |

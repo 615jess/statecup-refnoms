@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spring State Cup 2026 — Referee Details | Tennessee Soccer Referee Program</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:    #0d2148;
+    --red:     #cc2229;
+    --red-dk:  #a31b21;
+    --white:   #ffffff;
+    --off:     #f4f6f9;
+    --slate:   #e8edf5;
+    --border:  #d0d9e8;
+    --muted:   #5a6a88;
+    --text:    #1a2540;
+    --gold:    #c8912a;
+    --green:   #1a6b31;
+    --green-bg:#edf7f0;
+    --r: 6px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--off); color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 15px; line-height: 1.55; }
+
+  /* topbar */
+  .topbar { height: 5px; background: linear-gradient(90deg, var(--navy), var(--red) 55%, var(--gold)); }
+
+  /* header */
+  .site-header { background: var(--white); padding: 22px 28px 0; }
+  .header-inner { max-width: 860px; margin: 0 auto; }
+
+  .hero { padding: 24px 0 32px; display: flex; align-items: center; gap: 24px; }
+  .hero-brand { height: 100px; width: auto; flex-shrink: 0; }
+  .hero-divider { width: 3px; align-self: stretch; background: var(--red); border-radius: 2px; flex-shrink: 0; }
+  .hero-content { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .hero-text { flex: 1; }
+  .hero-logo { height: 100px; width: auto; flex-shrink: 0; }
+  @media(max-width:560px){ .hero { flex-direction: column; text-align: center; } .hero-content { flex-direction: column; } .hero-brand { height: 70px; } .hero-logo { display: none; } .hero-divider { width: 60px; height: 3px; align-self: auto; } }
+  .event-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--red); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; padding: 5px 14px; border-radius: 2px; margin-bottom: 14px; }
+  .hero h1 { font-family: 'Open Sans', sans-serif; font-size: clamp(28px, 5vw, 48px); font-weight: 700; color: var(--navy); line-height: 1.05; }
+  .hero h1 em { color: var(--red); font-style: normal; }
+  .hero p { font-size: 14px; color: var(--muted); font-weight: 300; margin-top: 8px; }
+
+  .dates-row { background: var(--navy); border-top: 1px solid var(--border); }
+  .dates-inner { max-width: 860px; margin: 0 auto; display: flex; }
+  .date-blk { flex: 1; padding: 13px 20px; display: flex; align-items: center; gap: 12px; border-right: 1px solid rgba(255,255,255,0.1); }
+  .date-blk:last-child { border-right: none; }
+  .wk-pill { background: var(--red); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 10px; letter-spacing: 2px; padding: 3px 9px; border-radius: 2px; white-space: nowrap; }
+  .wk-dt { font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 300; }
+
+  /* main */
+  .main { max-width: 860px; margin: 0 auto; padding: 36px 24px 80px; }
+
+  /* section heading */
+  .sec-head { display: flex; align-items: center; gap: 12px; margin: 32px 0 14px; }
+  .sec-head:first-child { margin-top: 0; }
+  .sec-num { width: 26px; height: 26px; background: var(--navy); color: #fff; border-radius: 50%; font-family: 'Open Sans', sans-serif; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sec-head h2 { font-family: 'Open Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); }
+
+  /* card */
+  .card { background: #fff; border: 1px solid var(--border); border-radius: var(--r); box-shadow: 0 2px 12px rgba(13,33,72,0.09); padding: 24px; }
+  .card + .card { margin-top: 16px; }
+
+  /* grid */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .s2 { grid-column: span 2; }
+  @media(max-width:560px){ .g2,.g3{ grid-template-columns:1fr; } .s2{ grid-column:span 1; } .dates-inner{ flex-direction:column; } .date-blk{ border-right:none; border-bottom:1px solid rgba(255,255,255,0.1); } }
+
+  /* field */
+  .fld { display: flex; flex-direction: column; gap: 5px; }
+  .lbl { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .lbl .req { color: var(--red); }
+  input[type=text], input[type=email], input[type=number], input[type=tel], select, textarea {
+    width: 100%; background: var(--off); border: 1.5px solid var(--border); border-radius: var(--r);
+    padding: 10px 12px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 16px;
+    transition: border-color .18s, box-shadow .18s; outline: none; appearance: none; -webkit-appearance: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13,33,72,0.09); background: #fff; }
+  input.err, select.err, textarea.err { border-color: var(--red) !important; }
+  textarea { resize: vertical; min-height: 80px; }
+  .hint { font-size: 12px; color: var(--muted); font-style: italic; }
+
+  /* sep */
+  .sep { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* submit */
+  .submit-zone { margin-top: 28px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .sub-btn { background: var(--red); border: none; border-radius: var(--r); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; padding: 14px 52px; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(204,34,41,0.3); min-height: 54px; }
+  .sub-btn:hover { background: var(--red-dk); transform: translateY(-1px); box-shadow: 0 6px 22px rgba(204,34,41,0.4); }
+  .sub-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+  .sub-note { font-size: 12px; color: var(--muted); text-align: center; max-width: 460px; }
+
+  /* spinner */
+  .spin { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: sp .7s linear infinite; margin-right: 7px; vertical-align: middle; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+
+  /* loading spinner (dark variant for loading state) */
+  .spin-dk { display: inline-block; width: 36px; height: 36px; border: 3px solid rgba(13,33,72,0.15); border-top-color: var(--navy); border-radius: 50%; animation: sp .8s linear infinite; }
+
+  /* late banner */
+  .late-banner {
+    background: #fffbea;
+    border: 1px solid #e8cf60;
+    border-left: 4px solid var(--gold);
+    border-radius: var(--r);
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    font-size: 14px;
+    color: #4a3a00;
+  }
+  .late-banner strong { color: #3a2900; }
+
+  /* yes/no toggle buttons */
+  .toggle-group { display: flex; gap: 8px; }
+  .toggle-btn {
+    flex: 1; padding: 10px; border: 1.5px solid var(--border); border-radius: var(--r);
+    background: var(--off); font-family: 'Open Sans', sans-serif; font-size: 16px;
+    cursor: pointer; transition: all .18s; font-weight: 500; min-height: 44px;
+    color: var(--text);
+  }
+  .toggle-btn:hover { border-color: var(--navy); background: var(--slate); }
+  .toggle-btn.active-yes { background: var(--green-bg); border-color: var(--green); color: var(--green); font-weight: 600; }
+  .toggle-btn.active-no  { background: #fef2f2; border-color: var(--red); color: var(--red); font-weight: 600; }
+
+  /* greeting card */
+  .greeting-card { background: var(--slate); border: 1px solid var(--border); border-left: 4px solid var(--navy); border-radius: var(--r); padding: 20px 24px; margin-bottom: 24px; }
+  .greeting-name { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .greeting-body { font-size: 14px; color: var(--text); margin-bottom: 12px; }
+  .greeting-meta { display: flex; flex-wrap: wrap; gap: 16px; }
+  .greeting-meta-item { font-size: 13px; color: var(--muted); }
+  .greeting-meta-item strong { color: var(--navy); font-weight: 600; }
+
+  /* inline POST error */
+  .inline-err { display: none; background: #fef2f2; border: 1px solid #f5a0a3; border-radius: var(--r); padding: 12px 16px; font-size: 13px; color: var(--red); margin-top: 14px; text-align: center; }
+
+  /* success / error / closed state cards */
+  .state-card { background: #fff; border: 1px solid var(--border); border-radius: var(--r); box-shadow: 0 2px 12px rgba(13,33,72,0.09); padding: 40px 32px; text-align: center; max-width: 560px; margin: 0 auto; }
+  .state-card h2 { font-family: 'Open Sans', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+  .state-card p { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+  .state-card a { color: var(--navy); font-weight: 600; }
+  .state-card.ok h2 { color: var(--green); }
+  .state-card.er h2 { color: var(--red); }
+  .state-card.closed h2 { color: var(--navy); }
+
+  /* success summary items */
+  .sum-item { background: var(--green-bg); border: 1px solid #a3d4ae; border-left: 4px solid var(--green); border-radius: 4px; padding: 9px 13px; margin: 7px 0; font-size: 13px; text-align: left; }
+  .sum-item strong { color: var(--navy); }
+
+  /* try-again button */
+  .try-btn { background: var(--navy); border: none; border-radius: var(--r); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 11px 28px; cursor: pointer; transition: all .18s; margin-top: 16px; min-height: 44px; }
+  .try-btn:hover { background: #162d5a; }
+
+  /* footer */
+  .site-footer { text-align: center; padding: 0 24px 48px; }
+  .footer-logo { height: 64px; width: auto; opacity: 0.7; }
+
+  /* hotel section transition */
+  .hotel-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<div class="topbar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="hero">
+      <img src="logo.webp" alt="Tennessee State Cup 2025–2026" class="hero-brand">
+      <div class="hero-divider"></div>
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="event-pill">&#x26BD; Spring State Cup 2026</div>
+          <h1>Referee <em>Detail</em><br>Submission Form</h1>
+          <p>Provide your availability and contact information for the tournament.</p>
+        </div>
+        <img src="TNRefLOGO.png" alt="Tennessee Soccer Referee Program" class="hero-logo">
+      </div>
+    </div>
+  </div>
+  <div class="dates-row">
+    <div class="dates-inner">
+      <div class="date-blk">
+        <span class="wk-pill">Weekend 1</span>
+        <span class="wk-dt" id="hdr-wkd1-dates">May 16 &amp; 17, 2026</span>
+      </div>
+      <div class="date-blk">
+        <span class="wk-pill">Weekend 2</span>
+        <span class="wk-dt" id="hdr-wkd2-dates">May 23 &amp; 24, 2026</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       STATE: loading
+  ════════════════════════════════════════════════════════════ -->
+  <div id="state-loading">
+    <div class="state-card" style="padding:60px 32px;">
+      <div class="spin-dk" style="margin:0 auto 18px;"></div>
+      <p style="font-size:15px;color:var(--muted);">Loading your details&hellip;</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       STATE: form
+  ════════════════════════════════════════════════════════════ -->
+  <div id="state-form" style="display:none;">
+
+    <!-- Late banner (shown only when deadlineState = 'late') -->
+    <div class="late-banner" id="late-banner" style="display:none;">
+      The deadline was <strong id="late-banner-date"></strong>. You can still submit, but your response will be marked as late.
+    </div>
+
+    <!-- Personalized greeting card -->
+    <div class="greeting-card" id="greeting-card">
+      <div class="greeting-name" id="greeting-name">Hi there,</div>
+      <div class="greeting-body" id="greeting-body"></div>
+      <div class="greeting-meta">
+        <div class="greeting-meta-item"><strong>Weekend 1:</strong> <span id="greeting-wkd1"></span></div>
+        <div class="greeting-meta-item"><strong>Weekend 2:</strong> <span id="greeting-wkd2"></span></div>
+        <div class="greeting-meta-item" id="greeting-contact-wrap" style="display:none;"><strong>Questions?</strong> <a id="greeting-contact" href="#"></a></div>
+      </div>
+    </div>
+
+    <!-- Honeypot — hidden from real users, catches bots -->
+    <div style="position:absolute;left:-9999px;" aria-hidden="true">
+      <input type="text" name="website" id="hp-field" tabindex="-1" autocomplete="off">
+    </div>
+
+    <form id="detail-form" novalidate>
+
+      <!-- ── Section 1: Availability ─────────────────────────── -->
+      <div class="sec-head">
+        <span class="sec-num">1</span>
+        <h2>Weekend Availability</h2>
+      </div>
+      <div class="card">
+
+        <!-- Weekend 1 -->
+        <div class="fld">
+          <label class="lbl">Weekend 1 Availability <span class="req">*</span></label>
+          <div class="toggle-group" id="wkd1-toggle-group">
+            <button type="button" class="toggle-btn" id="wkd1-yes-btn" data-weekend="1" data-value="Yes">Yes — I&rsquo;m available</button>
+            <button type="button" class="toggle-btn" id="wkd1-no-btn"  data-weekend="1" data-value="No">No — I&rsquo;m not available</button>
+          </div>
+          <input type="hidden" id="wkd1-value" value="">
+        </div>
+
+        <!-- Hotel Weekend 1 (conditional) -->
+        <div class="hotel-section" id="hotel-wkd1-section" style="display:none;">
+          <div class="fld">
+            <label class="lbl">Hotel — Weekend 1 <span class="req">*</span></label>
+            <div class="toggle-group" id="hotel-wkd1-toggle-group">
+              <button type="button" class="toggle-btn" id="hotel-wkd1-yes-btn" data-hotel="1" data-value="Yes">Yes — I need a hotel</button>
+              <button type="button" class="toggle-btn" id="hotel-wkd1-no-btn"  data-hotel="1" data-value="No">No — I&rsquo;m covered</button>
+            </div>
+            <input type="hidden" id="hotel-wkd1-value" value="">
+          </div>
+        </div>
+
+        <div class="sep"></div>
+
+        <!-- Weekend 2 -->
+        <div class="fld">
+          <label class="lbl">Weekend 2 Availability <span class="req">*</span></label>
+          <div class="toggle-group" id="wkd2-toggle-group">
+            <button type="button" class="toggle-btn" id="wkd2-yes-btn" data-weekend="2" data-value="Yes">Yes — I&rsquo;m available</button>
+            <button type="button" class="toggle-btn" id="wkd2-no-btn"  data-weekend="2" data-value="No">No — I&rsquo;m not available</button>
+          </div>
+          <input type="hidden" id="wkd2-value" value="">
+        </div>
+
+        <!-- Hotel Weekend 2 (conditional) -->
+        <div class="hotel-section" id="hotel-wkd2-section" style="display:none;">
+          <div class="fld">
+            <label class="lbl">Hotel — Weekend 2 <span class="req">*</span></label>
+            <div class="toggle-group" id="hotel-wkd2-toggle-group">
+              <button type="button" class="toggle-btn" id="hotel-wkd2-yes-btn" data-hotel="2" data-value="Yes">Yes — I need a hotel</button>
+              <button type="button" class="toggle-btn" id="hotel-wkd2-no-btn"  data-hotel="2" data-value="No">No — I&rsquo;m covered</button>
+            </div>
+            <input type="hidden" id="hotel-wkd2-value" value="">
+          </div>
+        </div>
+
+      </div><!-- /card availability -->
+
+      <!-- ── Section 2: Contact Details ─────────────────────── -->
+      <div class="sec-head">
+        <span class="sec-num">2</span>
+        <h2>Contact Details</h2>
+      </div>
+      <div class="card">
+        <div class="g3">
+          <div class="fld">
+            <label class="lbl" for="inp-age">Age <span class="req">*</span></label>
+            <input type="number" id="inp-age" name="age" min="16" max="99" placeholder="Your age" required>
+          </div>
+          <div class="fld">
+            <label class="lbl" for="inp-gender">Gender <span class="req">*</span></label>
+            <select id="inp-gender" name="gender" required>
+              <option value="">-- Select --</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Non-binary">Non-binary</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="lbl" for="inp-phone">Phone <span class="req">*</span></label>
+            <input type="tel" id="inp-phone" name="phone" placeholder="Your phone number" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 3: Notes ───────────────────────────────── -->
+      <div class="sec-head">
+        <span class="sec-num">3</span>
+        <h2>Notes for Assignor</h2>
+      </div>
+      <div class="card">
+        <div class="fld">
+          <label class="lbl" for="inp-notes">Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+          <textarea id="inp-notes" name="refNotes" placeholder="Day-specific limitations, preferences, or anything else the assignor should know&#x2026;" rows="4"></textarea>
+          <span class="hint">Use this field for day-specific limitations or other notes.</span>
+        </div>
+      </div>
+
+      <!-- Submit zone -->
+      <div class="submit-zone">
+        <button type="submit" class="sub-btn" id="sub-btn">Submit Details</button>
+        <p class="sub-note">Your response is saved securely and can be updated before the deadline.</p>
+      </div>
+
+      <div class="inline-err" id="inline-err"></div>
+
+    </form>
+  </div><!-- /state-form -->
+
+  <!-- ═══════════════════════════════════════════════════════════
+       STATE: closed
+  ════════════════════════════════════════════════════════════ -->
+  <div id="state-closed" style="display:none;">
+    <div class="state-card closed">
+      <h2>Responses Closed</h2>
+      <p>Responses for this tournament have closed.</p>
+      <p>If you have questions, please contact<br>
+        <a id="closed-contact" href="#"></a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       STATE: error
+  ════════════════════════════════════════════════════════════ -->
+  <div id="state-error" style="display:none;">
+    <div class="state-card er">
+      <h2>&#x26A0; Unable to Load</h2>
+      <p id="error-msg">Unable to load your details. Please try again.</p>
+      <p id="error-contact-wrap" style="display:none;">If this problem persists, contact<br>
+        <a id="error-contact" href="#"></a>
+      </p>
+      <button class="try-btn" onclick="window.location.reload()">Try Again</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       STATE: success
+  ════════════════════════════════════════════════════════════ -->
+  <div id="state-success" style="display:none;">
+    <div class="state-card ok" style="text-align:left;max-width:640px;">
+      <h2 style="text-align:center;" id="success-heading">&#x2713; Details Submitted</h2>
+      <p style="text-align:center;margin-bottom:18px;" id="success-sub">Your details have been recorded.</p>
+      <div id="success-summary"></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:18px;text-align:center;">You can return to this link to update your details before the deadline.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <img src="TNRefLOGO.png" alt="Tennessee Soccer Referee Program" class="footer-logo">
+</footer>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────
+const SCRIPT_URL = 'PLACEHOLDER_DEPLOYMENT_URL';
+
+// ─── STATE ───────────────────────────────────────────────────
+const STATES = ['loading', 'form', 'closed', 'error', 'success'];
+let refereeData = null;
+let isReturnVisit = false;
+const token = new URLSearchParams(window.location.search).get('token') || '';
+
+// ─── UTILS ───────────────────────────────────────────────────
+// HTML-escape user input to prevent XSS when rendering summaries
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Show exactly one state panel at a time
+function showState(name) {
+  STATES.forEach(function(s) {
+    document.getElementById('state-' + s).style.display = s === name ? '' : 'none';
+  });
+}
+
+// ─── HOTEL VISIBILITY ────────────────────────────────────────
+// Called whenever a weekend toggle changes, and on pre-fill.
+// IMPORTANT: clears hotel value when hiding the section (Pitfall 5).
+function updateHotelVisibility() {
+  var wkd1 = document.getElementById('wkd1-value').value;
+  var wkd2 = document.getElementById('wkd2-value').value;
+
+  var hotel1Section = document.getElementById('hotel-wkd1-section');
+  var hotel2Section = document.getElementById('hotel-wkd2-section');
+
+  if (wkd1 === 'Yes') {
+    hotel1Section.style.display = '';
+  } else {
+    hotel1Section.style.display = 'none';
+    // Clear hotel value to prevent stale data in submission
+    document.getElementById('hotel-wkd1-value').value = '';
+    clearToggleGroup('hotel-wkd1');
+  }
+
+  if (wkd2 === 'Yes') {
+    hotel2Section.style.display = '';
+  } else {
+    hotel2Section.style.display = 'none';
+    document.getElementById('hotel-wkd2-value').value = '';
+    clearToggleGroup('hotel-wkd2');
+  }
+}
+
+// Deactivate both buttons in a hotel toggle group without clearing the underlying hidden value
+// (used only by clearToggleGroup which itself clears the value first)
+function clearToggleGroup(prefix) {
+  var yesBtn = document.getElementById(prefix + '-yes-btn');
+  var noBtn  = document.getElementById(prefix + '-no-btn');
+  if (yesBtn) { yesBtn.classList.remove('active-yes'); }
+  if (noBtn)  { noBtn.classList.remove('active-no'); }
+}
+
+// ─── TOGGLE BUTTON WIRING ────────────────────────────────────
+function activateWeekendToggle(weekend, value) {
+  var prefix = 'wkd' + weekend;
+  var yesBtn = document.getElementById(prefix + '-yes-btn');
+  var noBtn  = document.getElementById(prefix + '-no-btn');
+  var hidden = document.getElementById(prefix + '-value');
+
+  if (value === 'Yes') {
+    yesBtn.classList.add('active-yes');
+    noBtn.classList.remove('active-no');
+  } else if (value === 'No') {
+    noBtn.classList.add('active-no');
+    yesBtn.classList.remove('active-yes');
+  }
+  hidden.value = value;
+  updateHotelVisibility();
+}
+
+function activateHotelToggle(weekend, value) {
+  var prefix = 'hotel-wkd' + weekend;
+  var yesBtn = document.getElementById(prefix + '-yes-btn');
+  var noBtn  = document.getElementById(prefix + '-no-btn');
+  var hidden = document.getElementById(prefix + '-value');
+
+  if (value === 'Yes') {
+    yesBtn.classList.add('active-yes');
+    noBtn.classList.remove('active-no');
+  } else if (value === 'No') {
+    noBtn.classList.add('active-no');
+    yesBtn.classList.remove('active-yes');
+  }
+  hidden.value = value;
+}
+
+// Attach click handlers to all toggle buttons
+function wireToggles() {
+  // Weekend availability toggles
+  ['1', '2'].forEach(function(w) {
+    ['Yes', 'No'].forEach(function(v) {
+      var btn = document.getElementById('wkd' + w + '-' + v.toLowerCase() + '-btn');
+      btn.addEventListener('click', function() {
+        activateWeekendToggle(w, v);
+      });
+    });
+  });
+
+  // Hotel toggles
+  ['1', '2'].forEach(function(w) {
+    ['Yes', 'No'].forEach(function(v) {
+      var btn = document.getElementById('hotel-wkd' + w + '-' + v.toLowerCase() + '-btn');
+      btn.addEventListener('click', function() {
+        activateHotelToggle(w, v);
+      });
+    });
+  });
+}
+
+// ─── FORM POPULATION ─────────────────────────────────────────
+function populateForm(data) {
+  refereeData = data;
+  isReturnVisit = !!data.submittedAt;
+
+  // Update header dates if available
+  if (data.weekend1Dates) {
+    document.getElementById('hdr-wkd1-dates').textContent = data.weekend1Dates;
+    document.getElementById('greeting-wkd1').textContent = data.weekend1Dates;
+  }
+  if (data.weekend2Dates) {
+    document.getElementById('hdr-wkd2-dates').textContent = data.weekend2Dates;
+    document.getElementById('greeting-wkd2').textContent = data.weekend2Dates;
+  }
+
+  // Personalized greeting
+  var firstName = data.firstName || 'there';
+  document.getElementById('greeting-name').textContent = 'Hi ' + firstName + ',';
+  var draName = data.draName || 'Your district referee administrator';
+  document.getElementById('greeting-body').textContent =
+    draName + ' has nominated you for the Spring State Cup 2026 referee pool. ' +
+    'Please fill in your availability and contact details below.';
+
+  // Assignor contact
+  if (data.assignorEmail) {
+    var contactLink = document.getElementById('greeting-contact');
+    contactLink.href = 'mailto:' + data.assignorEmail;
+    contactLink.textContent = data.assignorEmail;
+    document.getElementById('greeting-contact-wrap').style.display = '';
+  }
+
+  // Submit button text
+  document.getElementById('sub-btn').textContent = isReturnVisit ? 'Update Details' : 'Submit Details';
+
+  // Late banner
+  if (data.deadlineState === 'late' && data.deadlineDisplay) {
+    document.getElementById('late-banner-date').textContent = data.deadlineDisplay;
+    document.getElementById('late-banner').style.display = '';
+  }
+
+  // PRE-FILL ORDER: toggles FIRST, then updateHotelVisibility, then hotel values (Pitfall 7)
+
+  // Step 1: Set weekend availability toggles
+  if (data.refWeekend1 === 'Yes' || data.refWeekend1 === 'No') {
+    activateWeekendToggle('1', data.refWeekend1);
+  }
+  if (data.refWeekend2 === 'Yes' || data.refWeekend2 === 'No') {
+    activateWeekendToggle('2', data.refWeekend2);
+  }
+
+  // Step 2: Update hotel visibility (based on weekend toggles just set)
+  updateHotelVisibility();
+
+  // Step 3: Set hotel values AFTER visibility is correct
+  if (data.hotelWkd1 === 'Yes' || data.hotelWkd1 === 'No') {
+    activateHotelToggle('1', data.hotelWkd1);
+    document.getElementById('hotel-wkd1-value').value = data.hotelWkd1;
+  }
+  if (data.hotelWkd2 === 'Yes' || data.hotelWkd2 === 'No') {
+    activateHotelToggle('2', data.hotelWkd2);
+    document.getElementById('hotel-wkd2-value').value = data.hotelWkd2;
+  }
+
+  // Other fields
+  if (data.age)    { document.getElementById('inp-age').value = data.age; }
+  if (data.gender) { document.getElementById('inp-gender').value = data.gender; }
+  if (data.phone)  { document.getElementById('inp-phone').value = data.phone; }
+  if (data.refNotes) { document.getElementById('inp-notes').value = data.refNotes; }
+}
+
+// ─── LOAD REFEREE DATA ───────────────────────────────────────
+async function loadRefereeData(tok) {
+  try {
+    var url = SCRIPT_URL + '?token=' + encodeURIComponent(tok);
+    var res = await fetch(url); // No options — simple fetch works for "anyone anonymous" GAS deployment
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+
+    if (!data.ok) {
+      showErrorState(data.message || 'Unable to load your details.', data.assignorEmail || '');
+      return;
+    }
+
+    if (data.deadlineState === 'hard_closed') {
+      showClosedState(data.assignorEmail || '');
+      return;
+    }
+
+    // Open or late — show the form
+    populateForm(data);
+    showState('form');
+
+  } catch (err) {
+    showErrorState('Unable to load your details. Please check your connection and try again.', '');
+  }
+}
+
+function showErrorState(message, assignorEmail) {
+  document.getElementById('error-msg').textContent = message;
+  if (assignorEmail) {
+    var link = document.getElementById('error-contact');
+    link.href = 'mailto:' + assignorEmail;
+    link.textContent = assignorEmail;
+    document.getElementById('error-contact-wrap').style.display = '';
+  }
+  showState('error');
+}
+
+function showClosedState(assignorEmail) {
+  var link = document.getElementById('closed-contact');
+  if (assignorEmail) {
+    link.href = 'mailto:' + assignorEmail;
+    link.textContent = assignorEmail;
+  } else {
+    link.style.display = 'none';
+    document.getElementById('closed-contact').parentElement.style.display = 'none';
+  }
+  showState('closed');
+}
+
+// ─── VALIDATION ──────────────────────────────────────────────
+function validateForm() {
+  var ok = true;
+
+  // Weekend toggles must be selected
+  var wkd1 = document.getElementById('wkd1-value').value;
+  var wkd2 = document.getElementById('wkd2-value').value;
+  var wkd1Group = document.getElementById('wkd1-toggle-group');
+  var wkd2Group = document.getElementById('wkd2-toggle-group');
+
+  if (!wkd1) {
+    wkd1Group.querySelectorAll('.toggle-btn').forEach(function(b) { b.style.borderColor = 'var(--red)'; });
+    ok = false;
+  } else {
+    wkd1Group.querySelectorAll('.toggle-btn').forEach(function(b) { b.style.borderColor = ''; });
+  }
+
+  if (!wkd2) {
+    wkd2Group.querySelectorAll('.toggle-btn').forEach(function(b) { b.style.borderColor = 'var(--red)'; });
+    ok = false;
+  } else {
+    wkd2Group.querySelectorAll('.toggle-btn').forEach(function(b) { b.style.borderColor = ''; });
+  }
+
+  // Hotel required when weekend = Yes
+  if (wkd1 === 'Yes') {
+    var hotel1 = document.getElementById('hotel-wkd1-value').value;
+    var hotel1Group = document.getElementById('hotel-wkd1-toggle-group');
+    if (!hotel1) {
+      hotel1Group.querySelectorAll('.toggle-btn').forEach(function(b) { b.style.borderColor = 'var(--red)'; });
+      ok = false;
+    } else {
+      hotel1Group.querySelectorAll('.toggle-btn').forEach(function(b) { b.style.borderColor = ''; });
+    }
+  }
+
+  if (wkd2 === 'Yes') {
+    var hotel2 = document.getElementById('hotel-wkd2-value').value;
+    var hotel2Group = document.getElementById('hotel-wkd2-toggle-group');
+    if (!hotel2) {
+      hotel2Group.querySelectorAll('.toggle-btn').forEach(function(b) { b.style.borderColor = 'var(--red)'; });
+      ok = false;
+    } else {
+      hotel2Group.querySelectorAll('.toggle-btn').forEach(function(b) { b.style.borderColor = ''; });
+    }
+  }
+
+  // Age
+  var ageEl = document.getElementById('inp-age');
+  if (!ageEl.value.trim()) { ageEl.classList.add('err'); ok = false; }
+  else { ageEl.classList.remove('err'); }
+
+  // Gender
+  var genderEl = document.getElementById('inp-gender');
+  if (!genderEl.value) { genderEl.classList.add('err'); ok = false; }
+  else { genderEl.classList.remove('err'); }
+
+  // Phone
+  var phoneEl = document.getElementById('inp-phone');
+  if (!phoneEl.value.trim()) { phoneEl.classList.add('err'); ok = false; }
+  else { phoneEl.classList.remove('err'); }
+
+  return ok;
+}
+
+// ─── FORM SUBMISSION ─────────────────────────────────────────
+document.getElementById('detail-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  // Honeypot check
+  if (document.getElementById('hp-field').value) { return; }
+
+  // Hide previous inline error
+  var inlineErr = document.getElementById('inline-err');
+  inlineErr.style.display = 'none';
+
+  // Validate
+  if (!validateForm()) {
+    inlineErr.textContent = 'Please complete all required fields above.';
+    inlineErr.style.display = 'block';
+    inlineErr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+
+  var wkd1 = document.getElementById('wkd1-value').value;
+  var wkd2 = document.getElementById('wkd2-value').value;
+
+  // Both-weekends-no warning
+  if (wkd1 === 'No' && wkd2 === 'No') {
+    var confirmed = confirm('You indicated you are not available either weekend. Are you sure you want to submit?');
+    if (!confirmed) { return; }
+  }
+
+  var btn = document.getElementById('sub-btn');
+  var origText = isReturnVisit ? 'Update Details' : 'Submit Details';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Submitting\u2026';
+
+  try {
+    var payload = {
+      action: 'submitDetails',
+      token: token,
+      phone: document.getElementById('inp-phone').value.trim(),
+      age: document.getElementById('inp-age').value.trim(),
+      refWeekend1: wkd1,
+      refWeekend2: wkd2,
+      hotelWkd1: document.getElementById('hotel-wkd1-value').value,
+      hotelWkd2: document.getElementById('hotel-wkd2-value').value,
+      gender: document.getElementById('inp-gender').value,
+      availability: wkd1 + ' / ' + wkd2,  // Summary string for column M
+      refNotes: document.getElementById('inp-notes').value.trim()
+    };
+
+    // No Content-Type header — avoids CORS preflight (same as Phase 2 nominateV2 pattern)
+    var res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+
+    if (!data.ok) {
+      if (data.error === 'hard_closed') {
+        var assignorEmail = (refereeData && refereeData.assignorEmail) || '';
+        showClosedState(assignorEmail);
+      } else {
+        throw new Error(data.message || 'Submission failed. Please try again.');
+      }
+      return;
+    }
+
+    // Success
+    showSuccessState(payload, isReturnVisit);
+    isReturnVisit = true;
+
+  } catch (err) {
+    inlineErr.textContent = 'Submission failed: ' + err.message;
+    inlineErr.style.display = 'block';
+    inlineErr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+});
+
+function showSuccessState(payload, wasReturnVisit) {
+  document.getElementById('success-heading').textContent =
+    wasReturnVisit ? '\u2713 Details Updated' : '\u2713 Details Submitted';
+  document.getElementById('success-sub').textContent =
+    wasReturnVisit ? 'Your details have been updated.' : 'Your details have been recorded.';
+
+  var wkd1Label = payload.refWeekend1 === 'Yes' ? 'Available' : 'Not Available';
+  var wkd2Label = payload.refWeekend2 === 'Yes' ? 'Available' : 'Not Available';
+  var hotel1Label = payload.hotelWkd1 ? (payload.hotelWkd1 === 'Yes' ? 'Hotel needed' : 'No hotel needed') : '';
+  var hotel2Label = payload.hotelWkd2 ? (payload.hotelWkd2 === 'Yes' ? 'Hotel needed' : 'No hotel needed') : '';
+
+  var wkd1Display = wkd1Label + (hotel1Label ? ' \u2014 ' + hotel1Label : '');
+  var wkd2Display = wkd2Label + (hotel2Label ? ' \u2014 ' + hotel2Label : '');
+
+  var notesPreview = payload.refNotes
+    ? (payload.refNotes.length > 120 ? esc(payload.refNotes.substring(0, 120)) + '\u2026' : esc(payload.refNotes))
+    : '<em style="color:var(--muted);">None</em>';
+
+  var html = '';
+  html += '<div class="sum-item"><strong>Weekend 1:</strong> ' + esc(wkd1Display) + '</div>';
+  html += '<div class="sum-item"><strong>Weekend 2:</strong> ' + esc(wkd2Display) + '</div>';
+  html += '<div class="sum-item"><strong>Phone:</strong> ' + esc(payload.phone) + '</div>';
+  html += '<div class="sum-item"><strong>Age:</strong> ' + esc(payload.age) + '</div>';
+  html += '<div class="sum-item"><strong>Gender:</strong> ' + esc(payload.gender) + '</div>';
+  html += '<div class="sum-item"><strong>Notes:</strong> ' + notesPreview + '</div>';
+
+  document.getElementById('success-summary').innerHTML = html;
+  showState('success');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── PAGE LOAD ───────────────────────────────────────────────
+wireToggles();
+
+if (!token) {
+  showErrorState('No token found in URL. Please use the link provided in your nomination email.', '');
+} else {
+  showState('loading');
+  loadRefereeData(token);
+}
+</script>
+</body>
+</html>

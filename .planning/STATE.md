@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email + max ages + notes), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** v2.0 Phase 3 — Referee Detail Form + Backend (Plan 01 complete)
+**Current focus:** v2.0 Phase 3 — Referee Detail Form + Backend (Plans 01-02 complete)
 
 ## Current Position
 
 Phase: 3 of 4 (Referee Detail Form + Backend)
-Plan: 1 of 3 complete in Phase 3
-Status: In progress — Plan 01 (backend endpoints) complete; Plan 02 (referee form HTML) next
-Last activity: 2026-03-20 — Completed 03-01-PLAN.md: doGet + doPost submitDetails backend endpoints
+Plan: 2 of 3 complete in Phase 3
+Status: In progress — Plans 01-02 complete; Plan 03 (admin page) next
+Last activity: 2026-03-20 — Completed 03-02-PLAN.md: referee-details.html form with 6 UI states
 
-Progress: [██████░░░░] 60%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 1 from v2.0 Phase 3)
-- Average duration: ~29 min (updated with 3-min Plan 03-01)
-- Total execution time: ~123 min (+ checkpoint waits)
+- Total plans completed: 6 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 2 from v2.0 Phase 3)
+- Average duration: ~22 min (updated with 4-min Plan 03-02)
+- Total execution time: ~127 min (+ checkpoint waits)
 
 *Updated after each plan completion*
 
@@ -71,6 +71,10 @@ Recent decisions affecting current work:
 
 - Column T (SentAt) writer mechanism still TBD — must resolve before Phase 4 planning
 
+### Phase 3 Plan 02 Artifacts (committed 2026-03-20)
+
+- `referee-details.html` — complete referee detail form: 6 UI states (loading/form/closed/error/success + late-banner), Yes/No toggle buttons, conditional hotel fields, pre-fill support, CORS-safe fetch GET/POST, mobile responsive, SCRIPT_URL = PLACEHOLDER_DEPLOYMENT_URL (update after Plan 03 deployment)
+
 ### Phase 3 Plan 01 Artifacts (committed 2026-03-20)
 
 - `scripts/refdetails.gs` — doGet endpoint, _handleGetDetails, _handleSubmitDetails, _getDeadlineState, _findRowByToken helpers, Phase 3 COL_* constants
@@ -94,6 +98,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-20
-Stopped at: Completed 03-01-PLAN.md — backend endpoints done, Plan 02 (referee form HTML) is next
+Last session: 2026-03-20T13:09:40Z
+Stopped at: Completed 03-02-PLAN.md — referee-details.html done, Plan 03 (admin page) is next
 Resume file: None

@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email + max ages + notes), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** v2.0 Phase 3 complete — Phase 4 (Email Admin Page) is next
+**Current focus:** v2.0 Phase 4 in progress — Plan 01 (Backend) complete, Plan 02 (Admin HTML Page) is next
 
 ## Current Position
 
-Phase: 3 of 4 (Referee Detail Form + Backend) — Complete
-Plan: 3 of 3 complete in Phase 3
-Status: Phase 3 verified and complete — all 6/6 success criteria passed
-Last activity: 2026-03-20 — Phase 3 execution complete, verified, and committed
+Phase: 4 of 4 (Email Admin Page) — In progress
+Plan: 1 of 2 complete in Phase 4
+Status: Plan 04-01 complete — getAllNominees + markSent backend endpoints committed
+Last activity: 2026-03-20 — Completed 04-01-PLAN.md (adminemail.gs + routing extensions)
 
-Progress: [████████░░] 75%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 3 from v2.0 Phase 3)
-- Average duration: ~20 min
-- Total execution time: ~139 min (+ checkpoint waits)
+- Total plans completed: 8 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 3 from v2.0 Phase 3 + 1 from v2.0 Phase 4)
+- Average duration: ~18 min
+- Total execution time: ~142 min (+ checkpoint waits)
 
 *Updated after each plan completion*
 
@@ -70,7 +70,14 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- Column T (SentAt) writer mechanism still TBD — must resolve before Phase 4 planning
+- Column T (SentAt) writer resolved in Plan 04-01: written server-side by markSent action
+
+### Phase 4 Artifacts (committed 2026-03-20)
+
+- `scripts/adminemail.gs` — `_handleGetAllNominees` (returns all nominees + tournament props), `_handleMarkSent` (LockService, idempotent, writes Status + SentAt), `COL_SENT_AT = 20`
+- `scripts/refdetails.gs` (modified) — doGet now routes `action=getAllNominees` before token lookup
+- `scripts/nominatev2.gs` (modified) — doPost now routes `action=markSent` alongside nominateV2 and submitDetails
+- Plan 04-01 Commits: `388aab1` (adminemail.gs), `dbf64be` (routing extensions)
 
 ### Phase 3 Artifacts (committed 2026-03-20)
 
@@ -98,5 +105,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Phase 3 complete — all plans executed, verified 6/6, roadmap and requirements updated
+Stopped at: Completed 04-01-PLAN.md — adminemail.gs created, routing extended in refdetails.gs and nominatev2.gs
 Resume file: None

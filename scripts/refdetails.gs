@@ -1,12 +1,16 @@
 /**
  * refdetails.gs
  *
- * Phase 3: Referee detail form — doGet endpoint and submitDetails handler.
- * Paste this file into the same Apps Script project as nominatev2.gs.
+ * Phase 3 + Phase 4: Referee detail form — doGet endpoint, submitDetails handler,
+ * and Phase 4 getAllNominees routing.
+ * Paste this file into the same Apps Script project as nominatev2.gs and adminemail.gs.
  *
  * WHAT THIS SCRIPT DOES:
- *   doGet(e) — accepts a token query parameter (?token=...), looks up the referee
- *     row in the sheet, and returns all referee and tournament data as JSON so the
+ *   doGet(e) — routes incoming GET requests based on the action parameter:
+ *     - action=getAllNominees → _handleGetAllNominees() in adminemail.gs (Phase 4)
+ *     - no action (token-based) → _handleGetDetails(token) below (Phase 3)
+ *     Accepts a token query parameter (?token=...), looks up the referee row in
+ *     the sheet, and returns all referee and tournament data as JSON so the
  *     referee-details.html form can populate itself on page load.
  *
  *   _handleSubmitDetails(payload) — receives the submitted referee detail form data
@@ -37,9 +41,10 @@
  *   G = col  7 (0-based  6)  Last Name
  *   H = col  8 (0-based  7)  Referee Email
  *
- * NOTE: doGet is defined HERE. doPost routing for submitDetails is in nominatev2.gs.
+ * NOTE: doGet is defined HERE. doPost routing for submitDetails and markSent is in nominatev2.gs.
  * NOTE: _jsonResponse helper is defined in nominatev2.gs and shared across files
  *       because GAS compiles all .gs files in the project together.
+ * NOTE: _handleGetAllNominees is defined in adminemail.gs and callable from doGet here.
  *
  * COLUMN CONSTANTS IN THIS FILE:
  *   Declares only Phase 3 columns not already in nominatev2.gs.
@@ -163,18 +168,31 @@ function _findRowByToken(sheet, token) {
 /**
  * Handles all incoming GET requests.
  *
- * Extracts the token from the URL query string (?token=...) and delegates
- * to _handleGetDetails for the full data retrieval and response assembly.
+ * Routes based on the optional action query parameter:
+ *   - action=getAllNominees → _handleGetAllNominees() (Phase 4, adminemail.gs)
+ *   - no action / any other value → token-based referee detail lookup (Phase 3, below)
+ *
+ * For the token-based path, extracts the token from the URL query string (?token=...)
+ * and delegates to _handleGetDetails for the full data retrieval and response assembly.
  *
  * On any unexpected server error, logs the error via Logger.log and returns
  * a generic server_error response — the raw error message is NOT exposed to
  * the client (could contain row numbers or other internal details).
  *
- * @param {Object} e — Apps Script event object with e.parameter.token
+ * @param {Object} e — Apps Script event object with e.parameter.action and/or e.parameter.token
  * @returns {ContentService.TextOutput} JSON response
  */
 function doGet(e) {
   try {
+    var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : '';
+
+    // Phase 4: Admin page — return all nominees as JSON.
+    // _handleGetAllNominees is defined in adminemail.gs (same GAS project scope).
+    if (action === 'getAllNominees') {
+      return _handleGetAllNominees();
+    }
+
+    // Phase 3: Referee detail form — token-based lookup (existing behavior).
     var token = (e && e.parameter && e.parameter.token)
       ? e.parameter.token.trim()
       : '';

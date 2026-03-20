@@ -1,11 +1,16 @@
 /**
  * nominatev2.gs
  *
- * Phase 2: nominateV2 handler — paste into Apps Script editor alongside setup-schema-v2.gs
+ * Phase 2 + Phase 3 + Phase 4: nominateV2 handler and doPost entry point.
+ * Paste into Apps Script editor alongside setup-schema-v2.gs, refdetails.gs, adminemail.gs.
  *
  * WHAT THIS SCRIPT DOES:
- *   Handles DRA nomination form submissions via HTTP POST.
- *   For each submitted referee row:
+ *   Handles all HTTP POST requests via doPost(e), routing by payload.action:
+ *     - nominateV2      → _handleNominateV2 (Phase 2) — DRA nomination form submissions
+ *     - submitDetails   → _handleSubmitDetails (Phase 3, refdetails.gs) — referee form
+ *     - markSent        → _handleMarkSent (Phase 4, adminemail.gs) — admin email page
+ *
+ *   For each nominateV2 submission:
  *     - If referee email is NEW to the sheet: appends a row with columns A-H, K-L, Q, R, S
  *       (I, J, M-P left blank for the referee to fill in Phase 3)
  *     - If referee email ALREADY EXISTS: updates only columns A-H, K-L, and Q
@@ -15,7 +20,7 @@
  *
  * HOW TO USE:
  *   1. Paste this file into a new script file named "nominatev2" in the Apps Script editor
- *      (keep it alongside setup-schema-v2.gs in the same project)
+ *      (keep it alongside setup-schema-v2.gs, refdetails.gs, and adminemail.gs)
  *   2. Run setTournamentConstants ONCE from the function dropdown to store config
  *   3. Deploy as a web app: Deploy > New deployment > Web app
  *      Execute as: Me | Who has access: Anyone
@@ -39,7 +44,8 @@
  *   R = 18  Token           — UUID generated at nomination time (new rows only, never updated)
  *   S = 19  Status          — 'Not Sent' on initial creation (never updated here)
  *
- * NOTE: doGet is intentionally omitted — Phase 3 will add that separately.
+ * NOTE: doGet is in refdetails.gs — it routes action=getAllNominees (Phase 4) and
+ *       token-based referee detail lookups (Phase 3).
  */
 
 
@@ -113,6 +119,11 @@ function doPost(e) {
     // Phase 3: Referee detail form submission — handler in refdetails.gs
     if (payload.action === 'submitDetails') {
       return _handleSubmitDetails(payload);
+    }
+
+    // Phase 4: Admin page — mark referee as Sent — handler in adminemail.gs
+    if (payload.action === 'markSent') {
+      return _handleMarkSent(payload);
     }
 
     return _jsonResponse({ ok: false, error: 'Unknown action: ' + payload.action });

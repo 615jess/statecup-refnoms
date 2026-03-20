@@ -64,12 +64,12 @@ Plans:
   4. After the deadline (but before hard close), the form accepts submission and sets LateFlag = Y in the sheet; referee sees an inline late-submission notice
   5. After hard close, the form displays a friendly "responses are closed" message with assignor contact — no submission is possible
   6. Opening the form with an invalid or missing token shows an error state with the assignor contact email and a retry prompt; no 500 or HTML error page is returned
-**Plans**: TBD (estimated 3 plans)
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Build doGet getDetails endpoint (token lookup, deadline state, tournament context, prior submission data)
-- [ ] 03-02: Build doPost submitDetails endpoint (row update, status transition, late flag, deadline enforcement, LockService)
-- [ ] 03-03: Build referee-details.html with all six UI states (loading, form, late-notice banner, read-only, error, success) and mobile-responsive layout
+- [ ] 03-01-PLAN.md — Build doGet getDetails and doPost submitDetails backend endpoints (refdetails.gs + nominatev2.gs routing)
+- [ ] 03-02-PLAN.md — Build referee-details.html with all six UI states, conditional hotel fields, pre-fill support, and mobile-responsive layout
+- [ ] 03-03-PLAN.md — Deploy updated Apps Script, wire deployment URL, and verify end-to-end flow
 
 ### Phase 4: Email Admin Page + getAllNominees
 **Goal**: The assignor can open the admin page, see every nominee's name, email, DRA, and status at a glance, click a mailto link to open Outlook with a pre-written personalized email, and have the referee's status auto-updated to Sent after clicking
@@ -92,5 +92,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1. Schema Setup | v2.0 | 1/1 | Complete | 2026-03-19 |
 | 2. DRA Form + nominateV2 | v2.0 | 2/2 | Complete | 2026-03-19 |
-| 3. Referee Detail Form + Backend | v2.0 | 0/TBD | Not started | - |
+| 3. Referee Detail Form + Backend | v2.0 | 0/3 | Planned | - |
 | 4. Email Admin Page + getAllNominees | v2.0 | 0/TBD | Not started | - |

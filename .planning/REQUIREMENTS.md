@@ -50,11 +50,11 @@ Requirements for the referee nomination & detail collection system. Supersedes v
 
 ### Sheet Schema
 
-- [ ] **SCHEMA-01**: Column structure supports DRA-submitted fields, system fields (token, status, timestamps), and referee-submitted fields
-- [ ] **SCHEMA-02**: Status column uses values: Not Sent / Sent / Confirmed
-- [ ] **SCHEMA-03**: Late flag column indicates post-deadline submissions
-- [ ] **SCHEMA-04**: Response deadline stored in sheet (named range at Z1 or equivalent)
-- [ ] **SCHEMA-05**: Existing nomination form (v1.0) continues to write correctly if used (backwards compatible)
+- [x] **SCHEMA-01**: Column structure supports DRA-submitted fields, system fields (token, status, timestamps), and referee-submitted fields
+- [x] **SCHEMA-02**: Status column uses values: Not Sent / Sent / Confirmed
+- [x] **SCHEMA-03**: Late flag column indicates post-deadline submissions
+- [x] **SCHEMA-04**: Response deadline stored in sheet (named range at Z1 or equivalent)
+- [x] **SCHEMA-05**: Existing nomination form (v1.0) continues to write correctly if used (backwards compatible) — DROPPED: v2.0 is clean-slate, no v1.0 backward compat needed
 
 ### User Experience
 
@@ -93,11 +93,11 @@ Deferred to later milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | Phase 1 | Pending |
-| SCHEMA-02 | Phase 1 | Pending |
-| SCHEMA-03 | Phase 1 | Pending |
-| SCHEMA-04 | Phase 1 | Pending |
-| SCHEMA-05 | Phase 1 | Pending |
+| SCHEMA-01 | Phase 1 | Complete |
+| SCHEMA-02 | Phase 1 | Complete |
+| SCHEMA-03 | Phase 1 | Complete |
+| SCHEMA-04 | Phase 1 | Complete |
+| SCHEMA-05 | Phase 1 | Complete (dropped — v2.0 clean-slate) |
 | NOM-01 | Phase 2 | Pending |
 | NOM-02 | Phase 2 | Pending |
 | NOM-03 | Phase 2 | Pending |
@@ -138,4 +138,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 — v2.0 roadmap created; all 38 requirements mapped to phases 1-4*
+*Last updated: 2026-03-19 — Phase 1 complete; SCHEMA-01 through SCHEMA-05 marked Complete*

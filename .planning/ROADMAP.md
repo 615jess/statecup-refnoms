@@ -15,7 +15,7 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Schema Setup** — Rework column structure for v2.0 status values, late flag, and referee-provided fields
+- [x] **Phase 1: Schema Setup** — Rework column structure for v2.0 status values, late flag, and referee-provided fields
 - [ ] **Phase 2: DRA Form + nominateV2** — Simplified nomination form with token generation and email deduplication
 - [ ] **Phase 3: Referee Detail Form + Backend** — Token-secured detail form with all doGet/doPost endpoint logic
 - [ ] **Phase 4: Email Admin Page + getAllNominees** — Assignor-facing nominee table with pre-composed mailto links
@@ -35,7 +35,7 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
 **Plans**: 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md — Write v2.0 setup/verify scripts and column map, remove v1.0 scripts
+- [x] 01-01-PLAN.md — Write v2.0 setup/verify scripts and column map, remove v1.0 scripts
 
 ### Phase 2: DRA Form + nominateV2
 **Goal**: A DRA can submit referee nominations (individually or via spreadsheet upload) and each nomination creates exactly one sheet row with a token, leaving referee-detail columns blank — ready for the referee to fill
@@ -90,7 +90,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Schema Setup | v2.0 | 0/1 | Planned | - |
+| 1. Schema Setup | v2.0 | 1/1 | Complete | 2026-03-19 |
 | 2. DRA Form + nominateV2 | v2.0 | 0/TBD | Not started | - |
 | 3. Referee Detail Form + Backend | v2.0 | 0/TBD | Not started | - |
 | 4. Email Admin Page + getAllNominees | v2.0 | 0/TBD | Not started | - |

@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email + max ages + notes), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** v2.0 Phase 1 — Schema Setup
+**Current focus:** v2.0 Phase 2 — DRA Form + nominateV2
 
 ## Current Position
 
-Phase: 1 of 4 (Schema Setup)
-Plan: 1 of 1 complete in current phase
-Status: Phase 1 plan 01-01 complete — schema live and verified on production sheet
-Last activity: 2026-03-19 — Completed 01-01-PLAN.md; all 3 tasks done, checkpoint approved
+Phase: 1 of 4 complete (Schema Setup ✓)
+Plan: All plans complete in Phase 1
+Status: Phase 1 verified and complete — ready to plan Phase 2
+Last activity: 2026-03-19 — Phase 1 complete: schema live, 6/6 must-haves verified, VERIFICATION passed
 
-Progress: [██░░░░░░░░] ~20% (Phase 1 plan 1 complete; ready for Phase 2 planning)
+Progress: [██▓░░░░░░░] 25%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1 (from v1.0 Phase 1)
-- Average duration: ~20 min
-- Total execution time: ~20 min (+ checkpoint wait)
+- Total plans completed: 2 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1)
+- Average duration: ~25 min
+- Total execution time: ~45 min (+ checkpoint wait)
 
 *Updated after each plan completion*
 
@@ -76,5 +76,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Completed 01-01-PLAN.md — Phase 1 plan 1 done
-Resume file: None — ready to begin Phase 2 planning
+Stopped at: Phase 1 complete and verified — ready to plan Phase 2
+Resume file: None

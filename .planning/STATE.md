@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email + max ages + notes), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** v2.0 Phase 4 in progress — Plan 01 (Backend) complete, Plan 02 (Admin HTML Page) is next
+**Current focus:** v2.0 complete — all 4 phases delivered and verified
 
 ## Current Position
 
-Phase: 4 of 4 (Email Admin Page) — In progress
-Plan: 2 of 2 in Phase 4 (awaiting human verification checkpoint)
-Status: admin.html built and committed — awaiting deployment + user testing
-Last activity: 2026-03-20 — Completed 04-02 Task 1 (admin.html); at checkpoint
+Phase: 4 of 4 (Email Admin Page) — Complete
+Plan: 2 of 2 in Phase 4 — Complete
+Status: All plans complete — v2.0 system fully deployed and verified
+Last activity: 2026-03-21 — Completed 04-02 (admin.html + E2E checkpoint approved)
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 3 from v2.0 Phase 3 + 1 from v2.0 Phase 4)
+- Total plans completed: 9 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 3 from v2.0 Phase 3 + 2 from v2.0 Phase 4)
 - Average duration: ~18 min
-- Total execution time: ~142 min (+ checkpoint waits)
+- Total execution time: ~154 min (+ checkpoint waits)
 
 *Updated after each plan completion*
 
@@ -70,16 +70,17 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- Column T (SentAt) writer resolved in Plan 04-01: written server-side by markSent action
+None — all blockers resolved. Project is complete.
 
-### Phase 4 Artifacts (committed 2026-03-20)
+### Phase 4 Artifacts (complete — verified 2026-03-21)
 
 - `scripts/adminemail.gs` — `_handleGetAllNominees` (returns all nominees + tournament props), `_handleMarkSent` (LockService, idempotent, writes Status + SentAt), `COL_SENT_AT = 20`
 - `scripts/refdetails.gs` (modified) — doGet now routes `action=getAllNominees` before token lookup
 - `scripts/nominatev2.gs` (modified) — doPost now routes `action=markSent` alongside nominateV2 and submitDetails
 - `admin.html` — complete email admin page (617 lines): sortable/filterable nominee table, mailto links, auto-mark-Sent, summary counts
 - Plan 04-01 Commits: `388aab1` (adminemail.gs), `dbf64be` (routing extensions)
-- Plan 04-02 Commits: `9853359` (admin.html)
+- Plan 04-02 Commits: `9853359` (admin.html), `8d5aa71` (checkpoint metadata)
+- E2E Verification: User approved 2026-03-21 — all success criteria passed
 
 ### Phase 3 Artifacts (committed 2026-03-20)
 
@@ -106,6 +107,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-20
-Stopped at: 04-02 checkpoint — admin.html committed (9853359), awaiting deployment + human verify
+Last session: 2026-03-21
+Stopped at: Project complete — 04-02 checkpoint approved, all phases delivered
 Resume file: None

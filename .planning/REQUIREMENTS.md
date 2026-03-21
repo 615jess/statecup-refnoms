@@ -37,16 +37,16 @@ Requirements for the referee nomination & detail collection system. Supersedes v
 - [x] **API-04**: doPost with action=submitDetails writes referee-provided data to the existing row (never appends a new row)
 - [x] **API-05**: LockService guard on concurrent writes to prevent race conditions
 - [x] **API-06**: Deadline enforcement: late submissions accepted with flag; hard-close submissions rejected with JSON error
-- [ ] **API-07**: doGet with action=getAllNominees returns all referee rows for the admin page
-- [ ] **API-08**: Tournament constants (dates, assignor email, form URL) stored in PropertiesService
+- [x] **API-07**: doGet with action=getAllNominees returns all referee rows for the admin page
+- [x] **API-08**: Tournament constants (dates, assignor email, form URL) stored in PropertiesService
 
 ### Email Admin Page
 
-- [ ] **ADMIN-01**: Static HTML admin page hosted on GitHub Pages
-- [ ] **ADMIN-02**: Admin page fetches all nominees via doGet (action=getAllNominees) and displays name, email, DRA, and status
-- [ ] **ADMIN-03**: Mailto link per referee opens Outlook with pre-filled To, Subject (personalized), and Body (referee name, tournament details, token-secured form link, assignor contact)
-- [ ] **ADMIN-04**: Clicking a mailto link auto-marks the referee's status as "Sent" in the sheet via API call
-- [ ] **ADMIN-05**: Admin page supports filtering/sorting by status (Not Sent / Sent / Confirmed)
+- [x] **ADMIN-01**: Static HTML admin page hosted on GitHub Pages
+- [x] **ADMIN-02**: Admin page fetches all nominees via doGet (action=getAllNominees) and displays name, email, DRA, and status
+- [x] **ADMIN-03**: Mailto link per referee opens Outlook with pre-filled To, Subject (personalized), and Body (referee name, tournament details, token-secured form link, assignor contact)
+- [x] **ADMIN-04**: Clicking a mailto link auto-marks the referee's status as "Sent" in the sheet via API call
+- [x] **ADMIN-05**: Admin page supports filtering/sorting by status (Not Sent / Sent / Confirmed)
 
 ### Sheet Schema
 
@@ -59,8 +59,8 @@ Requirements for the referee nomination & detail collection system. Supersedes v
 ### User Experience
 
 - [x] **UX-01**: Referee detail form is mobile-responsive (16px min font, 44px touch targets, single-column under 560px)
-- [ ] **UX-02**: All pages match existing visual style (Open Sans, navy/red/gold color scheme)
-- [ ] **UX-03**: Admin page provides at-a-glance status overview of all nominees
+- [x] **UX-02**: All pages match existing visual style (Open Sans, navy/red/gold color scheme)
+- [x] **UX-03**: Admin page provides at-a-glance status overview of all nominees
 
 ## Future Requirements
 
@@ -123,13 +123,13 @@ Deferred to later milestones.
 | API-04 | Phase 3 | Complete |
 | API-06 | Phase 3 | Complete |
 | UX-01 | Phase 3 | Complete |
-| ADMIN-01 | Phase 4 | Pending |
-| ADMIN-02 | Phase 4 | Pending |
-| ADMIN-03 | Phase 4 | Pending |
-| ADMIN-04 | Phase 4 | Pending |
-| ADMIN-05 | Phase 4 | Pending |
-| API-07 | Phase 4 | Pending |
-| UX-03 | Phase 4 | Pending |
+| ADMIN-01 | Phase 4 | Complete |
+| ADMIN-02 | Phase 4 | Complete |
+| ADMIN-03 | Phase 4 | Complete |
+| ADMIN-04 | Phase 4 | Complete |
+| ADMIN-05 | Phase 4 | Complete |
+| API-07 | Phase 4 | Complete |
+| UX-03 | Phase 4 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 38 total
@@ -138,4 +138,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-20 — Phase 3 complete; DETAIL-01 through DETAIL-11, API-01, API-02, API-04, API-06, UX-01 marked Complete*
+*Last updated: 2026-03-21 — Phase 4 complete; ADMIN-01 through ADMIN-05, API-07, UX-02, UX-03 marked Complete. All v2.0 requirements complete.*

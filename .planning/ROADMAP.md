@@ -7,7 +7,7 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
 ## Milestones
 
 - (archived) **v1.0 Sheet Schema Bootstrap** — Phase 1 complete (superseded by v2.0)
-- **v2.0 Referee Nomination & Detail Collection** — Phases 1-4 (in progress)
+- **v2.0 Referee Nomination & Detail Collection** — Phases 1-4 (complete)
 
 ## Phases
 
@@ -18,7 +18,7 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
 - [x] **Phase 1: Schema Setup** — Rework column structure for v2.0 status values, late flag, and referee-provided fields
 - [x] **Phase 2: DRA Form + nominateV2** — Simplified nomination form with token generation and email deduplication
 - [x] **Phase 3: Referee Detail Form + Backend** — Token-secured detail form with all doGet/doPost endpoint logic
-- [ ] **Phase 4: Email Admin Page + getAllNominees** — Assignor-facing nominee table with pre-composed mailto links
+- [x] **Phase 4: Email Admin Page + getAllNominees** — Assignor-facing nominee table with pre-composed mailto links
 
 ## Phase Details
 
@@ -83,8 +83,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Build adminemail.gs backend (getAllNominees + markSent) and wire doGet/doPost routing
-- [ ] 04-02-PLAN.md — Build admin.html page (nominee table, mailto links, sort/filter, markSent auto-update)
+- [x] 04-01-PLAN.md — Build adminemail.gs backend (getAllNominees + markSent) and wire doGet/doPost routing
+- [x] 04-02-PLAN.md — Build admin.html page (nominee table, mailto links, sort/filter, markSent auto-update)
 
 ## Progress
 
@@ -93,4 +93,4 @@ Plans:
 | 1. Schema Setup | v2.0 | 1/1 | Complete | 2026-03-19 |
 | 2. DRA Form + nominateV2 | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 3. Referee Detail Form + Backend | v2.0 | 3/3 | Complete | 2026-03-20 |
-| 4. Email Admin Page + getAllNominees | v2.0 | 0/2 | Not started | - |
+| 4. Email Admin Page + getAllNominees | v2.0 | 2/2 | Complete | 2026-03-21 |

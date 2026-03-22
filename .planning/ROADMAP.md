@@ -7,7 +7,7 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
 ## Milestones
 
 - (archived) **v1.0 Sheet Schema Bootstrap** — Phase 1 complete (superseded by v2.0)
-- **v2.0 Referee Nomination & Detail Collection** — Phases 1-4 (complete)
+- **v2.0 Referee Nomination & Detail Collection** — Phases 1-5 (Phases 1-4 complete, Phase 5 pending)
 
 ## Phases
 
@@ -19,6 +19,7 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
 - [x] **Phase 2: DRA Form + nominateV2** — Simplified nomination form with token generation and email deduplication
 - [x] **Phase 3: Referee Detail Form + Backend** — Token-secured detail form with all doGet/doPost endpoint logic
 - [x] **Phase 4: Email Admin Page + getAllNominees** — Assignor-facing nominee table with pre-composed mailto links
+- [ ] **Phase 5: Pre-Go-Live Cleanup** — Fix tech debt: placeholder emails, source/runtime URL mismatch, deployment URL consolidation, deadline date
 
 ## Phase Details
 
@@ -86,6 +87,21 @@ Plans:
 - [x] 04-01-PLAN.md — Build adminemail.gs backend (getAllNominees + markSent) and wire doGet/doPost routing
 - [x] 04-02-PLAN.md — Build admin.html page (nominee table, mailto links, sort/filter, markSent auto-update)
 
+### Phase 5: Pre-Go-Live Cleanup
+**Goal**: All tech debt from the v2.0 audit is resolved — placeholder values replaced with real data, source code matches runtime config, all HTML pages use a single deployment URL, and the tournament deadline is set — so the system is ready for production use
+**Depends on**: Phase 4
+**Requirements**: None (tech debt closure, no new requirements)
+**Gap Closure**: Closes 4 tech debt items from v2.0-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. DRA dropdown in spring-state-cup-nomination.html contains real email addresses for Don Eubank (SRA) and Mark Herrington (SYRA) — no TODO_ prefixes remain
+  2. `setTournamentConstants()` in nominatev2.gs source code contains the actual GitHub Pages referee-details URL (matching the runtime PropertiesService value)
+  3. All three HTML pages (spring-state-cup-nomination.html, referee-details.html, admin.html) reference the same single GAS deployment URL
+  4. Cell Z1 (ConfirmationDeadline named range) contains the actual tournament response deadline date
+**Plans**: 0 plans (pending)
+
+Plans:
+- (none yet — run `/gsd:plan-phase 5`)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -94,3 +110,4 @@ Plans:
 | 2. DRA Form + nominateV2 | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 3. Referee Detail Form + Backend | v2.0 | 3/3 | Complete | 2026-03-20 |
 | 4. Email Admin Page + getAllNominees | v2.0 | 2/2 | Complete | 2026-03-21 |
+| 5. Pre-Go-Live Cleanup | v2.0 | 0/? | Pending | — |

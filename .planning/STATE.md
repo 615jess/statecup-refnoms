@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email + max ages + notes), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** v2.0 complete — all 4 phases delivered and verified
+**Current focus:** Phase 5 — Pre-Go-Live Cleanup (tech debt from v2.0 audit)
 
 ## Current Position
 
-Phase: 4 of 4 (Email Admin Page) — Complete
-Plan: 2 of 2 in Phase 4 — Complete
-Status: All plans complete — v2.0 system fully deployed and verified
-Last activity: 2026-03-21 — Completed 04-02 (admin.html + E2E checkpoint approved)
+Phase: 5 of 5 (Pre-Go-Live Cleanup) — Pending
+Plan: 0 of ? in Phase 5 — Not yet planned
+Status: Phase added from milestone audit tech debt; needs planning
+Last activity: 2026-03-22 — Created Phase 5 from v2.0 audit tech debt items
 
 Progress: [██████████] 100%
 

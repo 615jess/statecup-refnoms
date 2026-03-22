@@ -97,10 +97,10 @@ Plans:
   2. `setTournamentConstants()` in nominatev2.gs source code contains the actual GitHub Pages referee-details URL (matching the runtime PropertiesService value)
   3. All three HTML pages (spring-state-cup-nomination.html, referee-details.html, admin.html) reference the same single GAS deployment URL
   4. Cell Z1 (ConfirmationDeadline named range) contains the actual tournament response deadline date
-**Plans**: 0 plans (pending)
+**Plans**: 1 plan
 
 Plans:
-- (none yet — run `/gsd:plan-phase 5`)
+- [ ] 05-01-PLAN.md — Collect production values (emails, URLs, deadline) and apply to all source files
 
 ## Progress
 
@@ -110,4 +110,4 @@ Plans:
 | 2. DRA Form + nominateV2 | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 3. Referee Detail Form + Backend | v2.0 | 3/3 | Complete | 2026-03-20 |
 | 4. Email Admin Page + getAllNominees | v2.0 | 2/2 | Complete | 2026-03-21 |
-| 5. Pre-Go-Live Cleanup | v2.0 | 0/? | Pending | — |
+| 5. Pre-Go-Live Cleanup | v2.0 | 0/1 | Pending | — |

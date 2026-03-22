@@ -433,8 +433,7 @@ function setTournamentConstants() {
     'WEEKEND_1_DATES': 'May 16 & 17, 2026',
     'WEEKEND_2_DATES': 'May 23 & 24, 2026',
 
-    // TODO: Set to GitHub Pages URL before Phase 4 (e.g., https://<user>.github.io/StateCup_RefNoms/referee-details.html)
-    'REF_FORM_URL': 'TBD — set to GitHub Pages URL before Phase 4'
+    'REF_FORM_URL': 'https://615jess.github.io/statecup-refnoms/referee-details.html'
   });
 
   Logger.log('Tournament constants saved.');
@@ -442,5 +441,5 @@ function setTournamentConstants() {
   Logger.log('  WEEKEND_1_DATES: ' + props.getProperty('WEEKEND_1_DATES'));
   Logger.log('  WEEKEND_2_DATES: ' + props.getProperty('WEEKEND_2_DATES'));
   Logger.log('  REF_FORM_URL:    ' + props.getProperty('REF_FORM_URL'));
-  Logger.log('  NOTE: Update REF_FORM_URL to GitHub Pages URL before Phase 4.');
+  Logger.log('  NOTE: Run this function once after each new deployment to update script properties.');
 }

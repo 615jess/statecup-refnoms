@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email + max ages + notes), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** Phase 5 — Pre-Go-Live Cleanup (tech debt from v2.0 audit)
+**Current focus:** Phase 5.1 — Parent/Guardian Email for Minors (inserted feature)
 
 ## Current Position
 
-Phase: 5 of 5 (Pre-Go-Live Cleanup) — Complete
-Plan: 1 of 1 in Phase 5 — Complete
-Status: All phases complete — system production-ready
-Last activity: 2026-03-22 — Completed 05-01-PLAN.md (production values applied)
+Phase: 5.1 of 5.1 (Parent/Guardian Email for Minors) — In Progress
+Plan: 1 of 2 in Phase 5.1 — Plan 05.1-01 complete
+Status: In progress
+Last activity: 2026-03-23 — Completed 05.1-01-PLAN.md (backend support for column AB)
 
-Progress: [██████████] 100%
+Progress: [███████████░] 11/12 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 3 from v2.0 Phase 3 + 2 from v2.0 Phase 4 + 1 from v2.0 Phase 5)
-- Average duration: ~18 min
-- Total execution time: ~174 min (+ checkpoint waits)
+- Total plans completed: 11 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 3 from v2.0 Phase 3 + 2 from v2.0 Phase 4 + 1 from v2.0 Phase 5 + 1 from Phase 5.1)
+- Average duration: ~17 min
+- Total execution time: ~177 min (+ checkpoint waits)
 
 *Updated after each plan completion*
 
@@ -60,14 +60,27 @@ Recent decisions affecting current work:
 | X | 24 | 23 | LateFlag | System (submitDetails) |
 | Y | 25 | 24 | RefNotes | Referee form |
 | Z | 26 | 25 | ConfirmationDeadline (named range) | Assignor |
+| AB | 28 | 27 | Parent/Guardian Email | Referee form (Phase 5.1) |
+
+### Roadmap Evolution
+
+- Phase 5.1 inserted after Phase 5: Parent/Guardian Email for Minors (URGENT) — add conditional parent/guardian email field for referees under 18, new column AB in sheet
 
 ### Pending Todos
 
-None — all items resolved in Phase 5.
+None.
 
 ### Blockers/Concerns
 
-None — all blockers resolved. Project is complete.
+None.
+
+### Phase 5.1 Artifacts (in progress — Plan 01 complete 2026-03-23)
+
+- `scripts/refdetails.gs` — COL_PARENT_EMAIL = 28, _handleGetDetails returns parentEmail from rowData[27], _handleSubmitDetails writes payload.parentEmail to column AB (Step 9), getValues range expanded to 28 cols
+- `scripts/adminemail.gs` — _handleGetAllNominees returns age (r[9]) + parentEmail (r[27]) per nominee, getValues range expanded to 28 cols
+- `scripts/setup-schema-v2.gs` — COL_PARENT_EMAIL = 28, HEADERS_V2 expanded to 28 entries (AA='' + AB='Parent/Guardian Email'), setValues and clearContent ranges expanded to 28 cols
+- `.planning/COLUMN-MAP.md` — AB row added, COL_PARENT_EMAIL in constants, AB in writer summary, Column AB usage note
+- Plan 05.1-01 Commits: `a9c6156` (refdetails.gs), `8081716` (adminemail.gs + setup-schema-v2.gs + COLUMN-MAP.md)
 
 ### Phase 4 Artifacts (complete — verified 2026-03-21)
 
@@ -104,6 +117,6 @@ None — all blockers resolved. Project is complete.
 
 ## Session Continuity
 
-Last session: 2026-03-22
-Stopped at: Project complete — 05-01 production values applied, all 5 phases delivered
+Last session: 2026-03-23 20:39-20:43 UTC
+Stopped at: Completed 05.1-01-PLAN.md — backend column AB support
 Resume file: None

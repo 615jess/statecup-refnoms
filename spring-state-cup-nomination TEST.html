@@ -82,7 +82,6 @@
   input:focus, select:focus, textarea:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13,33,72,0.09); background: #fff; }
   input[readonly] { color: var(--muted); background: var(--slate); cursor: default; }
   input.err { border-color: var(--red) !important; }
-  select.err { border-color: var(--red) !important; }
   textarea { resize: vertical; min-height: 72px; }
   .hint { font-size: 12px; color: var(--muted); font-style: italic; }
 
@@ -91,6 +90,28 @@
   .cap-blk { background: var(--slate); border: 1.5px solid var(--border); border-radius: var(--r); padding: 13px 15px; }
   .cap-lbl { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); margin-bottom: 8px; display: block; }
   .cap-blk select { background: #fff; font-weight: 600; color: var(--navy); }
+
+  /* availability */
+  .avail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .avail-opt { position: relative; }
+  .avail-opt input[type=checkbox] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .avail-opt label {
+    display: flex; align-items: flex-start; gap: 12px; background: var(--slate); border: 1.5px solid var(--border);
+    border-radius: var(--r); padding: 12px 15px; cursor: pointer; transition: all .18s;
+    text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--muted);
+  }
+  .chk-box { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .18s; background: #fff; margin-top: 2px; }
+  .avail-opt input:checked + label { border-color: var(--green); background: var(--green-bg); color: var(--green); font-weight: 600; }
+  .avail-opt input:checked + label .chk-box { background: var(--green); border-color: var(--green); }
+  .avail-opt input:checked + label .chk-box::after { content: '✓'; font-size: 11px; color: #fff; font-weight: 700; }
+  .av-wk { font-family: 'Open Sans', sans-serif; font-size: 15px; letter-spacing: 0.5px; display: block; }
+  .av-dt { font-size: 12px; opacity: 0.8; font-weight: 400; font-family: 'Open Sans', sans-serif; display: block; margin-bottom: 8px; }
+
+  /* hotel sub-toggle */
+  .hotel-row { display: flex; align-items: center; gap: 7px; margin-top: 6px; padding: 8px 15px 4px; border-top: 1px solid rgba(0,0,0,0.08); pointer-events: none; opacity: 0; max-height: 0; overflow: hidden; transition: opacity .18s, max-height .18s; }
+  .avail-opt.checked .hotel-row { pointer-events: auto; opacity: 1; max-height: 40px; }
+  .hotel-lbl { font-size: 12px; font-weight: 500; font-family: 'Open Sans', sans-serif; line-height: 1.3; color: var(--muted); }
+  input[type=checkbox].hotel-input { position: static; opacity: 1; width: 15px; height: 15px; accent-color: var(--green); cursor: pointer; flex-shrink: 0; margin-top: 1px; }
 
   /* sep */
   .sep { height: 1px; background: var(--border); margin: 16px 0; }
@@ -172,9 +193,9 @@
       <div class="hero-divider"></div>
       <div class="hero-content">
         <div class="hero-text">
-          <div class="event-pill">Spring State Cup 2026</div>
+          <div class="event-pill">⚽ Spring State Cup 2026</div>
           <h1>Referee <em>Nomination</em><br>Submission Form</h1>
-          <p>Enter Referee Information Below or Use the Provided Template</p>
+          <p>Complete one submission per district. Add all nominees before submitting.</p>
         </div>
         <img src="TNRefLOGO.png" alt="Tennessee Soccer Referee Program" class="hero-logo">
       </div>
@@ -195,6 +216,11 @@
 </header>
 
 <main class="main">
+
+  <div class="callout" id="setup-callout">
+    <span><strong>⚙️ One-time setup needed:</strong> Replace <code>YOUR_GOOGLE_SCRIPT_URL</code> in this file with your Apps Script URL. See <strong>SETUP-INSTRUCTIONS.txt</strong> for details.</span>
+    <span class="callout-close" onclick="this.closest('.callout').style.display='none'">Dismiss ✕</span>
+  </div>
 
   <form id="nom-form" novalidate>
     <!-- Honeypot field — hidden from real users, catches bots -->
@@ -217,9 +243,6 @@
             <option value="Tony Moran|moran.ant4@gmail.com|South East">Tony Moran — South East</option>
             <option value="Jason Odell|jodell32@hotmail.com|Eastern">Jason Odell — Eastern</option>
             <option value="Steve Cullen|steve.cullen.08@gmail.com|North East">Steve Cullen — North East</option>
-            <option value="Don Eubank|sra@tnsoccer.org|SRA">Don Eubank (SRA)</option>
-            <option value="Mark Herrington|syra@tnsoccer.org|SYRA">Mark Herrington (SYRA)</option>
-            <option value="State Cup Assignor|jerickson@tnsoccer.org|Assignor">State Cup Assignor</option>
           </select>
         </div>
         <div class="fld">
@@ -240,18 +263,18 @@
       <!-- Upload Zone -->
       <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
         <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleUpload(this.files[0])">
-        <div class="upload-icon">&#x1F4C4;</div>
-        <p><strong>Upload a spreadsheet</strong> to add nominees</p>
-        <p class="upload-hint">Drag &amp; drop or click — accepts .xlsx, .xls, .csv &mdash; appends to existing entries</p>
+        <div class="upload-icon">📄</div>
+        <p><strong>Upload a spreadsheet</strong> to auto-fill nominees</p>
+        <p class="upload-hint">Drag &amp; drop or click — accepts .xlsx, .xls, .csv</p>
         <div class="upload-actions" onclick="event.stopPropagation()">
           <button type="button" class="upload-btn" onclick="document.getElementById('file-input').click()">Choose File</button>
-          <button type="button" class="tpl-btn" onclick="downloadTemplate()">&#x2193; Download Template</button>
+          <button type="button" class="tpl-btn" onclick="downloadTemplate()">↓ Download Template</button>
         </div>
       </div>
       <div class="upload-result" id="upload-result">
         <div class="ur-head">
           <strong id="ur-count"></strong>
-          <span class="ur-clear" onclick="clearUpload()">&#x2715; Clear &amp; Start Over</span>
+          <span class="ur-clear" onclick="clearUpload()">✕ Clear &amp; Start Over</span>
         </div>
         <div class="ur-detail" id="ur-detail"></div>
       </div>
@@ -271,13 +294,13 @@
     </div>
 
     <div class="status ok" id="msg-ok">
-      <h3>&#x2713; Nominations Received</h3>
+      <h3>✓ Nominations Received</h3>
       <p>Your nominees have been recorded. Submission summary:</p>
       <div id="summary"></div>
     </div>
     <div class="status er" id="msg-er">
-      <h3>&#x26A0; Submission Error</h3>
-      <p id="err-txt">There was a problem. Please try again or contact the assignor directly.</p>
+      <h3>⚠ Submission Error</h3>
+      <p id="err-txt">There was a problem. Please try again or contact the SDRA directly.</p>
     </div>
 
   </form>
@@ -289,12 +312,13 @@
 
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbz8bfYLVk3jUl_XaAfNQDu7F2-h8XiJlmoxEfSqWMUsHsnYmdKb6ayt4DTJmuwn9v0l/exec";
+// Replace with your published Google Apps Script Web App URL:
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbyHiM9-kbVStgeFPNj3SbljfPsA43XqaQ1s3qrpoJ8ICZ6rs5tqMORA6PrnQpA98BKJaw/exec";
 
 // HTML-escape user input to prevent XSS when rendering summaries
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-const AGES = ['U12','U13','U14','U15','U16','U17','U18','U19'];
+const AGES = ['U12','U13','U14','U15','U16','U17','U18','U19','Adult / Open'];
 let rc = 0;
 
 document.getElementById('dra-sel').addEventListener('change', function () {
@@ -316,29 +340,80 @@ function addRef() {
   d.innerHTML = `
     <div class="ref-hd">
       <span class="ref-hd-title">Referee #${n}</span>
-      ${n>1?`<button type="button" class="rm-btn" onclick="rmRef(${n})">&#x2715; Remove</button>`:''}
+      ${n>1?`<button type="button" class="rm-btn" onclick="rmRef(${n})">✕ Remove</button>`:''}
     </div>
     <div class="ref-body">
       <div class="g2" style="margin-bottom:12px;">
         <div class="fld"><label class="lbl">First Name <span class="req">*</span></label><input type="text" name="r${n}_fn" placeholder="First name" required></div>
         <div class="fld"><label class="lbl">Last Name <span class="req">*</span></label><input type="text" name="r${n}_ln" placeholder="Last name" required></div>
-        <div class="fld s2"><label class="lbl">Email <span class="req">*</span></label><input type="email" name="r${n}_em" placeholder="referee@email.com" required></div>
+        <div class="fld"><label class="lbl">Email</label><input type="email" name="r${n}_em" placeholder="referee@email.com"></div>
+        <div class="fld"><label class="lbl">Phone</label><input type="text" name="r${n}_ph" placeholder="(xxx) xxx-xxxx"></div>
+        <div class="fld"><label class="lbl">Referee Age <span class="req">*</span></label><input type="number" name="r${n}_age" placeholder="e.g. 24" min="13" max="80" required></div>
       </div>
 
       <div class="sep"></div>
-      <p class="lbl" style="margin-bottom:10px;">Game Capacity <span class="req">*</span></p>
+      <p class="lbl" style="margin-bottom:10px;">Game Capacity</p>
       <div class="cap-grid" style="margin-bottom:12px;">
-        <div class="cap-blk"><span class="cap-lbl">Maximum Age as AR</span><select name="r${n}_mar" required>${ageOpts()}</select></div>
-        <div class="cap-blk"><span class="cap-lbl">Maximum Age as Referee</span><select name="r${n}_mrf" required>${ageOpts()}</select></div>
+        <div class="cap-blk"><span class="cap-lbl">Maximum Age as AR</span><select name="r${n}_mar">${ageOpts()}</select></div>
+        <div class="cap-blk"><span class="cap-lbl">Maximum Age as Referee</span><select name="r${n}_mrf">${ageOpts()}</select></div>
+      </div>
+
+      <div class="sep"></div>
+      <p class="lbl" style="margin-bottom:10px;">Weekend Availability <span class="req">*</span></p>
+      <div class="avail-grid" style="margin-bottom:11px;">
+        <div class="avail-opt" id="r${n}_opt1">
+          <input type="checkbox" id="r${n}_w1" name="r${n}_av" value="Weekend 1" onchange="toggleHotel(this,'r${n}_opt1')">
+          <label for="r${n}_w1">
+            <span class="chk-box"></span>
+            <span style="flex:1;">
+              <span class="av-wk">Weekend 1</span>
+              <span class="av-dt">May 16 &amp; 17</span>
+            </span>
+          </label>
+          <div class="hotel-row" id="r${n}_hotel1_row">
+            <input type="checkbox" class="hotel-input" id="r${n}_h1" name="r${n}_h1" value="yes">
+            <label for="r${n}_h1" class="hotel-lbl" style="cursor:pointer;">🛏 Needs hotel room</label>
+          </div>
+        </div>
+        <div class="avail-opt" id="r${n}_opt2">
+          <input type="checkbox" id="r${n}_w2" name="r${n}_av" value="Weekend 2" onchange="toggleHotel(this,'r${n}_opt2')">
+          <label for="r${n}_w2">
+            <span class="chk-box"></span>
+            <span style="flex:1;">
+              <span class="av-wk">Weekend 2</span>
+              <span class="av-dt">May 23 &amp; 24</span>
+            </span>
+          </label>
+          <div class="hotel-row" id="r${n}_hotel2_row">
+            <input type="checkbox" class="hotel-input" id="r${n}_h2" name="r${n}_h2" value="yes">
+            <label for="r${n}_h2" class="hotel-lbl" style="cursor:pointer;">🛏 Needs hotel room</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="fld" style="margin-bottom:12px;">
+        <label class="lbl">Day-Specific Limitations</label>
+        <input type="text" name="r${n}_dn" placeholder="e.g. Saturday only on Weekend 1, all day Weekend 2">
       </div>
 
       <div class="sep"></div>
       <div class="fld">
         <label class="lbl">DRA Notes</label>
-        <textarea name="r${n}_nt" placeholder="Strengths, role preferences, any relevant context\u2026"></textarea>
+        <textarea name="r${n}_nt" placeholder="Strengths, role preferences, any relevant context…"></textarea>
       </div>
     </div>`;
   document.getElementById('ref-list').appendChild(d);
+}
+
+function toggleHotel(cb, optId) {
+  const opt = document.getElementById(optId);
+  if (cb.checked) { opt.classList.add('checked'); }
+  else {
+    opt.classList.remove('checked');
+    // uncheck hotel if weekend deselected
+    const hotelCb = opt.querySelector('.hotel-input');
+    if (hotelCb) hotelCb.checked = false;
+  }
 }
 
 function rmRef(n) { const e = document.getElementById(`r-${n}`); if(e) e.remove(); }
@@ -355,71 +430,56 @@ document.getElementById('nom-form').addEventListener('submit', async function(e)
 
   let ok = true;
   entries.forEach(ent => {
-    // Validate required text/email fields
-    ['_fn','_ln','_em'].forEach(s => {
+    ['_fn','_ln','_age'].forEach(s => {
       const f = ent.querySelector(`[name$="${s}"]`);
       if (f && !f.value.trim()) { f.classList.add('err'); ok = false; }
-      else if (f) f.classList.remove('err');
-    });
-    // Validate required age dropdowns
-    ['_mar','_mrf'].forEach(s => {
-      const f = ent.querySelector(`[name$="${s}"]`);
-      if (f && !f.value) { f.classList.add('err'); ok = false; }
       else if (f) f.classList.remove('err');
     });
   });
   if (!ok) { alert('Please complete all required fields (marked *).'); return; }
 
+  const ts = new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' });
   const rows = [];
   entries.forEach((ent, i) => {
     const g = s => { const el = ent.querySelector(`[name$="${s}"]`); return el ? el.value.trim() : ''; };
-    rows.push({
-      dra: draName,
-      dra_email: draEmail,
-      district: draDist,
-      ref_num: i + 1,
-      first: g('_fn'),
-      last: g('_ln'),
-      ref_email: g('_em'),
-      max_ar: g('_mar'),
-      max_ref: g('_mrf'),
-      notes: g('_nt')
-    });
+    const av = [...ent.querySelectorAll('[name$="_av"]:checked')].map(c=>c.value).join(', ') || 'None selected';
+    const h1 = ent.querySelector('[name$="_h1"]');
+    const h2 = ent.querySelector('[name$="_h2"]');
+    const hotel1 = h1 && h1.checked ? 'Yes' : 'No';
+    const hotel2 = h2 && h2.checked ? 'Yes' : 'No';
+    rows.push({ timestamp:ts, dra:draName, email:draEmail, district:draDist, ref_num:i+1,
+      first:g('_fn'), last:g('_ln'), ref_email:g('_em'), phone:g('_ph'),
+      age:g('_age'), max_ar:g('_mar'), max_ref:g('_mrf'),
+      availability:av, hotel_wk1:hotel1, hotel_wk2:hotel2,
+      day_notes:g('_dn'), notes:g('_nt') });
   });
 
   const btn = document.getElementById('sub-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>Submitting\u2026';
+  btn.innerHTML = '<span class="spin"></span>Submitting…';
   document.getElementById('msg-ok').style.display = 'none';
   document.getElementById('msg-er').style.display = 'none';
 
   try {
-    const payload = {
-      action: 'nominateV2',
-      website: document.getElementById('hp-field').value,
-      rows: rows
-    };
+    const hp = document.getElementById('hp-field').value;
     const res = await fetch(SHEET_URL, {
       method: 'POST',
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ rows, website: hp })
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error || 'Server returned an error');
-
-    const results = data.results || [];
-    let html = `<p style="margin:10px 0 8px;"><strong>DRA:</strong> ${esc(draName)} &mdash; ${esc(draDist)} District</p>`;
-    results.forEach(r => {
-      const badge = r.status === 'new'
-        ? `<span style="color:var(--green);font-size:11px;font-weight:600;">(new)</span>`
-        : `<span style="color:var(--muted);font-size:11px;font-weight:600;">(updated)</span>`;
-      html += `<div class="sum-ref"><strong>${esc(r.name)}</strong> ${badge}</div>`;
+    let html = `<p style="margin:10px 0 8px;"><strong>DRA:</strong> ${esc(draName)} — ${esc(draDist)} District</p>`;
+    rows.forEach(r => {
+      const hotelInfo = [];
+      if (r.hotel_wk1 === 'Yes') hotelInfo.push('Weekend 1');
+      if (r.hotel_wk2 === 'Yes') hotelInfo.push('Weekend 2');
+      const hotelStr = hotelInfo.length ? '🛏 Hotel needed: ' + hotelInfo.join(', ') : '';
+      html += `<div class="sum-ref"><strong>${esc(r.first)} ${esc(r.last)}</strong><br>Age: ${esc(r.age)} &nbsp;|&nbsp; Max AR: ${esc(r.max_ar)||'—'} &nbsp;|&nbsp; Max Referee: ${esc(r.max_ref)||'—'}<br>Availability: ${esc(r.availability)}${hotelStr ? '<br>'+hotelStr : ''}${r.day_notes?'<br><em>'+esc(r.day_notes)+'</em>':''}</div>`;
     });
     document.getElementById('summary').innerHTML = html;
     document.getElementById('msg-ok').style.display = 'block';
     document.getElementById('msg-ok').scrollIntoView({ behavior:'smooth' });
   } catch(err) {
-    document.getElementById('err-txt').textContent = 'Submission failed: ' + err.message + '. Please retry or contact the assignor at jerickson@tnsoccer.org directly.';
+    document.getElementById('err-txt').textContent = 'Submission failed: '+err.message+'. Please retry or contact Jess Erickson (jerickson@tnsoccer.org) directly.';
     document.getElementById('msg-er').style.display = 'block';
     document.getElementById('msg-er').scrollIntoView({ behavior:'smooth' });
   } finally {
@@ -433,18 +493,23 @@ addRef();
 // ─── SPREADSHEET UPLOAD ──────────────────────────────────────
 
 const TEMPLATE_HEADERS = [
-  'First Name', 'Last Name', 'Email',
+  'First Name', 'Last Name', 'Email', 'Phone', 'Referee Age',
   'Max Age as AR', 'Max Age as Referee',
-  'DRA Notes'
+  'Weekend 1', 'Weekend 2',
+  'Hotel Weekend 1', 'Hotel Weekend 2',
+  'Day-Specific Limitations', 'DRA Notes'
 ];
 
 function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS, [
-    'Jane', 'Smith', 'jane@example.com', 'U17', 'U19', 'Strong center referee'
+    'Jane', 'Smith', 'jane@example.com', '(615) 555-0100', 28,
+    'U17', 'Adult / Open',
+    'Yes', 'Yes', 'No', 'Yes',
+    'Saturday only Weekend 1', 'Strong center referee'
   ]]);
   // Set column widths
-  ws['!cols'] = TEMPLATE_HEADERS.map(h => ({ wch: Math.max(h.length + 2, 18) }));
+  ws['!cols'] = TEMPLATE_HEADERS.map(h => ({ wch: Math.max(h.length + 2, 16) }));
   XLSX.utils.book_append_sheet(wb, ws, 'Nominees');
   XLSX.writeFile(wb, 'StateCup_Referee_Nomination_Template.xlsx');
 }
@@ -476,7 +541,7 @@ function handleUpload(file) {
 
       // Validate headers — check for required columns
       const fileHeaders = Object.keys(data[0]);
-      const required = ['First Name', 'Last Name', 'Email'];
+      const required = ['First Name', 'Last Name', 'Referee Age'];
       const missing = required.filter(h => !fileHeaders.some(fh => fh.trim().toLowerCase() === h.toLowerCase()));
       if (missing.length) {
         showUploadErr(`Missing required columns: ${missing.join(', ')}. Please use the template or ensure your spreadsheet has these column headers.`);
@@ -493,47 +558,64 @@ function handleUpload(file) {
       data.forEach((row, i) => {
         const rn = i + 2; // spreadsheet row (1=header)
         if (!val(row, col('First Name'))) errors.push(`Row ${rn}: Missing First Name`);
-        if (!val(row, col('Last Name')))  errors.push(`Row ${rn}: Missing Last Name`);
-        if (!val(row, col('Email')))      errors.push(`Row ${rn}: Missing Email`);
+        if (!val(row, col('Last Name'))) errors.push(`Row ${rn}: Missing Last Name`);
+        const age = parseInt(val(row, col('Referee Age')), 10);
+        if (!age || age < 13 || age > 80) errors.push(`Row ${rn}: Referee Age must be 13–80`);
       });
       if (errors.length) {
-        showUploadErr('Validation errors:\n' + errors.slice(0, 10).join('\n') + (errors.length > 10 ? `\n\u2026and ${errors.length - 10} more` : ''));
+        showUploadErr('Validation errors:\n' + errors.slice(0, 10).join('\n') + (errors.length > 10 ? `\n…and ${errors.length - 10} more` : ''));
         return;
       }
 
-      // Record how many entries exist before upload (for messaging)
-      const countBefore = document.querySelectorAll('.ref-entry').length;
+      // Clear existing entries and populate
+      document.getElementById('ref-list').innerHTML = '';
+      rc = 0;
 
-      // APPEND mode: do NOT clear existing entries
-      data.forEach((row) => {
+      data.forEach((row, i) => {
         addRef();
         const n = rc;
         const f = document.getElementById(`r-${n}`);
         setVal(f, `r${n}_fn`, val(row, col('First Name')));
         setVal(f, `r${n}_ln`, val(row, col('Last Name')));
         setVal(f, `r${n}_em`, val(row, col('Email')));
+        setVal(f, `r${n}_ph`, val(row, col('Phone')));
+        setVal(f, `r${n}_age`, val(row, col('Referee Age')));
         setSelect(f, `r${n}_mar`, val(row, col('Max Age as AR')));
         setSelect(f, `r${n}_mrf`, val(row, col('Max Age as Referee')));
+
+        // Weekend availability
+        if (isYes(val(row, col('Weekend 1')))) {
+          const cb = f.querySelector(`[name="r${n}_av"][value="Weekend 1"]`);
+          if (cb) { cb.checked = true; toggleHotel(cb, `r${n}_opt1`); }
+        }
+        if (isYes(val(row, col('Weekend 2')))) {
+          const cb = f.querySelector(`[name="r${n}_av"][value="Weekend 2"]`);
+          if (cb) { cb.checked = true; toggleHotel(cb, `r${n}_opt2`); }
+        }
+
+        // Hotel
+        if (isYes(val(row, col('Hotel Weekend 1')))) {
+          const hcb = f.querySelector(`[name="r${n}_h1"]`);
+          if (hcb) hcb.checked = true;
+        }
+        if (isYes(val(row, col('Hotel Weekend 2')))) {
+          const hcb = f.querySelector(`[name="r${n}_h2"]`);
+          if (hcb) hcb.checked = true;
+        }
+
+        setVal(f, `r${n}_dn`, val(row, col('Day-Specific Limitations')));
         setTextarea(f, `r${n}_nt`, val(row, col('DRA Notes')));
       });
 
-      // Show success — note total count when appending
-      const totalAfter = document.querySelectorAll('.ref-entry').length;
-      const loadedCount = data.length;
-      let countMsg = `\u2713 ${loadedCount} referee${loadedCount !== 1 ? 's' : ''} loaded from ${file.name}`;
-      if (countBefore > 0) {
-        countMsg += ` (${totalAfter} total nominees)`;
-      }
-      document.getElementById('ur-count').textContent = countMsg;
+      // Show success
+      document.getElementById('ur-count').textContent = `✓ ${data.length} referee${data.length !== 1 ? 's' : ''} loaded from ${file.name}`;
       document.getElementById('ur-detail').textContent = 'Review the entries below, make any changes, then submit.';
       resEl.style.display = 'block';
-      // Keep upload zone visible so DRA can upload additional files
-      document.getElementById('upload-zone').style.display = '';
+      document.getElementById('upload-zone').style.display = 'none';
 
-      // Scroll to first new entry
-      const allEntries = document.querySelectorAll('.ref-entry');
-      const firstNew = allEntries[countBefore];
-      if (firstNew) firstNew.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Scroll to first entry
+      const first = document.querySelector('.ref-entry');
+      if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
     } catch (err) {
       showUploadErr('Could not read the file. Please ensure it is a valid .xlsx, .xls, or .csv file.');
@@ -547,6 +629,10 @@ function handleUpload(file) {
 function val(row, key) {
   const v = row[key];
   return v == null ? '' : String(v).trim();
+}
+
+function isYes(v) {
+  return /^(y|yes|x|true|1)$/i.test(v.trim());
 }
 
 function setVal(container, name, value) {

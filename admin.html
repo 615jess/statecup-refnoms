@@ -468,50 +468,60 @@ function statusBadgeClass(status) {
 // buildMailtoHref — construct a mailto: URL with pre-filled subject and body
 // ---------------------------------------------------------------------------
 function buildMailtoHref(nominee, props) {
-  var firstName    = nominee.firstName  || '';
-  var draName      = nominee.draName    || '';
-  var token        = nominee.token      || '';
-  var assignorEmail  = props.assignorEmail  || '';
-  var weekend1Dates  = props.weekend1Dates  || 'May 16 & 17, 2026';
-  var weekend2Dates  = props.weekend2Dates  || 'May 23 & 24, 2026';
-  var refFormUrl     = props.refFormUrl     || '';
+  var firstName       = nominee.firstName  || '';
+  var draName         = nominee.draName    || '';
+  var token           = nominee.token      || '';
+  var assignorEmail   = props.assignorEmail   || '';
+  var weekend1Dates   = props.weekend1Dates   || 'May 16 & 17, 2026';
+  var weekend2Dates   = props.weekend2Dates   || 'May 23 & 24, 2026';
+  var refFormUrl      = props.refFormUrl      || '';
   var deadlineDisplay = props.deadlineDisplay || '';
 
-  var subject = 'State Cup Referee Nomination \u2014 Action Required';
+  var subject = 'Spring State Cup 2026 \u2014 Referee Nomination';
 
   var bodyLines = [
     'Dear ' + firstName + ',',
     '',
-    'You have been nominated to officiate at the Tennessee State Cup tournament by ' + draName + '.',
+    'Congratulations! You have been nominated to officiate at the Tennessee Soccer Spring State Cup 2026 by ' + draName + '. This is a recognition of your skill and dedication to the game, and we are proud to have you representing the Tennessee Soccer Referee Program.',
     '',
-    'Tournament Dates:',
+    'TOURNAMENT DATES',
     '  Weekend 1: ' + weekend1Dates,
     '  Weekend 2: ' + weekend2Dates,
     '',
-    'Please complete your referee details using the link below:',
-    refFormUrl + '?token=' + token
+    'ACTION REQUIRED',
+    'Please use your personalized link below to confirm your availability and provide a few details needed for your assignment. You will be asked to:',
+    '  \u2022 Confirm which weekend(s) you are available to officiate',
+    '  \u2022 Indicate whether you will need hotel accommodations',
+    '  \u2022 Verify your contact information',
+    '',
+    'Your response link (personalized \u2014 please do not share):',
+    '  ' + refFormUrl + '?token=' + token
   ];
 
   if (deadlineDisplay) {
     bodyLines.push('');
-    bodyLines.push('Please respond by ' + deadlineDisplay + '.');
+    bodyLines.push('Please respond no later than ' + deadlineDisplay + '. Nominations not confirmed by this date may be released to other referees.');
   }
 
   if (assignorEmail) {
     bodyLines.push('');
-    bodyLines.push('If you have questions, please contact:');
-    bodyLines.push(assignorEmail);
+    bodyLines.push('Questions? Please contact:');
+    bodyLines.push('  Jess Erickson, State Cup Assignor');
+    bodyLines.push('  ' + assignorEmail);
   }
 
   bodyLines.push('');
-  bodyLines.push('Thank you,');
-  bodyLines.push('Tennessee State Cup Assignor');
+  bodyLines.push('We look forward to seeing you at State Cup!');
+  bodyLines.push('');
+  bodyLines.push('Jess Erickson');
+  bodyLines.push('State Cup Assignor');
+  bodyLines.push('Tennessee Soccer Referee Program');
 
   var body = bodyLines.join('\r\n');
 
   return 'mailto:' + encodeURIComponent(nominee.refEmail) +
     '?subject=' + encodeURIComponent(subject) +
-    '&body=' + encodeURIComponent(body);
+    '&body='    + encodeURIComponent(body);
 }
 
 // ---------------------------------------------------------------------------

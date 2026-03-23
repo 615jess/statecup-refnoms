@@ -7,7 +7,7 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
 ## Milestones
 
 - (archived) **v1.0 Sheet Schema Bootstrap** — Phase 1 complete (superseded by v2.0)
-- **v2.0 Referee Nomination & Detail Collection** — Phases 1-5 (All phases complete)
+- **v2.0 Referee Nomination & Detail Collection** — Phases 1-5.1 (Phase 5.1 in progress)
 
 ## Phases
 
@@ -20,6 +20,7 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
 - [x] **Phase 3: Referee Detail Form + Backend** — Token-secured detail form with all doGet/doPost endpoint logic
 - [x] **Phase 4: Email Admin Page + getAllNominees** — Assignor-facing nominee table with pre-composed mailto links
 - [x] **Phase 5: Pre-Go-Live Cleanup** — Fix tech debt: placeholder emails, source/runtime URL mismatch, deployment URL consolidation, deadline date
+- [ ] **Phase 5.1: Parent/Guardian Email for Minors** (INSERTED) — Add conditional parent/guardian contact email field for referees under 18
 
 ## Phase Details
 
@@ -102,6 +103,22 @@ Plans:
 Plans:
 - [x] 05-01-PLAN.md — Collect production values (emails, URLs, deadline) and apply to all source files
 
+### Phase 5.1: Parent/Guardian Email for Minors (INSERTED)
+**Goal**: When a referee enters an age under 18 on the referee detail form, a required parent/guardian contact email field appears — the submitted value is stored in a new sheet column (AB) so the assignor has emergency contact info for minor referees
+**Depends on**: Phase 5
+**Requirements**: None (new feature request)
+**Success Criteria** (what must be TRUE):
+  1. Column AB in the Google Sheet has header "Parent/Guardian Email" and a corresponding `COL_PARENT_EMAIL = 28` constant in refdetails.gs
+  2. When a referee enters an age < 18 on referee-details.html, a required "Parent/Guardian Email" input appears; when age >= 18 or blank, the field is hidden and not submitted
+  3. Submitting the referee detail form with age < 18 writes the parent/guardian email to column AB; re-opening the form pre-fills the value
+  4. The admin page (admin.html) displays the parent/guardian email for minor referees in the nominee table
+  5. The column map document (COLUMN-MAP.md) is updated to include column AB
+**Plans**: 2 plans
+
+Plans:
+- [ ] 05.1-01-PLAN.md — Add COL_PARENT_EMAIL backend support (refdetails.gs, adminemail.gs, setup-schema-v2.gs, COLUMN-MAP.md)
+- [ ] 05.1-02-PLAN.md — Add conditional parent email field to referee-details.html and parent email column to admin.html
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -111,3 +128,4 @@ Plans:
 | 3. Referee Detail Form + Backend | v2.0 | 3/3 | Complete | 2026-03-20 |
 | 4. Email Admin Page + getAllNominees | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 5. Pre-Go-Live Cleanup | v2.0 | 1/1 | Complete | 2026-03-22 |
+| 5.1 Parent/Guardian Email for Minors | v2.0 | 0/2 | In Progress | — |

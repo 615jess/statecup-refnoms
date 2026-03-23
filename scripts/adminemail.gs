@@ -14,15 +14,17 @@
  *     ok:true without overwriting. Uses LockService to serialize concurrent writes.
  *
  * COLUMN REFERENCES USED (1-based for getRange; 0-based for array indexing):
- *   B = col  2 (0-based  1)  DRA Name
- *   F = col  6 (0-based  5)  First Name
- *   G = col  7 (0-based  6)  Last Name
- *   H = col  8 (0-based  7)  Referee Email
- *   R = col 18 (0-based 17)  Token (lookup key)
- *   S = col 19 (0-based 18)  Status (written to 'Sent')
- *   T = col 20 (0-based 19)  SentAt (written by _handleMarkSent)
- *   V = col 22 (0-based 21)  RefWeekend1
- *   W = col 23 (0-based 22)  RefWeekend2
+ *   B  = col  2 (0-based  1)  DRA Name
+ *   F  = col  6 (0-based  5)  First Name
+ *   G  = col  7 (0-based  6)  Last Name
+ *   H  = col  8 (0-based  7)  Referee Email
+ *   J  = col 10 (0-based  9)  Age
+ *   R  = col 18 (0-based 17)  Token (lookup key)
+ *   S  = col 19 (0-based 18)  Status (written to 'Sent')
+ *   T  = col 20 (0-based 19)  SentAt (written by _handleMarkSent)
+ *   V  = col 22 (0-based 21)  RefWeekend1
+ *   W  = col 23 (0-based 22)  RefWeekend2
+ *   AB = col 28 (0-based 27)  Parent/Guardian Email (Phase 5.1 — minor referees only)
  *
  * NOTE: This file does NOT declare doGet or doPost.
  *   doGet routing for action=getAllNominees is in refdetails.gs.
@@ -64,7 +66,7 @@ var COL_SENT_AT = 20; // T — timestamp written when Status is set to 'Sent'
  * Steps:
  *   1. Get active spreadsheet and sheet
  *   2. If no data rows, return empty nominees array immediately
- *   3. Read all data rows (A through Y = 25 columns) in a single API call
+ *   3. Read all data rows (A through AB = 28 columns) in a single API call
  *   4. Read tournament properties from PropertiesService
  *   5. Read deadline display string via _getDeadlineState (from refdetails.gs)
  *   6. Map each row to a flat JSON object using 0-based array indices
@@ -86,10 +88,10 @@ function _handleGetAllNominees() {
     return _jsonResponse({ ok: true, nominees: [], props: {} });
   }
 
-  // Read all data rows A through Y (25 columns) in a single API call.
+  // Read all data rows A through AB (28 columns) in a single API call.
   // Result is a 2D array: rows[i][j] where i=row index, j=0-based column index.
   var dataRowCount = lastRow - 1;
-  var rows = sheet.getRange(2, 1, dataRowCount, 25).getValues();
+  var rows = sheet.getRange(2, 1, dataRowCount, 28).getValues();
 
   // Read tournament properties for the admin page mailto builder.
   var scriptProps   = PropertiesService.getScriptProperties();
@@ -104,24 +106,28 @@ function _handleGetAllNominees() {
 
   // Map each sheet row to a nominee object.
   // Column indices below are 0-based (1-based value = index + 1):
-  //   r[1]  = B (col  2) DRA Name
-  //   r[5]  = F (col  6) First Name
-  //   r[6]  = G (col  7) Last Name
-  //   r[7]  = H (col  8) Referee Email
-  //   r[17] = R (col 18) Token
-  //   r[18] = S (col 19) Status
-  //   r[21] = V (col 22) RefWeekend1
-  //   r[22] = W (col 23) RefWeekend2
+  //   r[1]  = B  (col  2) DRA Name
+  //   r[5]  = F  (col  6) First Name
+  //   r[6]  = G  (col  7) Last Name
+  //   r[7]  = H  (col  8) Referee Email
+  //   r[9]  = J  (col 10) Age
+  //   r[17] = R  (col 18) Token
+  //   r[18] = S  (col 19) Status
+  //   r[21] = V  (col 22) RefWeekend1
+  //   r[22] = W  (col 23) RefWeekend2
+  //   r[27] = AB (col 28) Parent/Guardian Email
   var nominees = rows.map(function(r) {
     return {
-      draName:     String(r[1]  || ''), // B (0-based index  1)
-      firstName:   String(r[5]  || ''), // F (0-based index  5)
-      lastName:    String(r[6]  || ''), // G (0-based index  6)
-      refEmail:    String(r[7]  || ''), // H (0-based index  7)
-      token:       String(r[17] || ''), // R (0-based index 17)
-      status:      String(r[18] || ''), // S (0-based index 18)
-      refWeekend1: String(r[21] || ''), // V (0-based index 21)
-      refWeekend2: String(r[22] || '')  // W (0-based index 22)
+      draName:     String(r[1]  || ''), // B  (0-based index  1)
+      firstName:   String(r[5]  || ''), // F  (0-based index  5)
+      lastName:    String(r[6]  || ''), // G  (0-based index  6)
+      refEmail:    String(r[7]  || ''), // H  (0-based index  7)
+      token:       String(r[17] || ''), // R  (0-based index 17)
+      status:      String(r[18] || ''), // S  (0-based index 18)
+      refWeekend1: String(r[21] || ''), // V  (0-based index 21)
+      refWeekend2: String(r[22] || ''), // W  (0-based index 22)
+      age:         String(r[9]  || ''), // J  (0-based index  9)
+      parentEmail: String(r[27] || '')  // AB (0-based index 27)
     };
   });
 

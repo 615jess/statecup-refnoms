@@ -5,8 +5,8 @@
  * Phase 1: Schema Setup
  *
  * WHAT THIS SCRIPT DOES (in order):
- *   1. Rebuilds the full header row A-Z (26 columns) from a single locked array
- *   2. Clears all data rows A2:Z{lastRow} — fresh start, no migration
+ *   1. Rebuilds the full header row A-AB (28 columns) from a single locked array
+ *   2. Clears all data rows A2:AB{lastRow} — fresh start, no migration
  *   3. Clears any old validation on column S, then applies v2.0 3-value dropdown
  *      (Not Sent / Sent / Confirmed) with rejection of invalid values
  *   4. Creates ConfirmationDeadline named range at Z1 (idempotent)
@@ -40,33 +40,34 @@
  *   and skip creation.
  *
  * COLUMN INDEX REFERENCE (1-based, for getRange):
- *   A =  1  Timestamp
- *   B =  2  DRA Name
- *   C =  3  DRA Email
- *   D =  4  District
- *   E =  5  Referee #
- *   F =  6  First Name
- *   G =  7  Last Name
- *   H =  8  Referee Email
- *   I =  9  Phone
- *   J = 10  Age
- *   K = 11  Max Age as AR
- *   L = 12  Max Age as Ref
- *   M = 13  Availability
- *   N = 14  Gender
- *   O = 15  Hotel Weekend 1
- *   P = 16  Hotel Weekend 2
- *   Q = 17  DRA Notes
- *   R = 18  Token
- *   S = 19  Status          <-- 3-value dropdown: Not Sent / Sent / Confirmed
- *   T = 20  SentAt
- *   U = 21  SubmittedAt
- *   V = 22  RefWeekend1
- *   W = 23  RefWeekend2
- *   X = 24  LateFlag        <-- renamed from RefHotel in v1.0
- *   Y = 25  RefNotes
- *   Z = 26  (blank — ConfirmationDeadline named range target; enter date here)
- *  AA = 27  "Confirmation Deadline:" label
+ *   A  =  1  Timestamp
+ *   B  =  2  DRA Name
+ *   C  =  3  DRA Email
+ *   D  =  4  District
+ *   E  =  5  Referee #
+ *   F  =  6  First Name
+ *   G  =  7  Last Name
+ *   H  =  8  Referee Email
+ *   I  =  9  Phone
+ *   J  = 10  Age
+ *   K  = 11  Max Age as AR
+ *   L  = 12  Max Age as Ref
+ *   M  = 13  Availability
+ *   N  = 14  Gender
+ *   O  = 15  Hotel Weekend 1
+ *   P  = 16  Hotel Weekend 2
+ *   Q  = 17  DRA Notes
+ *   R  = 18  Token
+ *   S  = 19  Status          <-- 3-value dropdown: Not Sent / Sent / Confirmed
+ *   T  = 20  SentAt
+ *   U  = 21  SubmittedAt
+ *   V  = 22  RefWeekend1
+ *   W  = 23  RefWeekend2
+ *   X  = 24  LateFlag        <-- renamed from RefHotel in v1.0
+ *   Y  = 25  RefNotes
+ *   Z  = 26  (blank — ConfirmationDeadline named range target; enter date here)
+ *  AA  = 27  "Confirmation Deadline:" label
+ *  AB  = 28  Parent/Guardian Email (Phase 5.1 — minor referee contact)
  *
  * v1.0 -> v2.0 CHANGES:
  *   Status values: Not Sent / Pending / Confirmed / Declined (4)
@@ -109,42 +110,46 @@ var COL_LATE_FLAG    = 24; // X
 var COL_REF_NOTES    = 25; // Y
 var COL_DEADLINE     = 26; // Z — named range target
 var COL_LABEL        = 27; // AA — "Confirmation Deadline:" label
+var COL_PARENT_EMAIL = 28; // AB — Parent/Guardian Email (Phase 5.1)
 
 // Status values (v2.0 — exactly 3)
 var STATUS_NOT_SENT  = 'Not Sent';
 var STATUS_SENT      = 'Sent';
 var STATUS_CONFIRMED = 'Confirmed';
 
-// Locked header array (A-Z, 26 columns).
-// Index 0 = column A, index 25 = column Z.
+// Locked header array (A-AB, 28 columns).
+// Index 0 = column A, index 25 = column Z, index 27 = column AB.
 // Z1 is intentionally blank — it is the named range value cell.
+// AA1 ("Confirmation Deadline:" label) is written separately in _rebuildHeaderRow.
 var HEADERS_V2 = [
-  'Timestamp',       // A  col 1
-  'DRA Name',        // B  col 2
-  'DRA Email',       // C  col 3
-  'District',        // D  col 4
-  'Referee #',       // E  col 5
-  'First Name',      // F  col 6
-  'Last Name',       // G  col 7
-  'Referee Email',   // H  col 8
-  'Phone',           // I  col 9
-  'Age',             // J  col 10
-  'Max Age as AR',   // K  col 11
-  'Max Age as Ref',  // L  col 12
-  'Availability',    // M  col 13
-  'Gender',          // N  col 14
-  'Hotel Weekend 1', // O  col 15
-  'Hotel Weekend 2', // P  col 16
-  'DRA Notes',       // Q  col 17
-  'Token',           // R  col 18
-  'Status',          // S  col 19
-  'SentAt',          // T  col 20
-  'SubmittedAt',     // U  col 21
-  'RefWeekend1',     // V  col 22
-  'RefWeekend2',     // W  col 23
-  'LateFlag',        // X  col 24  (was RefHotel in v1.0)
-  'RefNotes',        // Y  col 25
-  ''                 // Z  col 26  (ConfirmationDeadline — leave blank)
+  'Timestamp',             // A  col 1
+  'DRA Name',              // B  col 2
+  'DRA Email',             // C  col 3
+  'District',              // D  col 4
+  'Referee #',             // E  col 5
+  'First Name',            // F  col 6
+  'Last Name',             // G  col 7
+  'Referee Email',         // H  col 8
+  'Phone',                 // I  col 9
+  'Age',                   // J  col 10
+  'Max Age as AR',         // K  col 11
+  'Max Age as Ref',        // L  col 12
+  'Availability',          // M  col 13
+  'Gender',                // N  col 14
+  'Hotel Weekend 1',       // O  col 15
+  'Hotel Weekend 2',       // P  col 16
+  'DRA Notes',             // Q  col 17
+  'Token',                 // R  col 18
+  'Status',                // S  col 19
+  'SentAt',                // T  col 20
+  'SubmittedAt',           // U  col 21
+  'RefWeekend1',           // V  col 22
+  'RefWeekend2',           // W  col 23
+  'LateFlag',              // X  col 24  (was RefHotel in v1.0)
+  'RefNotes',              // Y  col 25
+  '',                      // Z  col 26  (ConfirmationDeadline — leave blank)
+  '',                      // AA col 27  (label written separately in _rebuildHeaderRow)
+  'Parent/Guardian Email'  // AB col 28  (Phase 5.1 — minor referee contact)
 ];
 
 
@@ -198,13 +203,15 @@ function rebuildHeaderRow() {
 }
 
 /**
- * Writes all 26 headers in a single setValues call to row 1, columns 1-26.
+ * Writes all 28 headers in a single setValues call to row 1, columns 1-28.
  * Unconditional — always overwrites regardless of current header state.
  * Uses the HEADERS_V2 constant array as the single source of truth.
+ * Note: AA1 ("Confirmation Deadline:" label) is at index 26 in HEADERS_V2 as '' and
+ * is overwritten by the idempotent label write below to preserve the label text.
  */
 function _rebuildHeaderRow(sheet) {
-  Logger.log('Step 1: Rebuilding header row A-Z...');
-  sheet.getRange(1, 1, 1, 26).setValues([HEADERS_V2]);
+  Logger.log('Step 1: Rebuilding header row A-AB...');
+  sheet.getRange(1, 1, 1, 28).setValues([HEADERS_V2]);
 
   // Write label in AA1 so the assignor knows to enter the deadline in Z1.
   // Check if already present before writing (idempotent).
@@ -217,7 +224,7 @@ function _rebuildHeaderRow(sheet) {
     Logger.log('  AA1 already has content ("' + existingLabel + '"). Skipping label write.');
   }
 
-  Logger.log('  Headers rebuilt: A=Timestamp through Y=RefNotes, Z=blank (deadline cell)');
+  Logger.log('  Headers rebuilt: A=Timestamp through Y=RefNotes, Z=blank (deadline cell), AB=Parent/Guardian Email');
 }
 
 
@@ -234,7 +241,7 @@ function clearDataRows() {
 }
 
 /**
- * Clears all data rows A2:Z{lastRow}. Preserves header row 1.
+ * Clears all data rows A2:AB{lastRow}. Preserves header row 1.
  * Per CONTEXT.md: the sheet is essentially empty — no real v1.0 data to migrate.
  * Clearing is a clean-slate operation; validation, named range, and formatting
  * are re-applied by subsequent steps.
@@ -249,7 +256,7 @@ function _clearDataRows(sheet) {
   }
 
   var dataRowCount = lastRow - 1;
-  sheet.getRange(2, 1, dataRowCount, 26).clearContent();
+  sheet.getRange(2, 1, dataRowCount, 28).clearContent();
   Logger.log('  Cleared ' + dataRowCount + ' data row(s). Headers preserved in row 1.');
 }
 

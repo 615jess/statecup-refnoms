@@ -2,7 +2,7 @@
 
 **Status:** Authoritative — single source of truth for all phases
 **Created:** Phase 1 (Schema Setup), Plan 01-01
-**Last updated:** 2026-03-19
+**Last updated:** 2026-03-23
 
 This document defines every column A-Z in the nomination Google Sheet for v2.0. All downstream phases (2, 3, 4) and their code must reference this document. Any discrepancy between this document and `scripts/setup-schema-v2.gs` is a bug.
 
@@ -38,8 +38,12 @@ This document defines every column A-Z in the nomination Google Sheet for v2.0. 
 | X | 24 | 23 | LateFlag | System (submitDetails) | Phase 3 |
 | Y | 25 | 24 | RefNotes | Referee form | Phase 3 |
 | Z | 26 | 25 | *(blank — date value cell)* | Assignor | Phase 1 (named range) |
+| AA | 27 | 26 | *(label — "Confirmation Deadline:")* | System (setup-schema-v2.gs) | Phase 1 |
+| AB | 28 | 27 | Parent/Guardian Email | Referee form | Phase 5.1 |
 
 **Column Z note:** Z1 is blank in the header row. It holds the confirmation deadline date entered directly by the assignor. It is the target of the `ConfirmationDeadline` named range. Column AA1 contains the label `"Confirmation Deadline:"` to indicate its purpose.
+
+**Column AB note:** Written by the referee detail form only when referee age < 18. Blank for adult referees. Used by the assignor to contact a parent or guardian if needed.
 
 ---
 
@@ -106,6 +110,7 @@ var COL_LATE_FLAG    = 24; // X
 var COL_REF_NOTES    = 25; // Y
 var COL_DEADLINE     = 26; // Z — named range target
 var COL_LABEL        = 27; // AA — "Confirmation Deadline:" label
+var COL_PARENT_EMAIL = 28; // AB — Parent/Guardian Email (Phase 5.1)
 ```
 
 **0-based array index** (subtract 1 from 1-based): use when indexing into `getValues()` results.
@@ -136,7 +141,7 @@ var COL_LABEL        = 27; // AA — "Confirmation Deadline:" label
 |--------|---------|---------|
 | DRA form (Google Form) | A, B, C, D, E, F, G, H, K, L, Q | Form submission via `doPost` nominateV2 |
 | System (`nominateV2`) | A (Timestamp), R (Token), S (initial "Not Sent") | Same `doPost` handler |
-| Referee form (web form) | I, J, M, N, O, P, V, W, Y | `submitDetails` endpoint |
+| Referee form (web form) | I, J, M, N, O, P, V, W, Y, AB | `submitDetails` endpoint |
 | System (`submitDetails`) | U (SubmittedAt), X (LateFlag) | Same submission handler |
 | System (Phase 4 TBD) | T (SentAt) | Admin page action — exact mechanism TBD |
 | Assignor (manual) | Z (deadline date) | Direct cell entry in Google Sheet |

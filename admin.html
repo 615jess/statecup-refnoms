@@ -237,6 +237,7 @@
             <th data-sort-col="status">Status <span class="sort-arrow">&#x2193;</span></th>
             <th data-sort-col="wkd1" style="text-align:center;">Wkd 1 <span class="sort-arrow">&#x2193;</span></th>
             <th data-sort-col="wkd2" style="text-align:center;">Wkd 2 <span class="sort-arrow">&#x2193;</span></th>
+            <th data-sort-col="parentEmail">Parent Email <span class="sort-arrow">&#x2193;</span></th>
             <th style="text-align:right; cursor:default;">Action</th>
           </tr>
         </thead>
@@ -360,6 +361,9 @@ function sortNominees(nominees, col, dir) {
     } else if (col === 'wkd2') {
       av = (a.refWeekend2 || '').toLowerCase();
       bv = (b.refWeekend2 || '').toLowerCase();
+    } else if (col === 'parentEmail') {
+      av = (a.parentEmail || '').toLowerCase();
+      bv = (b.parentEmail || '').toLowerCase();
     } else {
       av = ''; bv = '';
     }
@@ -379,7 +383,7 @@ function renderTable() {
   var filtered = sorted;
   if (searchQuery) {
     filtered = sorted.filter(function(n) {
-      var haystack = (n.firstName + ' ' + n.lastName + ' ' + n.refEmail).toLowerCase();
+      var haystack = (n.firstName + ' ' + n.lastName + ' ' + n.refEmail + ' ' + (n.parentEmail || '')).toLowerCase();
       return haystack.indexOf(searchQuery) !== -1;
     });
   }
@@ -406,7 +410,7 @@ function renderTable() {
     var noRow = document.createElement('tr');
     noRow.className = 'no-results';
     var noCell = document.createElement('td');
-    noCell.colSpan = 7;
+    noCell.colSpan = 8;
     noCell.textContent = searchQuery ? 'No nominees match your search.' : 'No nominees found.';
     noRow.appendChild(noCell);
     tbody.appendChild(noRow);
@@ -441,6 +445,7 @@ function renderTable() {
       '<td><span class="badge ' + badgeClass + '">' + esc(status) + '</span></td>' +
       '<td class="td-wkd">' + esc(n.refWeekend1 || '\u2014') + '</td>' +
       '<td class="td-wkd">' + esc(n.refWeekend2 || '\u2014') + '</td>' +
+      '<td>' + (n.parentEmail ? esc(n.parentEmail) : '<span style="color:var(--muted);">\u2014</span>') + '</td>' +
       '<td class="td-action">' +
         '<button class="btn-email" ' +
           (btnDisabled ? 'disabled ' : '') +

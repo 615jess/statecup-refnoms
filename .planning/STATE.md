@@ -9,17 +9,17 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 
 ## Current Position
 
-Phase: 5.1 of 5.1 (Parent/Guardian Email for Minors) — In Progress
-Plan: 1 of 2 in Phase 5.1 — Plan 05.1-01 complete
-Status: In progress
-Last activity: 2026-03-23 — Completed 05.1-01-PLAN.md (backend support for column AB)
+Phase: 5.1 of 5.1 (Parent/Guardian Email for Minors) — Complete
+Plan: 2 of 2 in Phase 5.1 — Plan 05.1-02 complete
+Status: All phases complete
+Last activity: 2026-03-23 — Completed 05.1-02-PLAN.md (frontend conditional field + admin column)
 
-Progress: [███████████░] 11/12 plans complete
+Progress: [████████████] 12/12 plans complete
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 3 from v2.0 Phase 3 + 2 from v2.0 Phase 4 + 1 from v2.0 Phase 5 + 1 from Phase 5.1)
+- Total plans completed: 12 (1 from v1.0 Phase 1 + 1 from v2.0 Phase 1 + 2 from v2.0 Phase 2 + 3 from v2.0 Phase 3 + 2 from v2.0 Phase 4 + 1 from v2.0 Phase 5 + 2 from Phase 5.1)
 - Average duration: ~17 min
 - Total execution time: ~177 min (+ checkpoint waits)
 
@@ -74,13 +74,16 @@ None.
 
 None.
 
-### Phase 5.1 Artifacts (in progress — Plan 01 complete 2026-03-23)
+### Phase 5.1 Artifacts (complete — 2026-03-23)
 
 - `scripts/refdetails.gs` — COL_PARENT_EMAIL = 28, _handleGetDetails returns parentEmail from rowData[27], _handleSubmitDetails writes payload.parentEmail to column AB (Step 9), getValues range expanded to 28 cols
 - `scripts/adminemail.gs` — _handleGetAllNominees returns age (r[9]) + parentEmail (r[27]) per nominee, getValues range expanded to 28 cols
 - `scripts/setup-schema-v2.gs` — COL_PARENT_EMAIL = 28, HEADERS_V2 expanded to 28 entries (AA='' + AB='Parent/Guardian Email'), setValues and clearContent ranges expanded to 28 cols
 - `.planning/COLUMN-MAP.md` — AB row added, COL_PARENT_EMAIL in constants, AB in writer summary, Column AB usage note
+- `referee-details.html` — conditional `#parent-email-row` div, `updateParentEmailVisibility()`, validation, payload, pre-fill, success summary
+- `admin.html` — Parent Email th + td, sort case, filter haystack, colspan=8
 - Plan 05.1-01 Commits: `a9c6156` (refdetails.gs), `8081716` (adminemail.gs + setup-schema-v2.gs + COLUMN-MAP.md)
+- Plan 05.1-02 Commits: `66e4320` (referee-details.html), `9a28b1c` (admin.html)
 
 ### Phase 4 Artifacts (complete — verified 2026-03-21)
 
@@ -117,6 +120,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-23 20:39-20:43 UTC
-Stopped at: Completed 05.1-01-PLAN.md — backend column AB support
+Last session: 2026-03-23 20:47-20:49 UTC
+Stopped at: Completed 05.1-02-PLAN.md — frontend conditional parent email field + admin column
 Resume file: None

@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email + max ages + notes), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** Phase 5.1 — Parent/Guardian Email for Minors (inserted feature)
+**Current focus:** All phases complete — milestone v2.0 ready for audit
 
 ## Current Position
 
 Phase: 5.1 of 5.1 (Parent/Guardian Email for Minors) — Complete
 Plan: 2 of 2 in Phase 5.1 — Plan 05.1-02 complete
-Status: All phases complete
-Last activity: 2026-03-23 — Completed 05.1-02-PLAN.md (frontend conditional field + admin column)
+Status: Phase 5.1 verified — all phases complete
+Last activity: 2026-03-23 — Phase 5.1 verified (5/5 must-haves passed)
 
 Progress: [████████████] 12/12 plans complete
 

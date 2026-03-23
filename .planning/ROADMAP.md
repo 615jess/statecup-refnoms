@@ -20,7 +20,7 @@ v2.0 pivots from a DRA-provides-all workflow to a referee-provides-own-details w
 - [x] **Phase 3: Referee Detail Form + Backend** — Token-secured detail form with all doGet/doPost endpoint logic
 - [x] **Phase 4: Email Admin Page + getAllNominees** — Assignor-facing nominee table with pre-composed mailto links
 - [x] **Phase 5: Pre-Go-Live Cleanup** — Fix tech debt: placeholder emails, source/runtime URL mismatch, deployment URL consolidation, deadline date
-- [ ] **Phase 5.1: Parent/Guardian Email for Minors** (INSERTED) — Add conditional parent/guardian contact email field for referees under 18
+- [x] **Phase 5.1: Parent/Guardian Email for Minors** (INSERTED) — Add conditional parent/guardian contact email field for referees under 18
 
 ## Phase Details
 
@@ -116,8 +116,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05.1-01-PLAN.md — Add COL_PARENT_EMAIL backend support (refdetails.gs, adminemail.gs, setup-schema-v2.gs, COLUMN-MAP.md)
-- [ ] 05.1-02-PLAN.md — Add conditional parent email field to referee-details.html and parent email column to admin.html
+- [x] 05.1-01-PLAN.md — Add COL_PARENT_EMAIL backend support (refdetails.gs, adminemail.gs, setup-schema-v2.gs, COLUMN-MAP.md)
+- [x] 05.1-02-PLAN.md — Add conditional parent email field to referee-details.html and parent email column to admin.html
 
 ## Progress
 
@@ -128,4 +128,4 @@ Plans:
 | 3. Referee Detail Form + Backend | v2.0 | 3/3 | Complete | 2026-03-20 |
 | 4. Email Admin Page + getAllNominees | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 5. Pre-Go-Live Cleanup | v2.0 | 1/1 | Complete | 2026-03-22 |
-| 5.1 Parent/Guardian Email for Minors | v2.0 | 0/2 | In Progress | — |
+| 5.1 Parent/Guardian Email for Minors | v2.0 | 2/2 | Complete | 2026-03-23 |

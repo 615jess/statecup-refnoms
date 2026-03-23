@@ -20,19 +20,20 @@
  *     a first-time submission during the grace period (not on edits).
  *
  * COLUMN REFERENCES USED (1-based for getRange; 0-based for array indexing):
- *   I = col  9 (0-based  8)  Phone
- *   J = col 10 (0-based  9)  Age
- *   M = col 13 (0-based 12)  Availability
- *   N = col 14 (0-based 13)  Gender
- *   O = col 15 (0-based 14)  Hotel Weekend 1
- *   P = col 16 (0-based 15)  Hotel Weekend 2
- *   R = col 18 (0-based 17)  Token (scan target)
- *   S = col 19 (0-based 18)  Status (set to 'Confirmed' on submit)
- *   U = col 21 (0-based 20)  SubmittedAt (written by system)
- *   V = col 22 (0-based 21)  RefWeekend1
- *   W = col 23 (0-based 22)  RefWeekend2
- *   X = col 24 (0-based 23)  LateFlag (written by system)
- *   Y = col 25 (0-based 24)  RefNotes
+ *   I  = col  9 (0-based  8)  Phone
+ *   J  = col 10 (0-based  9)  Age
+ *   M  = col 13 (0-based 12)  Availability
+ *   N  = col 14 (0-based 13)  Gender
+ *   O  = col 15 (0-based 14)  Hotel Weekend 1
+ *   P  = col 16 (0-based 15)  Hotel Weekend 2
+ *   R  = col 18 (0-based 17)  Token (scan target)
+ *   S  = col 19 (0-based 18)  Status (set to 'Confirmed' on submit)
+ *   U  = col 21 (0-based 20)  SubmittedAt (written by system)
+ *   V  = col 22 (0-based 21)  RefWeekend1
+ *   W  = col 23 (0-based 22)  RefWeekend2
+ *   X  = col 24 (0-based 23)  LateFlag (written by system)
+ *   Y  = col 25 (0-based 24)  RefNotes
+ *   AB = col 28 (0-based 27)  Parent/Guardian Email (Phase 5.1 — minor referees only)
  *
  *   Also reads (0-based):
  *   B = col  2 (0-based  1)  DRA Name
@@ -47,10 +48,11 @@
  * NOTE: _handleGetAllNominees is defined in adminemail.gs and callable from doGet here.
  *
  * COLUMN CONSTANTS IN THIS FILE:
- *   Declares only Phase 3 columns not already in nominatev2.gs.
+ *   Declares Phase 3 and Phase 5.1 columns not already in nominatev2.gs.
  *   COL_TOKEN (18), COL_STATUS (19), COL_FIRST_NAME (6), COL_LAST_NAME (7),
  *   COL_REF_EMAIL (8), COL_DRA_NAME (2), COL_DRA_EMAIL (3) are declared in
  *   nominatev2.gs and accessible here without redeclaration.
+ *   COL_PARENT_EMAIL (28) — Phase 5.1, parent/guardian email for minor referees.
  */
 
 
@@ -72,6 +74,7 @@ var COL_REF_WEEKEND1 = 22; // V
 var COL_REF_WEEKEND2 = 23; // W
 var COL_LATE_FLAG    = 24; // X
 var COL_REF_NOTES    = 25; // Y
+var COL_PARENT_EMAIL = 28; // AB — Parent/Guardian Email (Phase 5.1 — minor referees only)
 
 
 // ---------------------------------------------------------------------------
@@ -228,7 +231,7 @@ function doGet(e) {
  *
  * Steps:
  *   1. Find the referee's row by scanning column R (via _findRowByToken)
- *   2. Read the full row (columns A-Y = 25 columns) in one API call
+ *   2. Read the full row (columns A-AB = 28 columns) in one API call
  *   3. Determine deadline state (via _getDeadlineState)
  *   4. Read tournament constants from PropertiesService
  *   5. Return a JSON response with all referee, DRA, tournament, and prior-submission data
@@ -254,8 +257,8 @@ function _handleGetDetails(token) {
     });
   }
 
-  // Read full row — columns A through Y (25 columns), result is a 0-based array.
-  var rowData = sheet.getRange(rowNum, 1, 1, 25).getValues()[0];
+  // Read full row — columns A through AB (28 columns), result is a 0-based array.
+  var rowData = sheet.getRange(rowNum, 1, 1, 28).getValues()[0];
 
   // Deadline state
   var deadline = _getDeadlineState(ss);
@@ -294,6 +297,7 @@ function _handleGetDetails(token) {
     refWeekend2:  String(rowData[22] || ''), // W (0-based index 22)
     lateFlag:     String(rowData[23] || ''), // X (0-based index 23)
     refNotes:     String(rowData[24] || ''), // Y (0-based index 24)
+    parentEmail:  String(rowData[27] || ''), // AB (0-based index 27)
 
     // Tournament context (set by setTournamentConstants() in nominatev2.gs)
     weekend1Dates:  props.getProperty('WEEKEND_1_DATES') || '',
@@ -398,6 +402,9 @@ function _handleSubmitDetails(payload) {
     // Step 8: Write system columns.
     sheet.getRange(rowNum, COL_STATUS).setValue('Confirmed'); // S
     sheet.getRange(rowNum, COL_SUBMITTED_AT).setValue(new Date()); // U
+
+    // Step 9: Write parent/guardian email (column AB) — only present for minors.
+    sheet.getRange(rowNum, COL_PARENT_EMAIL).setValue(payload.parentEmail || '');
 
     Logger.log('_handleSubmitDetails: Row ' + rowNum + ' updated. isFirstSubmission=' + isFirstSubmission + ', deadlineState=' + deadline.state + ', lateFlag=' + lateFlag);
 

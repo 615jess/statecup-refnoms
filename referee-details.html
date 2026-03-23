@@ -314,6 +314,16 @@
             <input type="tel" id="inp-phone" name="phone" placeholder="Your phone number" required>
           </div>
         </div>
+        <div id="parent-email-row" style="display:none; margin-top:14px;">
+          <div class="sep"></div>
+          <p style="font-size:13px; color:var(--muted); margin:10px 0 8px;">
+            Since you are under 18, please provide a parent or guardian contact email.
+          </p>
+          <div class="fld">
+            <label class="lbl" for="inp-parent-email">Parent/Guardian Email <span class="req">*</span></label>
+            <input type="email" id="inp-parent-email" name="parentEmail" placeholder="parent@example.com">
+          </div>
+        </div>
       </div>
 
       <!-- ── Section 3: Notes ───────────────────────────────── -->
@@ -502,6 +512,21 @@ function wireToggles() {
   });
 }
 
+// ─── PARENT/GUARDIAN EMAIL VISIBILITY ────────────────────────
+function updateParentEmailVisibility() {
+  var ageVal = document.getElementById('inp-age').value.trim();
+  var row = document.getElementById('parent-email-row');
+  var input = document.getElementById('inp-parent-email');
+  var isMinor = ageVal !== '' && parseInt(ageVal, 10) < 18;
+  row.style.display = isMinor ? '' : 'none';
+  if (!isMinor) {
+    input.value = '';
+    input.classList.remove('err');
+  }
+}
+
+document.getElementById('inp-age').addEventListener('input', updateParentEmailVisibility);
+
 // ─── FORM POPULATION ─────────────────────────────────────────
 function populateForm(data) {
   refereeData = data;
@@ -570,6 +595,9 @@ function populateForm(data) {
   if (data.gender) { document.getElementById('inp-gender').value = data.gender; }
   if (data.phone)  { document.getElementById('inp-phone').value = data.phone; }
   if (data.refNotes) { document.getElementById('inp-notes').value = data.refNotes; }
+  if (data.parentEmail) { document.getElementById('inp-parent-email').value = data.parentEmail; }
+  // Trigger parent email visibility after age is pre-filled
+  updateParentEmailVisibility();
 }
 
 // ─── LOAD REFEREE DATA ───────────────────────────────────────
@@ -684,6 +712,24 @@ function validateForm() {
   if (!phoneEl.value.trim()) { phoneEl.classList.add('err'); ok = false; }
   else { phoneEl.classList.remove('err'); }
 
+  // Parent/Guardian Email (required only if age < 18)
+  var parentEmailRow = document.getElementById('parent-email-row');
+  if (parentEmailRow.style.display !== 'none') {
+    var parentEmailEl = document.getElementById('inp-parent-email');
+    var parentEmailVal = parentEmailEl.value.trim();
+    if (!parentEmailVal) {
+      parentEmailEl.classList.add('err'); ok = false;
+    } else {
+      // Basic email format check
+      var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(parentEmailVal)) {
+        parentEmailEl.classList.add('err'); ok = false;
+      } else {
+        parentEmailEl.classList.remove('err');
+      }
+    }
+  }
+
   return ok;
 }
 
@@ -732,7 +778,10 @@ document.getElementById('detail-form').addEventListener('submit', async function
       hotelWkd2: document.getElementById('hotel-wkd2-value').value,
       gender: document.getElementById('inp-gender').value,
       availability: wkd1 + ' / ' + wkd2,  // Summary string for column M
-      refNotes: document.getElementById('inp-notes').value.trim()
+      refNotes: document.getElementById('inp-notes').value.trim(),
+      parentEmail: document.getElementById('parent-email-row').style.display !== 'none'
+        ? document.getElementById('inp-parent-email').value.trim()
+        : ''
     };
 
     // No Content-Type header — avoids CORS preflight (same as Phase 2 nominateV2 pattern)
@@ -791,6 +840,9 @@ function showSuccessState(payload, wasReturnVisit) {
   html += '<div class="sum-item"><strong>Phone:</strong> ' + esc(payload.phone) + '</div>';
   html += '<div class="sum-item"><strong>Age:</strong> ' + esc(payload.age) + '</div>';
   html += '<div class="sum-item"><strong>Gender:</strong> ' + esc(payload.gender) + '</div>';
+  if (payload.parentEmail) {
+    html += '<div class="sum-item"><strong>Parent/Guardian Email:</strong> ' + esc(payload.parentEmail) + '</div>';
+  }
   html += '<div class="sum-item"><strong>Notes:</strong> ' + notesPreview + '</div>';
 
   document.getElementById('success-summary').innerHTML = html;

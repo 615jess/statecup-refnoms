@@ -501,6 +501,15 @@ function handleUpload(file) {
         return;
       }
 
+      // Remove empty entries before appending (fixes: initial blank card blocks submit)
+      document.querySelectorAll('.ref-entry').forEach(ent => {
+        const hasData = ['_fn','_ln','_em'].some(s => {
+          const f = ent.querySelector(`[name$="${s}"]`);
+          return f && f.value.trim();
+        });
+        if (!hasData) ent.remove();
+      });
+
       // Record how many entries exist before upload (for messaging)
       const countBefore = document.querySelectorAll('.ref-entry').length;
 

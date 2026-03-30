@@ -43,7 +43,9 @@ The complete nomination and detail collection system is built and deployed:
 
 ### Active
 
-(No active requirements — next milestone not yet defined)
+- [ ] Re-send capability for Not Sent referees — individual mailto links filtered to those never emailed
+- [ ] Batch reminder to non-responders — single BCC mailto to all referees who received email but haven't submitted
+- [ ] DRA nominee view page — DRA selects their name, sees their nominees with name, status, and referee-submitted details
 
 ### Out of Scope
 
@@ -96,13 +98,20 @@ The complete nomination and detail collection system is built and deployed:
 | Apps Script new deployment per code change | Cannot update existing deployment in-place; form URLs updated after each deploy | ✓ Documented |
 | Parent/guardian email for minors | Safety requirement — assignor needs emergency contact for referees under 18 | ✓ Shipped v2.0 |
 
+## Current Milestone: v2.1 Communication & DRA Visibility
+
+**Goal:** Improve assignor email workflow and give DRAs visibility into their nominees' response status and details.
+
+**Target features:**
+- Re-send to Not Sent referees (filtered individual mailto links on admin page)
+- Batch reminder to non-responders (single BCC mailto for follow-up)
+- DRA nominee view (new page — DRA selects name, sees their nominees with status and details)
+
 ## Future Possibilities
 
-- Re-send capability targeting only Not Sent referees
 - Sheet summary formula showing Not Sent / Sent / Confirmed counts
 - Batch "mark all as sent" for emails sent outside admin page
-- Automated reminder emails for non-responders
 - Microsoft Graph API integration for creating Outlook drafts directly
 
 ---
-*Last updated: 2026-03-23 after v2.0 milestone*
+*Last updated: 2026-03-30 after v2.1 milestone start*

@@ -2,23 +2,23 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-23)
+See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email only), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** v2.0 shipped — planning next milestone
+**Current focus:** v2.1 Communication & DRA Visibility
 
 ## Current Position
 
-Phase: v2.0 complete (6 phases, 12 plans)
-Plan: N/A — milestone complete
-Status: Ready for next milestone
-Last activity: 2026-03-23 — v2.0 milestone archived and tagged
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-30 — Milestone v2.1 started
 
-Progress: [████████████] v2.0 SHIPPED
+Progress: ░░░░░░░░░░ 0%
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (from v2.0):**
 - Total plans completed: 12
 - Average duration: ~17 min
 - Total execution time: ~177 min (+ checkpoint waits)
@@ -29,7 +29,6 @@ Progress: [████████████] v2.0 SHIPPED
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-All v2.0 decisions shipped and documented in milestone archive.
 
 ### Pending Todos
 
@@ -41,6 +40,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-23
-Stopped at: v2.0 milestone completion
+Last session: 2026-03-30
+Stopped at: Milestone v2.1 initialization
 Resume file: None

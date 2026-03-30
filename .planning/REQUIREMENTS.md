@@ -46,20 +46,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ADMIN-01 | — | Pending |
-| ADMIN-02 | — | Pending |
-| ADMIN-03 | — | Pending |
-| DRA-01 | — | Pending |
-| DRA-02 | — | Pending |
-| DRA-03 | — | Pending |
-| DRA-04 | — | Pending |
-| DRA-05 | — | Pending |
+| ADMIN-01 | Phase 6 | Pending |
+| ADMIN-02 | Phase 6 | Pending |
+| ADMIN-03 | Phase 6 | Pending |
+| DRA-01 | Phase 7 | Pending |
+| DRA-02 | Phase 7 | Pending |
+| DRA-03 | Phase 7 | Pending |
+| DRA-04 | Phase 7 | Pending |
+| DRA-05 | Phase 7 | Pending |
 
 **Coverage:**
 - v2.1 requirements: 8 total
-- Mapped to phases: 0
-- Unmapped: 8 ⚠️
+- Mapped to phases: 8
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-30*
-*Last updated: 2026-03-30 after initial definition*
+*Last updated: 2026-03-30 after roadmap creation*

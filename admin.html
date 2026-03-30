@@ -82,7 +82,7 @@
   .sum-badge .badge { font-size: 12px; padding: 3px 9px; }
 
   /* search box */
-  .search-wrap { margin-bottom: 12px; }
+  .search-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
   #search {
     width: 100%; max-width: 380px; background: var(--white);
     border: 1.5px solid var(--border); border-radius: var(--r);
@@ -126,6 +126,16 @@
     background: #e8eaed; color: #9aa0a6; cursor: not-allowed; transform: none;
     box-shadow: none; letter-spacing: 1px;
   }
+
+  /* not-sent filter button */
+  .btn-filter {
+    background: var(--white); border: 1.5px solid var(--border); border-radius: var(--r);
+    color: var(--navy); font-family: 'Open Sans', sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 16px;
+    cursor: pointer; transition: all .18s; white-space: nowrap; min-height: 36px;
+  }
+  .btn-filter:hover { border-color: var(--navy); }
+  .btn-filter.active { background: var(--navy); border-color: var(--navy); color: #fff; }
 
   /* loading / error states */
   .state-card {
@@ -224,6 +234,7 @@
     <!-- search -->
     <div class="search-wrap">
       <input type="text" id="search" placeholder="Search by name or email&hellip;" autocomplete="off">
+      <button id="btn-filter-not-sent" class="btn-filter" onclick="toggleNotSentFilter()">Show Not Sent Only</button>
     </div>
 
     <!-- table -->
@@ -266,6 +277,7 @@ var allNominees = [];
 var tournamentProps = {};
 var sortState = { col: 'status', dir: 'asc' };
 var searchQuery = '';
+var statusFilter = ''; // '' = show all; 'Not Sent' = filter to Not Sent only
 
 // ---------------------------------------------------------------------------
 // BOOTSTRAP
@@ -283,6 +295,22 @@ document.addEventListener('DOMContentLoaded', function() {
     headers[i].addEventListener('click', handleHeaderClick);
   }
 });
+
+// ---------------------------------------------------------------------------
+// toggleNotSentFilter — toggle the Not Sent status filter
+// ---------------------------------------------------------------------------
+function toggleNotSentFilter() {
+  statusFilter = (statusFilter === 'Not Sent') ? '' : 'Not Sent';
+  var btn = document.getElementById('btn-filter-not-sent');
+  if (statusFilter === 'Not Sent') {
+    btn.classList.add('active');
+    btn.textContent = 'Not Sent Only \u2713';
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = 'Show Not Sent Only';
+  }
+  renderTable();
+}
 
 // ---------------------------------------------------------------------------
 // loadNominees — fetch all nominees from the backend
@@ -388,6 +416,13 @@ function renderTable() {
     });
   }
 
+  // Apply status filter (if active)
+  if (statusFilter) {
+    filtered = filtered.filter(function(n) {
+      return (n.status || 'Not Sent') === statusFilter;
+    });
+  }
+
   // Update column header sort indicators
   var headers = document.querySelectorAll('thead th[data-sort-col]');
   for (var i = 0; i < headers.length; i++) {
@@ -411,7 +446,7 @@ function renderTable() {
     noRow.className = 'no-results';
     var noCell = document.createElement('td');
     noCell.colSpan = 8;
-    noCell.textContent = searchQuery ? 'No nominees match your search.' : 'No nominees found.';
+    noCell.textContent = (searchQuery || statusFilter) ? 'No nominees match your search.' : 'No nominees found.';
     noRow.appendChild(noCell);
     tbody.appendChild(noRow);
     return;

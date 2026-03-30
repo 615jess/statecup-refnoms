@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email only), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** v2.1 — Phase 6: Admin Email Enhancements
+**Current focus:** v2.1 — Phase 7: DRA Nominee View
 
 ## Current Position
 
-Phase: 6 of 7 (Admin Email Enhancements)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-03-30 — Completed 06-02-PLAN.md (BCC reminder mailto section)
+Phase: 7 of 7 (DRA Nominee View)
+Plan: 0 of 3 in current phase
+Status: Ready to plan
+Last activity: 2026-03-30 — Phase 6 complete and verified (9/9 must-haves)
 
 Progress: [█████████████░░░░░░░] 13/16 plans complete (81%)
 
@@ -45,6 +45,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T21:11:56Z
-Stopped at: Completed 06-02-PLAN.md — BCC reminder mailto section live in admin.html. Phase 6 complete.
+Last session: 2026-03-30
+Stopped at: Phase 6 complete and verified. Ready to plan Phase 7 (DRA Nominee View).
 Resume file: None

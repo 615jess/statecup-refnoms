@@ -9,9 +9,9 @@ Requirements for milestone v2.1: Communication & DRA Visibility.
 
 ### Admin Email Enhancements
 
-- [ ] **ADMIN-01**: Admin page provides a filter to show only "Not Sent" referees for re-sending initial emails
-- [ ] **ADMIN-02**: Admin page provides a single BCC mailto link to send a generic reminder to all referees with Status = "Sent" (emailed but haven't responded)
-- [ ] **ADMIN-03**: Reminder mailto pre-fills subject and body with a generic follow-up message (no personalized token links)
+- [x] **ADMIN-01**: Admin page provides a filter to show only "Not Sent" referees for re-sending initial emails
+- [x] **ADMIN-02**: Admin page provides a single BCC mailto link to send a generic reminder to all referees with Status = "Sent" (emailed but haven't responded)
+- [x] **ADMIN-03**: Reminder mailto pre-fills subject and body with a generic follow-up message (no personalized token links)
 
 ### DRA Nominee View
 
@@ -46,9 +46,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ADMIN-01 | Phase 6 | Pending |
-| ADMIN-02 | Phase 6 | Pending |
-| ADMIN-03 | Phase 6 | Pending |
+| ADMIN-01 | Phase 6 | Complete |
+| ADMIN-02 | Phase 6 | Complete |
+| ADMIN-03 | Phase 6 | Complete |
 | DRA-01 | Phase 7 | Pending |
 | DRA-02 | Phase 7 | Pending |
 | DRA-03 | Phase 7 | Pending |

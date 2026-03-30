@@ -44,20 +44,20 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full phase details.
 
 **Milestone Goal:** The assignor can efficiently re-reach non-responsive referees via filtered views and a BCC reminder, and DRAs can self-serve to see the status and details of their own nominees.
 
-#### Phase 6: Admin Email Enhancements
+#### Phase 6: Admin Email Enhancements ✅
 
 **Goal**: The assignor can filter the nominee table to see only uncontacted referees, and send a single BCC reminder email to all referees who have been emailed but haven't responded yet
-**Depends on**: Phase 5.1 (modifies existing admin.html and adminemail.gs)
+**Depends on**: Phase 5.1 (modifies existing admin.html)
 **Requirements**: ADMIN-01, ADMIN-02, ADMIN-03
 **Success Criteria** (what must be TRUE):
   1. Assignor can filter the nominee table to show only "Not Sent" referees, making it easy to identify and re-send initial emails without scrolling through the full list
   2. Assignor sees a single BCC mailto link that opens Outlook addressed to all "Sent"-status referees at once
   3. The BCC reminder email opens with a pre-filled subject and generic body — no token links, no per-recipient personalization required
-**Plans**: TBD
+**Plans**: 2 plans — all complete
 
 Plans:
-- [ ] 06-01: Add "Not Sent" filter to admin.html nominee table and update adminemail.gs if needed
-- [ ] 06-02: Add BCC reminder mailto link (Sent-status referees, pre-filled subject and body) to admin.html
+- [x] 06-01-PLAN.md — Add "Not Sent" filter toggle to admin.html nominee table
+- [x] 06-02-PLAN.md — Add BCC reminder mailto link for Sent-status referees
 
 #### Phase 7: DRA Nominee View
 
@@ -91,5 +91,5 @@ Phases execute in numeric order: 6 → 7
 | 4. Email Admin Page | v2.0 | 2/2 | Complete | 2026-03-21 |
 | 5. Pre-Go-Live Cleanup | v2.0 | 1/1 | Complete | 2026-03-22 |
 | 5.1. Parent/Guardian Email (INSERTED) | v2.0 | 2/2 | Complete | 2026-03-23 |
-| 6. Admin Email Enhancements | v2.1 | 0/2 | Not started | - |
+| 6. Admin Email Enhancements | v2.1 | 2/2 | Complete | 2026-03-30 |
 | 7. DRA Nominee View | v2.1 | 0/3 | Not started | - |

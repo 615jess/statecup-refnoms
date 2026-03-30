@@ -256,6 +256,9 @@
       </table>
     </div>
 
+    <!-- BCC reminder section (rendered by JS after data loads) -->
+    <div id="bcc-reminder-section"></div>
+
   </div>
 
 </main>
@@ -327,6 +330,7 @@ async function loadNominees() {
     tournamentProps = data.props || {};
     renderSummary(allNominees);
     renderTable();
+    renderBccReminder(allNominees, tournamentProps);
     showState('content');
   } catch (err) {
     document.getElementById('err-detail').textContent = String(err);
@@ -630,6 +634,71 @@ function updateRowStatus(token, newStatus) {
 
   // Re-render summary counts with updated allNominees
   renderSummary(allNominees);
+  renderBccReminder(allNominees, tournamentProps);
+}
+
+// ---------------------------------------------------------------------------
+// renderBccReminder — build and render the BCC mailto reminder section
+// ---------------------------------------------------------------------------
+function renderBccReminder(nominees, props) {
+  var sentEmails = nominees
+    .filter(function(n) { return (n.status || 'Not Sent') === 'Sent'; })
+    .map(function(n) { return n.refEmail; })
+    .filter(function(e) { return e; }); // exclude blank emails
+
+  var section = document.getElementById('bcc-reminder-section');
+
+  if (sentEmails.length === 0) {
+    section.innerHTML =
+      '<div class="sec-head" style="margin-top:32px;"><h2>Reminder Email</h2></div>' +
+      '<p style="color:var(--muted);font-size:13px;">No referees with &ldquo;Sent&rdquo; status. ' +
+      'Reminder link will appear here once initial emails have been sent.</p>';
+    return;
+  }
+
+  var bccList = sentEmails.join(',');
+  var subject = 'Spring State Cup 2026 \u2014 Reminder: Response Needed';
+  var assignorEmail = props.assignorEmail || '';
+
+  var bodyLines = [
+    'Dear Referee,',
+    '',
+    'This is a friendly reminder that we have not yet received your response to the Spring State Cup 2026 referee nomination.',
+    '',
+    'Please check your email for a message with the subject \u201cSpring State Cup 2026 \u2014 Referee Nomination\u201d and use your personalized link to confirm your availability.',
+    ''
+  ];
+
+  if (assignorEmail) {
+    bodyLines.push('Questions? Please contact:');
+    bodyLines.push('  Jess Erickson, State Cup Assignor');
+    bodyLines.push('  ' + assignorEmail);
+    bodyLines.push('');
+  }
+
+  bodyLines.push('Thank you,');
+  bodyLines.push('Jess Erickson');
+  bodyLines.push('State Cup Assignor');
+  bodyLines.push('Tennessee Soccer Referee Program');
+
+  var body = bodyLines.join('\r\n');
+
+  var href = 'mailto:' +
+    '?bcc=' + encodeURIComponent(bccList) +
+    '&subject=' + encodeURIComponent(subject) +
+    '&body=' + encodeURIComponent(body);
+
+  section.innerHTML =
+    '<div class="sec-head" style="margin-top:32px;"><h2>Reminder Email</h2></div>' +
+    '<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;">' +
+      '<p style="font-size:13px;color:var(--muted);margin-bottom:12px;">' +
+        sentEmails.length + ' referee' + (sentEmails.length === 1 ? '' : 's') +
+        ' emailed but not yet confirmed. Opens Outlook with all recipients in BCC.' +
+      '</p>' +
+      '<a href="' + escAttr(href) + '" class="btn-email" style="display:inline-block;text-decoration:none;">' +
+        'Open Reminder Email in Outlook' +
+      '</a>' +
+    '</div>';
 }
 
 // ---------------------------------------------------------------------------

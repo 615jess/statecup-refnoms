@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** DRAs nominate referees with minimal effort (name + email only), and referees provide their own details directly — giving the assignor accurate, first-hand data to make game assignments.
-**Current focus:** v2.1 — Phase 7: DRA Nominee View
+**Current focus:** v2.1 complete — all phases shipped
 
 ## Current Position
 
-Phase: 7 of 7 (DRA Nominee View)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-03-30 — Phase 6 complete and verified (9/9 must-haves)
+Phase: 7 of 7 (DRA Nominee View) — COMPLETE
+Plan: 3 of 3 in current phase — all complete
+Status: v2.1 milestone shipped
+Last activity: 2026-03-30 — Phase 7 executed (07-01, 07-02, 07-03)
 
-Progress: [█████████████░░░░░░░] 13/16 plans complete (81%)
+Progress: [████████████████████] 16/16 plans complete (100%)
 
 ## Performance Metrics
 
@@ -46,5 +46,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-30
-Stopped at: Phase 6 complete and verified. Ready to plan Phase 7 (DRA Nominee View).
+Stopped at: v2.1 milestone complete. All 16 plans across 7 phases shipped.
 Resume file: None

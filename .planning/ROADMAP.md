@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v2.0 Referee Nomination & Detail Collection** - Phases 1-5.1 (shipped 2026-03-23)
-- 🚧 **v2.1 Communication & DRA Visibility** - Phases 6-7 (in progress)
+- ✅ **v2.1 Communication & DRA Visibility** - Phases 6-7 (shipped 2026-03-30)
 
 ## Phases
 
@@ -40,7 +40,7 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full phase details.
 
 ---
 
-### 🚧 v2.1 Communication & DRA Visibility (In Progress)
+### ✅ v2.1 Communication & DRA Visibility (Shipped 2026-03-30)
 
 **Milestone Goal:** The assignor can efficiently re-reach non-responsive referees via filtered views and a BCC reminder, and DRAs can self-serve to see the status and details of their own nominees.
 
@@ -59,7 +59,7 @@ Plans:
 - [x] 06-01-PLAN.md — Add "Not Sent" filter toggle to admin.html nominee table
 - [x] 06-02-PLAN.md — Add BCC reminder mailto link for Sent-status referees
 
-#### Phase 7: DRA Nominee View
+#### Phase 7: DRA Nominee View ✅
 
 **Goal**: A DRA can visit a dedicated page, select their name, and see a read-only table of all their nominees with full response details — and the nomination form links them there
 **Depends on**: Phase 6 (shares backend pattern; DRA-05 links from nomination form)
@@ -69,12 +69,12 @@ Plans:
   2. Each row in the table shows referee name, response status, and all referee-submitted details: availability, hotel, age, gender, phone, and notes
   3. The DRA cannot edit any data, submit nominations, or modify any row — the page is view-only
   4. The nomination form includes a visible link to the DRA nominee view page
-**Plans**: TBD
+**Plans**: 3 plans — all complete
 
 Plans:
-- [ ] 07-01: Build getDRANominees backend endpoint in adminemail.gs (filter by column B, return all detail columns)
-- [ ] 07-02: Build dra-nominees.html page (DRA name dropdown, read-only table with all detail columns)
-- [ ] 07-03: Add "Review previous nominations" link to spring-state-cup-nomination.html
+- [x] 07-01-PLAN.md — Build getDRANominees backend endpoint (filter by DRA name, simplified status, detail columns)
+- [x] 07-02-PLAN.md — Build dra-nominees.html page (DRA dropdown, expandable read-only table, localStorage)
+- [x] 07-03-PLAN.md — Add "Review your nominees" link to spring-state-cup-nomination.html
 
 ---
 
@@ -92,4 +92,4 @@ Phases execute in numeric order: 6 → 7
 | 5. Pre-Go-Live Cleanup | v2.0 | 1/1 | Complete | 2026-03-22 |
 | 5.1. Parent/Guardian Email (INSERTED) | v2.0 | 2/2 | Complete | 2026-03-23 |
 | 6. Admin Email Enhancements | v2.1 | 2/2 | Complete | 2026-03-30 |
-| 7. DRA Nominee View | v2.1 | 0/3 | Not started | - |
+| 7. DRA Nominee View | v2.1 | 3/3 | Complete | 2026-03-30 |

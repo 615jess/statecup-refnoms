@@ -1,13 +1,14 @@
 /**
  * refdetails.gs
  *
- * Phase 3 + Phase 4: Referee detail form — doGet endpoint, submitDetails handler,
- * and Phase 4 getAllNominees routing.
+ * Phase 3 + Phase 4 + Phase 7: Referee detail form — doGet endpoint, submitDetails handler,
+ * Phase 4 getAllNominees routing, and Phase 7 getDRANominees routing.
  * Paste this file into the same Apps Script project as nominatev2.gs and adminemail.gs.
  *
  * WHAT THIS SCRIPT DOES:
  *   doGet(e) — routes incoming GET requests based on the action parameter:
  *     - action=getAllNominees → _handleGetAllNominees() in adminemail.gs (Phase 4)
+ *     - action=getDRANominees → _handleGetDRANominees(draName) in adminemail.gs (Phase 7)
  *     - no action (token-based) → _handleGetDetails(token) below (Phase 3)
  *     Accepts a token query parameter (?token=...), looks up the referee row in
  *     the sheet, and returns all referee and tournament data as JSON so the
@@ -173,6 +174,7 @@ function _findRowByToken(sheet, token) {
  *
  * Routes based on the optional action query parameter:
  *   - action=getAllNominees → _handleGetAllNominees() (Phase 4, adminemail.gs)
+ *   - action=getDRANominees → _handleGetDRANominees(draName) (Phase 7, adminemail.gs)
  *   - no action / any other value → token-based referee detail lookup (Phase 3, below)
  *
  * For the token-based path, extracts the token from the URL query string (?token=...)
@@ -193,6 +195,13 @@ function doGet(e) {
     // _handleGetAllNominees is defined in adminemail.gs (same GAS project scope).
     if (action === 'getAllNominees') {
       return _handleGetAllNominees();
+    }
+
+    // Phase 7: DRA nominee view — return nominees for a specific DRA.
+    // _handleGetDRANominees is defined in adminemail.gs (same GAS project scope).
+    if (action === 'getDRANominees') {
+      var draName = (e.parameter.draName || '').trim();
+      return _handleGetDRANominees(draName);
     }
 
     // Phase 3: Referee detail form — token-based lookup (existing behavior).

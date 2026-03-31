@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spring State Cup 2026 — Your Nominees | Tennessee Soccer Referee Program</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:    #0d2148;
+    --red:     #cc2229;
+    --red-dk:  #a31b21;
+    --white:   #ffffff;
+    --off:     #f4f6f9;
+    --slate:   #e8edf5;
+    --border:  #d0d9e8;
+    --muted:   #5a6a88;
+    --text:    #1a2540;
+    --gold:    #c8912a;
+    --green:   #1a6b31;
+    --green-bg:#edf7f0;
+    --r: 6px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--off); color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 15px; line-height: 1.55; }
+
+  /* topbar */
+  .topbar { height: 5px; background: linear-gradient(90deg, var(--navy), var(--red) 55%, var(--gold)); }
+
+  /* header */
+  .site-header { background: var(--white); padding: 22px 28px 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; }
+
+  .hero { padding: 24px 0 32px; display: flex; align-items: center; gap: 24px; }
+  .hero-brand { height: 100px; width: auto; flex-shrink: 0; }
+  .hero-divider { width: 3px; align-self: stretch; background: var(--red); border-radius: 2px; flex-shrink: 0; }
+  .hero-content { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .hero-text { flex: 1; }
+  .hero-logo { height: 100px; width: auto; flex-shrink: 0; }
+  @media(max-width:700px){ .hero { flex-direction: column; text-align: center; } .hero-content { flex-direction: column; } .hero-brand { height: 70px; } .hero-logo { display: none; } .hero-divider { width: 60px; height: 3px; align-self: auto; } }
+  .event-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--red); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; padding: 5px 14px; border-radius: 2px; margin-bottom: 14px; }
+  .hero h1 { font-family: 'Open Sans', sans-serif; font-size: clamp(28px, 5vw, 48px); font-weight: 700; color: var(--navy); line-height: 1.05; }
+  .hero h1 em { color: var(--red); font-style: normal; }
+  .hero p { font-size: 14px; color: var(--muted); font-weight: 300; margin-top: 8px; }
+
+  .dates-row { background: var(--navy); border-top: 1px solid var(--border); }
+  .dates-inner { max-width: 1100px; margin: 0 auto; display: flex; }
+  .date-blk { flex: 1; padding: 13px 20px; display: flex; align-items: center; gap: 12px; border-right: 1px solid rgba(255,255,255,0.1); }
+  .date-blk:last-child { border-right: none; }
+  .wk-pill { background: var(--red); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 10px; letter-spacing: 2px; padding: 3px 9px; border-radius: 2px; white-space: nowrap; }
+  .wk-dt { font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 300; }
+
+  /* main */
+  .main { max-width: 1100px; margin: 0 auto; padding: 36px 24px 80px; }
+
+  /* section heading */
+  .sec-head { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; }
+  .sec-head h2 { font-family: 'Open Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); }
+
+  /* DRA selector */
+  .dra-select-wrap { max-width: 380px; margin-bottom: 24px; }
+  #dra-select {
+    width: 100%; background: var(--off);
+    border: 1.5px solid var(--border); border-radius: var(--r);
+    padding: 10px 12px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 14px;
+    transition: border-color .18s, box-shadow .18s; outline: none; appearance: none; -webkit-appearance: none;
+    cursor: pointer;
+  }
+  #dra-select:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13,33,72,0.09); }
+
+  /* summary counts bar */
+  #summary {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    background: var(--white); border: 1px solid var(--border); border-radius: var(--r);
+    padding: 12px 16px; margin-bottom: 16px;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+  }
+  #summary .sum-total { color: var(--navy); font-size: 14px; font-weight: 700; margin-right: 4px; }
+  #summary .sum-sep { color: var(--border); user-select: none; }
+
+  /* status badges */
+  .badge {
+    display: inline-block; border-radius: 4px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 3px 9px; white-space: nowrap;
+  }
+  .badge-responded { background: #dcfce7; color: #166534; }
+  .badge-pending   { background: #e8eaed; color: #3c4043; }
+
+  /* summary count badges */
+  .sum-badge { display: inline-flex; align-items: center; gap: 5px; }
+  .sum-badge .badge { font-size: 12px; padding: 3px 9px; }
+
+  /* table */
+  .table-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--border); background: var(--white); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--navy); }
+  thead th {
+    color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 11px 14px; text-align: left; white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+
+  /* compact rows */
+  .row-compact { cursor: pointer; transition: background .12s; }
+  .row-compact:hover { background: var(--slate); }
+  .row-compact td { padding: 11px 14px; vertical-align: middle; }
+  .row-compact .td-name { font-weight: 600; color: var(--navy); white-space: nowrap; }
+  .chevron { float: right; transition: transform .2s; color: var(--muted); font-size: 12px; }
+  .row-compact.expanded .chevron { transform: rotate(90deg); }
+
+  /* detail rows */
+  .row-detail { display: none; }
+  .row-detail.open { display: table-row; }
+  .row-detail td { background: var(--off); padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .detail-grid { display: grid; grid-template-columns: 140px 1fr; gap: 8px 16px; }
+  .detail-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
+  .detail-value { font-size: 14px; color: var(--text); }
+  .pending-msg { text-align: center; color: var(--muted); font-style: italic; padding: 16px; }
+  .empty-state { text-align: center; padding: 40px; color: var(--muted); font-style: italic; }
+
+  /* loading / error states */
+  .state-card {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--r);
+    box-shadow: 0 2px 12px rgba(13,33,72,0.09); padding: 60px 32px;
+    text-align: center; max-width: 560px; margin: 40px auto;
+  }
+  .spin-dk { display: inline-block; width: 36px; height: 36px; border: 3px solid rgba(13,33,72,0.15); border-top-color: var(--navy); border-radius: 50%; animation: sp .8s linear infinite; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  .state-card.er h2 { color: var(--red); font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .state-card p { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+  .state-card .err-msg { font-size: 12px; color: var(--red); font-family: monospace; margin-top: 8px; background: #fef2f2; padding: 8px 12px; border-radius: 4px; word-break: break-all; }
+  .try-btn {
+    background: var(--navy); border: none; border-radius: var(--r);
+    color: #fff; font-family: 'Open Sans', sans-serif; font-size: 14px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; padding: 11px 28px;
+    cursor: pointer; transition: all .18s; margin-top: 16px; min-height: 44px;
+  }
+  .try-btn:hover { background: #162d5a; }
+
+  /* footer */
+  .site-footer { text-align: center; padding: 0 24px 48px; }
+  .footer-logo { height: 64px; width: auto; opacity: 0.7; }
+
+  @media(max-width:700px) {
+    .dates-inner { flex-direction: column; }
+    .date-blk { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    #summary { gap: 8px; }
+  }
+  @media(max-width:560px) {
+    .detail-grid { grid-template-columns: 1fr; }
+    .dra-select-wrap { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="hero">
+      <img src="logo.webp" alt="Tennessee State Cup 2025&ndash;2026" class="hero-brand">
+      <div class="hero-divider"></div>
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="event-pill">Spring State Cup 2026</div>
+          <h1>Your <em>Nominees</em></h1>
+          <p>View your nominated referees and their response status</p>
+        </div>
+        <img src="TNRefLOGO.png" alt="Tennessee Soccer Referee Program" class="hero-logo">
+      </div>
+    </div>
+  </div>
+  <div class="dates-row">
+    <div class="dates-inner">
+      <div class="date-blk">
+        <span class="wk-pill">Weekend 1</span>
+        <span class="wk-dt">May 16 &amp; 17, 2026</span>
+      </div>
+      <div class="date-blk">
+        <span class="wk-pill">Weekend 2</span>
+        <span class="wk-dt">May 23 &amp; 24, 2026</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- loading state -->
+  <div id="state-loading">
+    <div class="state-card">
+      <div class="spin-dk" style="margin:0 auto 18px;"></div>
+      <p>Loading&hellip;</p>
+    </div>
+  </div>
+
+  <!-- error state -->
+  <div id="state-error" style="display:none;">
+    <div class="state-card er">
+      <h2>Could not load data</h2>
+      <p>There was a problem connecting to the spreadsheet.</p>
+      <p class="err-msg" id="err-detail"></p>
+      <button class="try-btn" onclick="loadDRANames()">Retry</button>
+    </div>
+  </div>
+
+  <!-- main content -->
+  <div id="state-content" style="display:none;">
+
+    <div class="sec-head">
+      <h2>Select Your Name</h2>
+    </div>
+
+    <div class="dra-select-wrap">
+      <select id="dra-select">
+        <option value="">Choose your name&hellip;</option>
+      </select>
+    </div>
+
+    <div id="nominee-area" style="display:none;">
+
+      <!-- summary counts -->
+      <div id="summary"></div>
+
+      <!-- table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th style="text-align:right;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="nominee-tbody"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <img src="TNRefLOGO.png" alt="Tennessee Soccer Referee Program" class="footer-logo">
+</footer>
+
+<script>
+// ---------------------------------------------------------------------------
+// CONFIGURATION — paste the new Apps Script deployment URL here
+// ---------------------------------------------------------------------------
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyTThZANsEmRt_s5NyRXWUZkflVHwLRtPGQafqoF59jTQS3vZNCwaZ0O83xotQ1Rcno/exec';
+
+// ---------------------------------------------------------------------------
+// STATE
+// ---------------------------------------------------------------------------
+var draNames = [];
+var nominees = [];
+var counts = { responded: 0, pending: 0 };
+
+// ---------------------------------------------------------------------------
+// BOOTSTRAP
+// ---------------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', function() {
+  loadDRANames();
+  document.getElementById('dra-select').addEventListener('change', onDRASelect);
+});
+
+// ---------------------------------------------------------------------------
+// loadDRANames — fetch distinct DRA names for the dropdown
+// ---------------------------------------------------------------------------
+async function loadDRANames() {
+  showState('loading');
+  try {
+    var res = await fetch(SCRIPT_URL + '?action=getDRANominees');
+    var data = await res.json();
+    if (!data.ok) {
+      throw new Error(data.message || 'Server returned ok:false');
+    }
+    draNames = data.draNames || [];
+    var sel = document.getElementById('dra-select');
+    sel.innerHTML = '<option value="">Choose your name\u2026</option>';
+    for (var i = 0; i < draNames.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = draNames[i];
+      opt.textContent = draNames[i];
+      sel.appendChild(opt);
+    }
+
+    // Restore from localStorage
+    var saved = localStorage.getItem('draNomineeView_selectedDRA');
+    if (saved && draNames.indexOf(saved) !== -1) {
+      sel.value = saved;
+      showState('content');
+      loadNominees(saved);
+    } else {
+      showState('content');
+    }
+  } catch (err) {
+    document.getElementById('err-detail').textContent = String(err);
+    showState('error');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// onDRASelect — handle dropdown selection change
+// ---------------------------------------------------------------------------
+function onDRASelect() {
+  var name = document.getElementById('dra-select').value;
+  if (!name) {
+    document.getElementById('nominee-area').style.display = 'none';
+    localStorage.removeItem('draNomineeView_selectedDRA');
+    return;
+  }
+  localStorage.setItem('draNomineeView_selectedDRA', name);
+  loadNominees(name);
+}
+
+// ---------------------------------------------------------------------------
+// loadNominees — fetch nominees for a specific DRA
+// ---------------------------------------------------------------------------
+async function loadNominees(draName) {
+  var area = document.getElementById('nominee-area');
+  area.style.display = '';
+  document.getElementById('summary').innerHTML = '<span style="color:var(--muted);">Loading nominees&hellip;</span>';
+  document.getElementById('nominee-tbody').innerHTML = '';
+
+  try {
+    var res = await fetch(SCRIPT_URL + '?action=getDRANominees&draName=' + encodeURIComponent(draName));
+    var data = await res.json();
+    if (!data.ok) {
+      throw new Error(data.message || 'Server returned ok:false');
+    }
+    nominees = data.nominees || [];
+    counts = data.counts || { responded: 0, pending: 0 };
+    renderSummary();
+    renderTable(draName);
+  } catch (err) {
+    document.getElementById('summary').innerHTML = '<span style="color:var(--red);">Error loading nominees: ' + esc(String(err)) + '</span>';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// renderSummary — update the counts bar
+// ---------------------------------------------------------------------------
+function renderSummary() {
+  var total = nominees.length;
+  var el = document.getElementById('summary');
+  el.innerHTML =
+    '<span class="sum-total">' + total + ' Nominee' + (total === 1 ? '' : 's') + '</span>' +
+    '<span class="sum-sep">|</span>' +
+    '<span class="sum-badge"><span class="badge badge-responded">' + counts.responded + ' Responded</span></span>' +
+    '<span class="sum-sep">|</span>' +
+    '<span class="sum-badge"><span class="badge badge-pending">' + counts.pending + ' Pending</span></span>';
+}
+
+// ---------------------------------------------------------------------------
+// renderTable — clear and rebuild tbody
+// ---------------------------------------------------------------------------
+function renderTable(draName) {
+  var tbody = document.getElementById('nominee-tbody');
+  tbody.innerHTML = '';
+
+  if (nominees.length === 0) {
+    var emptyRow = document.createElement('tr');
+    var emptyCell = document.createElement('td');
+    emptyCell.colSpan = 2;
+    emptyCell.className = 'empty-state';
+    emptyCell.textContent = 'No nominees found for ' + draName;
+    emptyRow.appendChild(emptyCell);
+    tbody.appendChild(emptyRow);
+    return;
+  }
+
+  for (var i = 0; i < nominees.length; i++) {
+    var n = nominees[i];
+    var badgeClass = (n.status === 'Responded') ? 'badge-responded' : 'badge-pending';
+
+    // Compact row
+    var compact = document.createElement('tr');
+    compact.className = 'row-compact';
+    compact.innerHTML =
+      '<td class="td-name">' + esc(n.lastName + ', ' + n.firstName) + '</td>' +
+      '<td style="text-align:right;">' +
+        '<span class="badge ' + badgeClass + '">' + esc(n.status) + '</span>' +
+        '<span class="chevron">&#9654;</span>' +
+      '</td>';
+
+    // Detail row
+    var detail = document.createElement('tr');
+    detail.className = 'row-detail';
+    var detailCell = document.createElement('td');
+    detailCell.colSpan = 2;
+
+    if (n.status === 'Responded') {
+      var html = '<div class="detail-grid">';
+      html += detailPair('Availability', n.availability);
+      html += detailPair('Weekend 1', n.refWeekend1);
+      html += detailPair('Weekend 2', n.refWeekend2);
+      html += detailPair('Hotel Weekend 1', n.hotelWkd1);
+      html += detailPair('Hotel Weekend 2', n.hotelWkd2);
+      html += detailPair('Age', n.age);
+      html += detailPair('Gender', n.gender);
+      html += detailPair('Phone', n.phone);
+      if (n.refNotes) {
+        html += detailPair('Notes', n.refNotes);
+      }
+      html += '</div>';
+      detailCell.innerHTML = html;
+    } else {
+      detailCell.innerHTML = '<div class="pending-msg">Waiting for response</div>';
+    }
+
+    detail.appendChild(detailCell);
+    tbody.appendChild(compact);
+    tbody.appendChild(detail);
+
+    // Wire up toggle
+    (function(c, d) {
+      c.addEventListener('click', function() {
+        c.classList.toggle('expanded');
+        d.classList.toggle('open');
+      });
+    })(compact, detail);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// detailPair — build a label/value pair for the detail grid
+// ---------------------------------------------------------------------------
+function detailPair(label, value) {
+  return '<div class="detail-label">' + esc(label) + '</div>' +
+         '<div class="detail-value">' + esc(value || '\u2014') + '</div>';
+}
+
+// ---------------------------------------------------------------------------
+// showState — toggle which state panel is visible
+// ---------------------------------------------------------------------------
+function showState(which) {
+  document.getElementById('state-loading').style.display = (which === 'loading') ? '' : 'none';
+  document.getElementById('state-error').style.display   = (which === 'error')   ? '' : 'none';
+  document.getElementById('state-content').style.display = (which === 'content') ? '' : 'none';
+}
+
+// ---------------------------------------------------------------------------
+// Utility: HTML-escape for text content
+// ---------------------------------------------------------------------------
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+
+</body>
+</html>

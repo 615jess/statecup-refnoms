@@ -1,7 +1,7 @@
 /**
  * adminemail.gs
  *
- * Phase 4: Email Admin Page — backend handlers for the admin email page.
+ * Phase 4 + Phase 7: Email Admin Page and DRA Nominee View — backend handlers.
  * Paste this file into the same Apps Script project as nominatev2.gs and refdetails.gs.
  *
  * WHAT THIS SCRIPT DOES:
@@ -12,6 +12,10 @@
  *   _handleMarkSent(payload) — marks a referee's Status as 'Sent' and writes the SentAt
  *     timestamp (column T). Idempotent: if the referee is already Sent or Confirmed, returns
  *     ok:true without overwriting. Uses LockService to serialize concurrent writes.
+ *
+ *   _handleGetDRANominees(draName) — Phase 7: returns nominees filtered by DRA name with
+ *     simplified status labels (Responded/Pending). When draName is empty, returns distinct
+ *     DRA names for the dropdown. Excludes email, token, and admin-only fields.
  *
  * COLUMN REFERENCES USED (1-based for getRange; 0-based for array indexing):
  *   B  = col  2 (0-based  1)  DRA Name
@@ -230,4 +234,99 @@ function _handleMarkSent(payload) {
   } finally {
     lock.releaseLock();
   }
+}
+
+
+// ---------------------------------------------------------------------------
+// _handleGetDRANominees — Return Nominees for a Specific DRA (Phase 7)
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns nominee data for the DRA nominee view page.
+ *
+ * Two modes based on the draName parameter:
+ *   - draName empty/null → returns sorted distinct DRA names from column B
+ *   - draName provided   → returns filtered nominees with simplified status
+ *
+ * Simplified status mapping (DRA-facing):
+ *   'Confirmed' → 'Responded'
+ *   anything else ('Not Sent', 'Sent', blank) → 'Pending'
+ *
+ * Returned nominee fields (DRA-relevant only — no email, token, or admin fields):
+ *   firstName (F/5), lastName (G/6), status (simplified), phone (I/8),
+ *   age (J/9), availability (M/12), gender (N/13), hotelWkd1 (O/14),
+ *   hotelWkd2 (P/15), refWeekend1 (V/21), refWeekend2 (W/22), refNotes (Y/24)
+ *
+ * @param {string} draName — DRA name to filter by, or empty for name list
+ * @returns {ContentService.TextOutput} JSON response
+ */
+function _handleGetDRANominees(draName) {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getActiveSheet();
+  var lastRow = sheet.getLastRow();
+
+  // --- Mode 1: Return distinct DRA names ---
+  if (!draName) {
+    if (lastRow <= 1) {
+      return _jsonResponse({ ok: true, draNames: [] });
+    }
+
+    var dataRowCount = lastRow - 1;
+    var draCol = sheet.getRange(2, COL_DRA_NAME, dataRowCount, 1).getValues();
+    var nameSet = {};
+    for (var i = 0; i < draCol.length; i++) {
+      var name = String(draCol[i][0] || '').trim();
+      if (name) nameSet[name] = true;
+    }
+    var draNames = Object.keys(nameSet).sort();
+
+    Logger.log('_handleGetDRANominees: Returning ' + draNames.length + ' distinct DRA name(s).');
+    return _jsonResponse({ ok: true, draNames: draNames });
+  }
+
+  // --- Mode 2: Return filtered nominees for a specific DRA ---
+  if (lastRow <= 1) {
+    return _jsonResponse({ ok: true, nominees: [], counts: { responded: 0, pending: 0 } });
+  }
+
+  var dataRowCount = lastRow - 1;
+  var rows = sheet.getRange(2, 1, dataRowCount, 28).getValues();
+
+  var nominees = [];
+  var responded = 0;
+  var pending = 0;
+
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    if (String(r[1] || '').trim() !== draName) continue;
+
+    var rawStatus = String(r[18] || '');
+    var status = (rawStatus === 'Confirmed') ? 'Responded' : 'Pending';
+
+    if (status === 'Responded') responded++;
+    else pending++;
+
+    nominees.push({
+      firstName:    String(r[5]  || ''),
+      lastName:     String(r[6]  || ''),
+      status:       status,
+      phone:        String(r[8]  || ''),
+      age:          String(r[9]  || ''),
+      availability: String(r[12] || ''),
+      gender:       String(r[13] || ''),
+      hotelWkd1:    String(r[14] || ''),
+      hotelWkd2:    String(r[15] || ''),
+      refWeekend1:  String(r[21] || ''),
+      refWeekend2:  String(r[22] || ''),
+      refNotes:     String(r[24] || '')
+    });
+  }
+
+  Logger.log('_handleGetDRANominees: Returning ' + nominees.length + ' nominee(s) for DRA "' + draName + '".');
+
+  return _jsonResponse({
+    ok: true,
+    nominees: nominees,
+    counts: { responded: responded, pending: pending }
+  });
 }

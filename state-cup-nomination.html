@@ -221,7 +221,7 @@
   </div>
 
   <div class="callout">
-    <div><strong>Fall State Cup is Boys U15&ndash;U19 only</strong> (NCS, Premier Cup, Governor&rsquo;s Cup, Mountain Cup). Please nominate referees who can work U15 or older as a referee or AR.</div>
+    <div><strong>Fall State Cup is Boys U15&ndash;U19 only</strong> (NCS, Premier Cup, Governor&rsquo;s Cup, Mayor&rsquo;s Cup). Please nominate referees who can work U15 or older as a referee or AR.</div>
   </div>
 
   <form id="nom-form" novalidate>
@@ -356,8 +356,8 @@ function addRef() {
       <div class="sep"></div>
       <p class="lbl" style="margin-bottom:10px;">Game Capacity <span class="req">*</span></p>
       <div class="cap-grid" style="margin-bottom:12px;">
-        <div class="cap-blk"><span class="cap-lbl">Maximum Age as AR</span><select name="r${n}_mar" required>${ageOpts()}</select></div>
-        <div class="cap-blk"><span class="cap-lbl">Maximum Age as Referee</span><select name="r${n}_mrf" required>${ageOpts()}</select></div>
+        <div class="cap-blk"><span class="cap-lbl">Maximum Age Group as Referee</span><select name="r${n}_mrf" required>${ageOpts()}</select></div>
+        <div class="cap-blk"><span class="cap-lbl">Maximum Age Group as AR</span><select name="r${n}_mar" required>${ageOpts()}</select></div>
       </div>
 
       <div class="sep"></div>
@@ -462,14 +462,14 @@ addRef();
 
 const TEMPLATE_HEADERS = [
   'First Name', 'Last Name', 'Email',
-  'Max Age as AR', 'Max Age as Referee',
+  'Max Age Group as Referee', 'Max Age Group as AR',
   'DRA Notes'
 ];
 
 function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS, [
-    'Jane', 'Smith', 'jane@example.com', 'U17', 'U19', 'Strong center referee'
+    'Jane', 'Smith', 'jane@example.com', 'U19', 'U17', 'Strong center referee'
   ]]);
   // Set column widths
   ws['!cols'] = TEMPLATE_HEADERS.map(h => ({ wch: Math.max(h.length + 2, 18) }));
@@ -549,8 +549,8 @@ function handleUpload(file) {
         setVal(f, `r${n}_fn`, val(row, col('First Name')));
         setVal(f, `r${n}_ln`, val(row, col('Last Name')));
         setVal(f, `r${n}_em`, val(row, col('Email')));
-        setSelect(f, `r${n}_mar`, val(row, col('Max Age as AR')));
-        setSelect(f, `r${n}_mrf`, val(row, col('Max Age as Referee')));
+        setSelect(f, `r${n}_mar`, val(row, col('Max Age Group as AR')) || val(row, col('Max Age as AR')));
+        setSelect(f, `r${n}_mrf`, val(row, col('Max Age Group as Referee')) || val(row, col('Max Age as Referee')));
         setTextarea(f, `r${n}_nt`, val(row, col('DRA Notes')));
       });
 

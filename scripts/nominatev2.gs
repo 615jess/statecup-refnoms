@@ -430,8 +430,8 @@ function setTournamentConstants() {
     // VERIFY: confirm this is the correct assignor Outlook address before running
     'ASSIGNOR_EMAIL': 'jerickson@tnsoccer.org',
 
-    'WEEKEND_1_DATES': 'May 16 & 17, 2026',
-    'WEEKEND_2_DATES': 'May 23 & 24, 2026',
+    'WEEKEND_1_DATES': 'November 14 & 15, 2026',
+    'WEEKEND_2_DATES': 'November 21 & 22, 2026',
 
     'REF_FORM_URL': 'https://615jess.github.io/statecup-refnoms/referee-details.html'
   });

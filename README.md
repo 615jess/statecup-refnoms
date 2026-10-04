@@ -6,7 +6,7 @@ Referee nomination and detail collection system for the Tennessee State Cup tour
 
 ## How It Works
 
-1. **DRA nominates** — Submits referee name + email via `spring-state-cup-nomination.html` → row created in sheet with unique token
+1. **DRA nominates** — Submits referee name + email via `state-cup-nomination.html` → row created in sheet with unique token
 2. **Assignor sends emails** — Opens `admin.html`, clicks mailto links → Outlook opens with pre-filled email containing the referee's token link
 3. **Referee provides details** — Opens token link → `referee-details.html` → fills out availability, age, gender, phone, hotel, notes
 4. **Assignor reviews** — All referee-provided data appears in the Google Sheet
@@ -16,7 +16,7 @@ Referee nomination and detail collection system for the Tennessee State Cup tour
 ```
 GitHub Pages (static HTML)          Google Apps Script (backend)
 ─────────────────────────           ────────────────────────────
-spring-state-cup-nomination.html    nominatev2.gs    — doPost routing
+state-cup-nomination.html    nominatev2.gs    — doPost routing
 referee-details.html                refdetails.gs    — doGet routing + referee endpoints
 admin.html                          adminemail.gs    — admin endpoints
 index.html (redirects to nom form)  setup-schema-v2.gs  — one-time sheet setup
@@ -32,7 +32,7 @@ index.html (redirects to nom form)  setup-schema-v2.gs  — one-time sheet setup
 
 | File | Purpose |
 |------|---------|
-| `spring-state-cup-nomination.html` | DRA nomination form (individual + spreadsheet upload) |
+| `state-cup-nomination.html` | DRA nomination form (individual + spreadsheet upload) |
 | `referee-details.html` | Referee detail form (token-secured, mobile responsive) |
 | `admin.html` | Assignor email admin page (nominee table, mailto links, status tracking) |
 | `index.html` | Redirect to nomination form |
@@ -70,8 +70,8 @@ You need to do this each season. The system has three pieces: the Google Sheet, 
 2. Find the `setTournamentConstants()` function (near the bottom)
 3. Update these values for the new tournament:
    - `ASSIGNOR_EMAIL` — the assignor's Outlook email
-   - `WEEKEND_1_DATES` — display string like `'May 16 & 17, 2026'`
-   - `WEEKEND_2_DATES` — display string like `'May 23 & 24, 2026'`
+   - `WEEKEND_1_DATES` — display string like `'November 14 & 15, 2026'`
+   - `WEEKEND_2_DATES` — display string like `'November 21 & 22, 2026'`
    - `REF_FORM_URL` — the GitHub Pages URL for `referee-details.html`
 4. Select **`setTournamentConstants`** from the function dropdown and click Run
 5. Verify in **Project Settings > Script Properties** that all four values are saved
@@ -91,7 +91,7 @@ You need to do this each season. The system has three pieces: the Google Sheet, 
 
 All three HTML pages need the Apps Script URL. Search and replace the old URL in each file:
 
-- `spring-state-cup-nomination.html` — look for `const SHEET_URL = "..."`
+- `state-cup-nomination.html` — look for `const SHEET_URL = "..."`
 - `referee-details.html` — look for `const SCRIPT_URL = '...'`
 - `admin.html` — look for `var SCRIPT_URL = '...'`
 
@@ -100,9 +100,9 @@ Replace with the new `/exec` URL from step 3.
 ### 5. Update Season-Specific Text
 
 In each HTML file, update any hardcoded tournament details:
-- Tournament name/year in `<title>` and headers (e.g., "Spring State Cup 2026")
+- Tournament name/year in `<title>` and headers (e.g., "Fall State Cup 2026")
 - Weekend dates displayed in the UI
-- DRA names/emails in the nomination form dropdown (in `spring-state-cup-nomination.html`)
+- DRA names/emails in the nomination form dropdown (in `state-cup-nomination.html`)
 
 ### 6. Push to GitHub Pages
 

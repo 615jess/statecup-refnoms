@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spring State Cup 2026 — Email Admin | Tennessee Soccer Referee Program</title>
+<title>Fall State Cup 2026 — Email Admin | Tennessee Soccer Referee Program</title>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -179,7 +179,7 @@
       <div class="hero-divider"></div>
       <div class="hero-content">
         <div class="hero-text">
-          <div class="event-pill">Spring State Cup 2026</div>
+          <div class="event-pill">Fall State Cup 2026</div>
           <h1>Email <em>Admin</em></h1>
           <p>Manage referee nomination emails</p>
         </div>
@@ -191,11 +191,11 @@
     <div class="dates-inner">
       <div class="date-blk">
         <span class="wk-pill">Weekend 1</span>
-        <span class="wk-dt">May 16 &amp; 17, 2026</span>
+        <span class="wk-dt">November 14 &amp; 15, 2026</span>
       </div>
       <div class="date-blk">
         <span class="wk-pill">Weekend 2</span>
-        <span class="wk-dt">May 23 &amp; 24, 2026</span>
+        <span class="wk-dt">November 21 &amp; 22, 2026</span>
       </div>
     </div>
   </div>
@@ -271,7 +271,7 @@
 // ---------------------------------------------------------------------------
 // CONFIGURATION — paste the new Apps Script deployment URL here
 // ---------------------------------------------------------------------------
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRN3UGbeUJM3Tct_naXc3slFJ3VQRJcNvGDl8cPJMuQubF50AO8X3Zusd_Mj-B7d5q/exec';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyUY052Oo8EeVFlf7zfezUVjwsjal_u17SIHKJoF7DBwUlZNXau4fRiaDJjB3u49JNz/exec';
 
 // ---------------------------------------------------------------------------
 // STATE
@@ -516,17 +516,17 @@ function buildMailtoHref(nominee, props) {
   var draName         = nominee.draName    || '';
   var token           = nominee.token      || '';
   var assignorEmail   = props.assignorEmail   || '';
-  var weekend1Dates   = props.weekend1Dates   || 'May 16 & 17, 2026';
-  var weekend2Dates   = props.weekend2Dates   || 'May 23 & 24, 2026';
+  var weekend1Dates   = props.weekend1Dates   || 'November 14 & 15, 2026';
+  var weekend2Dates   = props.weekend2Dates   || 'November 21 & 22, 2026';
   var refFormUrl      = props.refFormUrl      || '';
   var deadlineDisplay = props.deadlineDisplay || '';
 
-  var subject = 'Spring State Cup 2026 \u2014 Referee Nomination';
+  var subject = 'Fall State Cup 2026 \u2014 Referee Nomination';
 
   var bodyLines = [
     'Dear ' + firstName + ',',
     '',
-    'Congratulations! You have been nominated to officiate at the Tennessee Soccer Spring State Cup 2026 by ' + draName + '. This is a recognition of your skill and dedication to the game, and we are proud to have you representing the Tennessee Soccer Referee Program.',
+    'Congratulations! You have been nominated to officiate at the Tennessee Soccer Fall State Cup 2026 by ' + draName + '. This is a recognition of your skill and dedication to the game, and we are proud to have you representing the Tennessee Soccer Referee Program.',
     '',
     'TOURNAMENT DATES',
     '  Weekend 1: ' + weekend1Dates,
@@ -656,15 +656,15 @@ function renderBccReminder(nominees, props) {
   }
 
   var bccList = sentEmails.join(',');
-  var subject = 'Spring State Cup 2026 \u2014 Reminder: Response Needed';
+  var subject = 'Fall State Cup 2026 \u2014 Reminder: Response Needed';
   var assignorEmail = props.assignorEmail || '';
 
   var bodyLines = [
     'Dear Referee,',
     '',
-    'This is a friendly reminder that we have not yet received your response to the Spring State Cup 2026 referee nomination.',
+    'This is a friendly reminder that we have not yet received your response to the Fall State Cup 2026 referee nomination.',
     '',
-    'Please check your email for a message with the subject \u201cSpring State Cup 2026 \u2014 Referee Nomination\u201d and use your personalized link to confirm your availability.',
+    'Please check your email for a message with the subject \u201cFall State Cup 2026 \u2014 Referee Nomination\u201d and use your personalized link to confirm your availability.',
     ''
   ];
 

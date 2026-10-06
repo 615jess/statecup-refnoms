@@ -530,7 +530,13 @@ function buildMailtoHref(nominee, props) {
     '',
     'TOURNAMENT DATES',
     '  Weekend 1: ' + weekend1Dates,
-    '  Weekend 2: ' + weekend2Dates,
+    '  Weekend 2 (Championship Weekend): ' + weekend2Dates,
+    '',
+    'MANDATORY REFEREE MEETING',
+    'There will be a mandatory tournament referee meeting on Friday night, November 13, at the referee hotel. The time and details will be provided the week before the tournament, but please plan on attending.',
+    '',
+    'CHAMPIONSHIP WEEKEND ASSIGNMENTS',
+    'Game assignments for Championship Weekend (Weekend 2) will be based on performance during Weekend 1.',
     '',
     'PLEASE NOTE: If you plan to accept this invitation, please be considerate of your local assignors and set your unavailability blocks for these weekends in their assigning system as soon as possible.',
     '',
@@ -546,7 +552,7 @@ function buildMailtoHref(nominee, props) {
 
   if (deadlineDisplay) {
     bodyLines.push('');
-    bodyLines.push('Please respond no later than ' + deadlineDisplay + '. Nominations not confirmed by this date may be released to other referees.');
+    bodyLines.push('Please respond no later than ' + deadlineDisplay + '. This will allow me to post assignments for the first weekend on November 6. Nominations not confirmed by this date may be released to other referees.');
   }
 
   if (assignorEmail) {
@@ -559,6 +565,11 @@ function buildMailtoHref(nominee, props) {
   bodyLines.push('');
   bodyLines.push('We look forward to seeing you at State Cup!');
   bodyLines.push('');
+
+  bodyLines.push('Thank you,');
+  bodyLines.push('Jess Erickson');
+  bodyLines.push('State Cup Assignor');
+  bodyLines.push('Tennessee Soccer Referee Program');
 
   var body = bodyLines.join('\r\n');
 

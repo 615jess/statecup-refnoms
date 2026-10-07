@@ -127,6 +127,36 @@
     box-shadow: none; letter-spacing: 1px;
   }
 
+  .btn-plain {
+    background: transparent; border: 1.5px solid var(--border); border-radius: var(--r);
+    color: var(--muted); font-family: 'Open Sans', sans-serif; font-size: 11px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase; padding: 7px 10px; margin-left: 6px;
+    cursor: pointer; min-height: 36px;
+  }
+  .btn-plain:hover { border-color: var(--navy); color: var(--navy); }
+  body.send-locked .btn-email:not(:disabled),
+  body.send-locked .btn-plain { opacity: .35; pointer-events: none; }
+
+  /* paste banner (formatted email on clipboard) */
+  #paste-banner {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 760px; z-index: 50;
+    background: var(--navy); color: #fff; border-bottom: 4px solid var(--red);
+    border-radius: var(--r); box-shadow: 0 8px 28px rgba(13,33,72,0.35);
+    padding: 14px 18px; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; line-height: 1.5;
+  }
+  #paste-banner kbd { background: rgba(255,255,255,.15); border-radius: 3px; padding: 0 5px; font-family: inherit; }
+  #paste-banner .pb-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  #paste-banner button {
+    border: none; border-radius: var(--r); font-family: 'Open Sans', sans-serif; font-size: 12px;
+    font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 9px 14px;
+    cursor: pointer; min-height: 36px; white-space: nowrap;
+  }
+  #paste-banner .pb-again { background: rgba(255,255,255,.12); color: #fff; }
+  #paste-banner .pb-done  { background: var(--red); color: #fff; }
+  @media(max-width:700px) { #paste-banner { flex-direction: column; align-items: stretch; } }
+
   /* not-sent filter button */
   .btn-filter {
     background: var(--white); border: 1.5px solid var(--border); border-radius: var(--r);
@@ -262,6 +292,8 @@
   </div>
 
 </main>
+
+<div id="paste-banner" style="display:none;"></div>
 
 <footer class="site-footer">
   <img src="TNRefLOGO.png" alt="Tennessee Soccer Referee Program" class="footer-logo">
@@ -466,7 +498,6 @@ function renderTable() {
     var status = n.status || 'Not Sent';
     var badgeClass = statusBadgeClass(status);
     var isActionable = (status === 'Not Sent');
-    var mailtoHref = buildMailtoHref(n, props);
 
     var btnText, btnDisabled;
     if (status === 'Confirmed') {
@@ -489,10 +520,13 @@ function renderTable() {
         '<button class="btn-email" ' +
           (btnDisabled ? 'disabled ' : '') +
           'onclick="handleEmailClick(this)" ' +
-          'data-token="' + esc(n.token) + '" ' +
-          'data-mailto-href="' + escAttr(mailtoHref) + '">' +
+          'data-token="' + esc(n.token) + '">' +
           btnText +
         '</button>' +
+        (btnDisabled ? '' :
+          '<button class="btn-plain" title="Backup: plain-text email" ' +
+            'onclick="handlePlainClick(this)" ' +
+            'data-token="' + esc(n.token) + '">Plain</button>') +
       '</td>';
 
     tbody.appendChild(tr);
@@ -509,9 +543,36 @@ function statusBadgeClass(status) {
 }
 
 // ---------------------------------------------------------------------------
-// buildMailtoHref — construct a mailto: URL with pre-filled subject and body
+// EMAIL SETTINGS — CC'd on every nominee email
 // ---------------------------------------------------------------------------
-function buildMailtoHref(nominee, props) {
+var NOMINEE_CC = ['SRA@tnsoccer.org', 'SYRA@tnsoccer.org'];
+var EMAIL_SUBJECT = 'Fall State Cup 2026 \u2014 Referee Nomination';
+var EMAIL_LOGO_URL = 'https://615jess.github.io/statecup-refnoms/TNRefLOGO.png';
+
+// ---------------------------------------------------------------------------
+// buildMailtoHref — mailto: URL with To, CC and subject. With includeBody,
+// also the plain-text body (the backup button); without, the body is left
+// empty for pasting the formatted version.
+// ---------------------------------------------------------------------------
+function buildMailtoHref(nominee, props, includeBody) {
+  return 'mailto:' + encodeURIComponent(nominee.refEmail) +
+    '?cc=' + encodeURIComponent(nomineeCc(nominee).join(',')) +
+    '&subject=' + encodeURIComponent(EMAIL_SUBJECT) +
+    (includeBody ? '&body=' + encodeURIComponent(buildPlainBody(nominee, props)) : '');
+}
+
+// nomineeCc — parent/guardian (minors) first, then the standing CCs
+function nomineeCc(nominee) {
+  var cc = NOMINEE_CC.slice();
+  var parent = (nominee.parentEmail || '').trim();
+  if (parent) cc.unshift(parent);
+  return cc;
+}
+
+// ---------------------------------------------------------------------------
+// buildPlainBody — plain-text email body (backup button)
+// ---------------------------------------------------------------------------
+function buildPlainBody(nominee, props) {
   var firstName       = nominee.firstName  || '';
   var draName         = nominee.draName    || '';
   var token           = nominee.token      || '';
@@ -520,8 +581,6 @@ function buildMailtoHref(nominee, props) {
   var weekend2Dates   = props.weekend2Dates   || 'November 21 & 22, 2026';
   var refFormUrl      = props.refFormUrl      || '';
   var deadlineDisplay = props.deadlineDisplay || '';
-
-  var subject = 'Fall State Cup 2026 \u2014 Referee Nomination';
 
   var bodyLines = [
     'Dear ' + firstName + ',',
@@ -571,24 +630,175 @@ function buildMailtoHref(nominee, props) {
   bodyLines.push('State Cup Assignor');
   bodyLines.push('Tennessee Soccer Referee Program');
 
-  var body = bodyLines.join('\r\n');
-
-  return 'mailto:' + encodeURIComponent(nominee.refEmail) +
-    '?subject=' + encodeURIComponent(subject) +
-    '&body='    + encodeURIComponent(body);
+  return bodyLines.join('\r\n');
 }
 
 // ---------------------------------------------------------------------------
-// handleEmailClick — mark Sent in sheet, then open Outlook
+// buildEmailHtml — formatted email body (copied to clipboard, pasted into
+// Outlook). Outlook-safe: table layout, inline styles only.
 // ---------------------------------------------------------------------------
-async function handleEmailClick(btn) {
+function buildEmailHtml(nominee, props) {
+  var F = "font-family:'Open Sans',Arial,Helvetica,sans-serif;";
+  var P = F + 'font-size:15px;line-height:1.55;color:#1a2540;margin:0 0 14px 0;';
+  var H = F + 'font-size:13px;line-height:1.3;color:#cc2229;margin:22px 0 8px 0;font-weight:700;letter-spacing:.06em;text-transform:uppercase;';
+  var LBL = 'padding:3px 18px 3px 0;color:#5a6a88;';
+  var VAL = 'padding:3px 0;font-weight:700;';
+
+  var weekend1Dates   = props.weekend1Dates   || 'November 14 & 15, 2026';
+  var weekend2Dates   = props.weekend2Dates   || 'November 21 & 22, 2026';
+  var refFormUrl      = props.refFormUrl      || '';
+  var deadlineDisplay = props.deadlineDisplay || '';
+  var assignorEmail   = props.assignorEmail   || '';
+  var link = refFormUrl + '?token=' + encodeURIComponent(nominee.token || '');
+
+  var b = '';
+  b += '<p style="' + P + '">Dear ' + esc(nominee.firstName || '') + ',</p>';
+  b += '<p style="' + P + '">Congratulations! You have been nominated to officiate at the Tennessee Soccer Fall State Cup 2026 by <strong style="color:#0d2148;">' + esc(nominee.draName || '') + '</strong>. This is a recognition of your skill and dedication to the game, and we are proud to have you representing the Tennessee Soccer Referee Program.</p>';
+
+  b += '<p style="' + H + '">Tournament Dates</p>';
+  b += '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px 0;' + F + 'font-size:15px;color:#1a2540;">' +
+       '<tr><td style="' + LBL + '">Weekend 1</td><td style="' + VAL + '">' + esc(weekend1Dates) + '</td></tr>' +
+       '<tr><td style="' + LBL + '">Weekend 2 &mdash; Championship Weekend</td><td style="' + VAL + '">' + esc(weekend2Dates) + '</td></tr>' +
+       '</table>';
+
+  b += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px 0;"><tr>' +
+       '<td style="background:#fffbea;border-left:4px solid #c8912a;padding:12px 16px;' + F + 'font-size:14px;line-height:1.5;color:#1a2540;">' +
+       '<strong style="color:#0d2148;">Mandatory Referee Meeting &mdash; Friday, November 13</strong><br>' +
+       'There will be a mandatory tournament referee meeting on Friday night at the referee hotel. The time and details will be provided the week before the tournament, but please plan on attending.' +
+       '</td></tr></table>';
+
+  b += '<p style="' + H + '">Championship Weekend Assignments</p>';
+  b += '<p style="' + P + '">Game assignments for Championship Weekend (Weekend 2) will be based on performance during Weekend 1.</p>';
+
+  b += '<p style="' + P + '"><strong style="color:#0d2148;">Please note:</strong> If you plan to accept this invitation, please be considerate of your local assignors and set your unavailability blocks for these weekends in their assigning system as soon as possible.</p>';
+
+  b += '<p style="' + H + '">Action Required</p>';
+  b += '<p style="' + P + '">Please use your personalized link below to confirm your availability and provide a few details needed for your assignment. You will be asked to:</p>';
+  b += '<ul style="' + F + 'font-size:15px;line-height:1.55;color:#1a2540;margin:0 0 16px 0;padding-left:22px;">' +
+       '<li>Confirm which weekend(s) you are available to officiate</li>' +
+       '<li>Indicate whether you will need hotel accommodations</li>' +
+       '<li>Verify your contact information</li></ul>';
+  b += '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 10px 0;"><tr>' +
+       '<td style="background:#cc2229;border-radius:4px;"><a href="' + escAttr(link) + '" style="display:inline-block;padding:12px 26px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;">Confirm My Availability</a></td>' +
+       '</tr></table>';
+  b += '<p style="' + F + 'font-size:12px;line-height:1.5;color:#5a6a88;margin:0 0 16px 0;">This link is personal to you &mdash; please do not share it.<br>' +
+       'If the button doesn&rsquo;t work, copy this address into your browser:<br>' + esc(link) + '</p>';
+
+  if (deadlineDisplay) {
+    b += '<p style="' + P + '">Please respond no later than <strong style="color:#cc2229;">' + esc(deadlineDisplay) + '</strong>. This will allow me to post assignments for the first weekend on November 6. Nominations not confirmed by this date may be released to other referees.</p>';
+  }
+
+  b += '<p style="' + P + '">We look forward to seeing you at State Cup!</p>';
+  b += '<p style="' + P + '">Thank you,<br><strong style="color:#0d2148;">Jess Erickson</strong><br>State Cup Assignor<br>Tennessee Soccer Referee Program</p>';
+
+  var footer = assignorEmail
+    ? 'Questions? Contact Jess Erickson, State Cup Assignor &middot; <a href="mailto:' + escAttr(assignorEmail) + '" style="color:#cc2229;font-weight:600;">' + esc(assignorEmail) + '</a>'
+    : 'Tennessee Soccer Referee Program';
+
+  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f9;"><tr><td align="center" style="padding:20px 10px;">' +
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #d0d9e8;">' +
+      '<tr><td style="background:#0d2148;padding:18px 28px;border-bottom:4px solid #cc2229;">' +
+        '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>' +
+          '<td style="padding-right:14px;vertical-align:middle;"><img src="' + EMAIL_LOGO_URL + '" width="52" alt="TSRP" style="display:block;border:0;width:52px;height:auto;"></td>' +
+          '<td style="vertical-align:middle;' + F + '">' +
+            '<div style="color:#ffffff;font-size:19px;font-weight:700;line-height:1.25;">Fall State Cup 2026</div>' +
+            '<div style="color:#c9d3e6;font-size:12px;letter-spacing:.06em;text-transform:uppercase;line-height:1.4;">Tennessee Soccer Referee Program</div>' +
+          '</td></tr></table>' +
+      '</td></tr>' +
+      '<tr><td style="padding:28px 28px 12px 28px;">' + b + '</td></tr>' +
+      '<tr><td style="background:#e8edf5;padding:14px 28px;' + F + 'font-size:12px;line-height:1.5;color:#5a6a88;">' + footer + '</td></tr>' +
+    '</table></td></tr></table>';
+}
+
+// ---------------------------------------------------------------------------
+// copyHtmlToClipboard — put formatted HTML (plus plain fallback) on the
+// clipboard. Must run inside the click, before any await.
+// ---------------------------------------------------------------------------
+function copyHtmlToClipboard(html, plain) {
+  if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+    return navigator.clipboard.write([new ClipboardItem({
+      'text/html':  new Blob([html],  { type: 'text/html' }),
+      'text/plain': new Blob([plain], { type: 'text/plain' })
+    })]).then(function() { return true; }, function() { return legacyCopy(html); });
+  }
+  return Promise.resolve(legacyCopy(html));
+}
+
+function legacyCopy(html) {
+  var div = document.createElement('div');
+  div.contentEditable = 'true';
+  div.style.cssText = 'position:fixed;left:-9999px;top:0;';
+  div.innerHTML = html;
+  document.body.appendChild(div);
+  var range = document.createRange();
+  range.selectNodeContents(div);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  var ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  sel.removeAllRanges();
+  document.body.removeChild(div);
+  return ok;
+}
+
+function findNominee(token) {
+  for (var i = 0; i < allNominees.length; i++) {
+    if (allNominees[i].token === token) return allNominees[i];
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// handleEmailClick — copy the formatted email, open Outlook addressed
+// (To + CC + subject), mark Sent. One referee at a time: every send button
+// stays locked until "Done" is clicked in the paste banner.
+// ---------------------------------------------------------------------------
+var pendingToken = null;
+
+function handleEmailClick(btn) {
+  if (pendingToken) return;
   var token = btn.getAttribute('data-token');
-  var href  = btn.getAttribute('data-mailto-href');
+  var n = findNominee(token);
+  if (!n) return;
 
-  // Disable immediately to prevent double-click
-  btn.disabled = true;
-  btn.textContent = 'Sending\u2026';
+  pendingToken = token;
+  setSendLock(true);
+  btn.textContent = 'Copying\u2026';
 
+  // Clipboard first, while still inside the click.
+  copyHtmlToClipboard(buildEmailHtml(n, tournamentProps), buildPlainBody(n, tournamentProps))
+    .then(function(copied) {
+      if (copied) {
+        showPasteBanner(n);
+        window.location.href = buildMailtoHref(n, tournamentProps, false);
+      } else {
+        // Couldn't copy — fall back to the plain-text email so nothing is lost.
+        alert('Could not copy the formatted email. Opening the plain-text version instead.');
+        pendingToken = null;
+        setSendLock(false);
+        window.location.href = buildMailtoHref(n, tournamentProps, true);
+      }
+      markSent(token);
+    });
+}
+
+// ---------------------------------------------------------------------------
+// handlePlainClick — backup: plain-text email in the mailto link
+// ---------------------------------------------------------------------------
+function handlePlainClick(btn) {
+  if (pendingToken) return;
+  var token = btn.getAttribute('data-token');
+  var n = findNominee(token);
+  if (!n) return;
+  window.location.href = buildMailtoHref(n, tournamentProps, true);
+  markSent(token);
+}
+
+// ---------------------------------------------------------------------------
+// markSent — record Sent in the sheet (non-blocking; UI is optimistic)
+// ---------------------------------------------------------------------------
+async function markSent(token) {
   try {
     var res = await fetch(SCRIPT_URL, {
       method: 'POST',
@@ -596,21 +806,47 @@ async function handleEmailClick(btn) {
       // No Content-Type header — avoids CORS preflight (proven pattern from Phase 2/3)
     });
     var data = await res.json();
-    if (data.ok) {
-      updateRowStatus(token, 'Sent');
-    } else {
-      console.warn('markSent returned ok:false —', data.message || data.error);
-      // Still open Outlook; the admin can re-send next time
-      updateRowStatus(token, 'Sent'); // optimistic — UI reflects intent
-    }
+    if (!data.ok) console.warn('markSent returned ok:false —', data.message || data.error);
   } catch (err) {
     console.warn('markSent network error (non-blocking):', err);
-    // Do not block Outlook from opening
-    updateRowStatus(token, 'Sent'); // optimistic
   }
+  updateRowStatus(token, 'Sent');
+}
 
-  // Open Outlook (fires after await resolves)
-  window.location.href = href;
+// ---------------------------------------------------------------------------
+// Paste banner — tells the admin which referee's email is on the clipboard
+// ---------------------------------------------------------------------------
+function showPasteBanner(n) {
+  var el = document.getElementById('paste-banner');
+  el.innerHTML =
+    '<div class="pb-text">' +
+      '<strong>Copied: ' + esc(n.firstName + ' ' + n.lastName) + '</strong> &lt;' + esc(n.refEmail) + '&gt;<br>' +
+      'In Outlook, click in the message body and press <kbd>\u2318V</kbd>. ' +
+      'Check that it says <em>Dear ' + esc(n.firstName) + '</em> and is addressed to ' + esc(n.refEmail) +
+      (n.parentEmail ? ' (CC parent: ' + esc(n.parentEmail) + ')' : '') + ', then send.' +
+    '</div>' +
+    '<div class="pb-actions">' +
+      '<button class="pb-again" onclick="copyAgain()">Copy Again</button>' +
+      '<button class="pb-done" onclick="finishPaste()">Done &mdash; Next Referee</button>' +
+    '</div>';
+  el.style.display = 'flex';
+}
+
+function copyAgain() {
+  var n = findNominee(pendingToken);
+  if (!n) return;
+  copyHtmlToClipboard(buildEmailHtml(n, tournamentProps), buildPlainBody(n, tournamentProps))
+    .then(function(ok) { if (!ok) alert('Copy failed. Use the Plain button for this referee instead.'); });
+}
+
+function finishPaste() {
+  pendingToken = null;
+  document.getElementById('paste-banner').style.display = 'none';
+  setSendLock(false);
+}
+
+function setSendLock(locked) {
+  document.body.classList.toggle('send-locked', locked);
 }
 
 // ---------------------------------------------------------------------------
@@ -641,6 +877,8 @@ function updateRowStatus(token, newStatus) {
     btn.disabled = true;
     btn.textContent = newStatus === 'Confirmed' ? 'Confirmed' : 'Sent';
   }
+  var plainBtn = tr.querySelector('.btn-plain');
+  if (plainBtn) plainBtn.remove();
 
   // Re-render summary counts with updated allNominees
   renderSummary(allNominees);

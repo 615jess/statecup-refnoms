@@ -626,7 +626,8 @@ function buildPlainBody(nominee, props) {
     'CHAMPIONSHIP WEEKEND ASSIGNMENTS',
     'Game assignments for Championship Weekend (Weekend 2) will be based on performance during Weekend 1.',
     '',
-    'PLEASE NOTE: If you plan to accept this invitation, please be considerate of your local assignors and set your unavailability blocks for these weekends in their assigning system as soon as possible.',
+    'REFEREES UNDER 18',
+    'If you are under 18 and need hotel accommodations, please mark that on your response form. A hotel room will be provided for you and a parent or guardian.',
     '',
     'ACTION REQUIRED',
     'Please use your personalized link below to confirm your availability and provide a few details needed for your assignment. You will be asked to:',
@@ -642,6 +643,9 @@ function buildPlainBody(nominee, props) {
     bodyLines.push('');
     bodyLines.push('Please respond no later than ' + deadlineDisplay + '. This will allow me to post assignments for the first weekend on November 6. Nominations not confirmed by this date may be released to other referees.');
   }
+
+  bodyLines.push('');
+  bodyLines.push('PLEASE NOTE: If you plan to accept this invitation, please be considerate of your local assignors and set your unavailability blocks for these weekends in their assigning system as soon as possible.');
 
   if (assignorEmail) {
     bodyLines.push('');
@@ -691,7 +695,7 @@ function buildEmailHtml(nominee, props) {
        '</table>';
 
   b += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px 0;"><tr>' +
-       '<td style="background:#fffbea;border-left:4px solid #c8912a;padding:12px 16px;' + F + 'font-size:14px;line-height:1.5;color:#1a2540;">' +
+       '<td style="background:#fff3bf;border-left:4px solid #e0b100;padding:12px 16px;' + F + 'font-size:14px;line-height:1.5;color:#1a2540;">' +
        '<strong style="color:#0d2148;">Mandatory Referee Meeting &mdash; Friday, November 13</strong><br>' +
        'There will be a mandatory tournament referee meeting on Friday night at the referee hotel. The time and details will be provided the week before the tournament, but please plan on attending.' +
        '</td></tr></table>';
@@ -699,7 +703,9 @@ function buildEmailHtml(nominee, props) {
   b += '<p style="' + H + '">Championship Weekend Assignments</p>';
   b += '<p style="' + P + '">Game assignments for Championship Weekend (Weekend 2) will be based on performance during Weekend 1.</p>';
 
-  b += '<p style="' + P + '"><strong style="color:#0d2148;">Please note:</strong> If you plan to accept this invitation, please be considerate of your local assignors and set your unavailability blocks for these weekends in their assigning system as soon as possible.</p>';
+  b += '<p style="' + H + '">Referees Under 18</p>';
+  b += '<p style="' + P + '">If you are under 18 and need hotel accommodations, please mark that on your response form. A hotel room will be provided for you and a parent or guardian.</p>';
+
 
   b += '<p style="' + H + '">Action Required</p>';
   b += '<p style="' + P + '">Please use your personalized link below to confirm your availability and provide a few details needed for your assignment. You will be asked to:</p>';
@@ -717,6 +723,8 @@ function buildEmailHtml(nominee, props) {
     b += '<p style="' + P + '">Please respond no later than <strong style="color:#cc2229;">' + esc(deadlineDisplay) + '</strong>. This will allow me to post assignments for the first weekend on November 6. Nominations not confirmed by this date may be released to other referees.</p>';
   }
 
+  b += '<p style="' + P + '"><strong style="color:#0d2148;">Please note:</strong> If you plan to accept this invitation, please be considerate of your local assignors and set your unavailability blocks for these weekends in their assigning system as soon as possible.</p>';
+
   b += '<p style="' + P + '">We look forward to seeing you at State Cup!</p>';
   b += '<p style="' + P + '">Thank you,<br><strong style="color:#0d2148;">Jess Erickson</strong><br>State Cup Assignor<br>Tennessee Soccer Referee Program</p>';
 
@@ -724,9 +732,9 @@ function buildEmailHtml(nominee, props) {
     ? 'Questions? Contact Jess Erickson, State Cup Assignor &middot; <a href="mailto:' + escAttr(assignorEmail) + '" style="color:#cc2229;font-weight:600;">' + esc(assignorEmail) + '</a>'
     : 'Tennessee Soccer Referee Program';
 
-  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f9;"><tr><td align="center" style="padding:20px 10px;">' +
-    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #d0d9e8;">' +
-      '<tr><td style="background:#0d2148;padding:18px 28px;border-bottom:4px solid #cc2229;">' +
+  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fbfcfd;"><tr><td align="center" style="padding:20px 10px;">' +
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #eef1f6;">' +
+      '<tr><td style="background:#002868;padding:18px 28px;border-bottom:4px solid #cc2229;">' +
         '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>' +
           '<td style="padding-right:14px;vertical-align:middle;"><img src="' + EMAIL_LOGO_URL + '" width="52" alt="TSRP" style="display:block;border:0;width:52px;height:auto;"></td>' +
           '<td style="vertical-align:middle;' + F + '">' +
@@ -735,7 +743,7 @@ function buildEmailHtml(nominee, props) {
           '</td></tr></table>' +
       '</td></tr>' +
       '<tr><td style="padding:28px 28px 12px 28px;">' + b + '</td></tr>' +
-      '<tr><td style="background:#e8edf5;padding:14px 28px;' + F + 'font-size:12px;line-height:1.5;color:#5a6a88;">' + footer + '</td></tr>' +
+      '<tr><td style="background:#f8f9fb;padding:14px 28px;' + F + 'font-size:12px;line-height:1.5;color:#5a6a88;">' + footer + '</td></tr>' +
     '</table></td></tr></table>';
 }
 

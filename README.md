@@ -34,7 +34,8 @@ index.html (redirects to nom form)  setup-schema-v2.gs  — one-time sheet setup
 |------|---------|
 | `state-cup-nomination.html` | DRA nomination form (individual + spreadsheet upload) |
 | `referee-details.html` | Referee detail form (token-secured, mobile responsive) |
-| `admin.html` | Assignor email admin page (nominee table, mailto links, status tracking) |
+| `admin.html` | Assignor email admin page (password-protected; nominee table, Outlook emails, status tracking) |
+| `dra-nominees.html` | DRA lookup of their own nominations by email (names, age groups, notes) |
 | `index.html` | Redirect to nomination form |
 | `scripts/nominatev2.gs` | doPost entry point — routes nominateV2, submitDetails, markSent |
 | `scripts/refdetails.gs` | doGet entry point — routes getAllNominees and token-based detail lookups |
@@ -51,7 +52,7 @@ You need to do this each season. The system has three pieces: the Google Sheet, 
 1. Create a new Google Sheet (or copy last season's and clear the data rows)
 2. Open **Extensions > Apps Script**
 3. Delete all existing script files
-4. Create four script files and paste in the contents of:
+4. Create five script files and paste in the contents of:
    - `scripts/setup-schema-v2.gs`
    - `scripts/verify-schema-v2.gs`
    - `scripts/nominatev2.gs`
@@ -60,7 +61,7 @@ You need to do this each season. The system has three pieces: the Google Sheet, 
 5. Select **`setupSchemaV2`** from the function dropdown and click Run
    - Authorize when prompted
    - Check Execution Log for "setupSchemaV2 COMPLETE"
-6. Go back to the sheet and verify row 1 has headers A through Y
+6. Go back to the sheet and verify row 1 has headers A through AB
 7. Enter the tournament response deadline date in cell **Z1** (the ConfirmationDeadline named range)
 8. Optionally run **`verifySchemaV2`** to confirm everything is correct
 
@@ -127,13 +128,13 @@ https://615jess.github.io/statecup-refnoms/
 6. Fill out and submit the referee detail form
 7. Check the sheet — referee-provided columns should be filled and status should be "Confirmed"
 
-## Sheet Column Layout (A-Z)
+## Sheet Column Layout (A-AB)
 
 | Col | Header | Written By |
 |-----|--------|------------|
 | A | Timestamp | System (nominateV2) |
 | B | DRA Name | DRA form |
-| C | DRA Email | DRA form |
+| C | DRA Email | DRA form (auto-filled from DRA dropdown) |
 | D | District | DRA form |
 | E | Referee # | DRA form |
 | F | First Name | DRA form |
@@ -143,34 +144,38 @@ https://615jess.github.io/statecup-refnoms/
 | J | Age | Referee form |
 | K | Max Age as AR | DRA form |
 | L | Max Age as Ref | DRA form |
-| M | Availability | Referee form |
-| N | Hotel — Weekend 1 | Referee form |
-| O | Hotel — Weekend 2 | Referee form |
-| P | Day-Specific Notes | Referee form |
+| M | Availability | Referee form (summary, e.g. "Yes / No") |
+| N | Gender | Referee form |
+| O | Hotel Weekend 1 | Referee form |
+| P | Hotel Weekend 2 | Referee form |
 | Q | DRA Notes | DRA form |
 | R | Token | System (UUID at nomination) |
-| S | Status | System (Not Sent → Sent → Confirmed) |
+| S | Status | System (Not Sent → Sent → Confirmed / Declined) |
 | T | SentAt | System (markSent) |
 | U | SubmittedAt | System (submitDetails) |
 | V | RefWeekend1 | Referee form |
 | W | RefWeekend2 | Referee form |
-| X | LateFlag | System (Y if submitted after deadline) |
+| X | LateFlag | System (Y if first submitted after deadline) |
 | Y | RefNotes | Referee form |
-| Z | ConfirmationDeadline | Assignor (named range, one cell) |
+| Z | ConfirmationDeadline | Assignor (named range, Z1 only) |
+| AA | (label) | "Confirmation Deadline:" label in AA1 |
+| AB | Parent/Guardian Email | Referee form (under 18 only) |
 
 ## Status Flow
 
 ```
-Not Sent  →  Sent  →  Confirmed
-   ↑           ↑          ↑
+Not Sent  →  Sent  →  Confirmed   (available at least one weekend)
+   ↑           ↑    ↘  Declined    (not available either weekend)
 nomination  assignor   referee
-created     clicks     submits
-            mailto     details
+created     confirms   submits
+            email sent details
 ```
 
 ## Key Behaviors
 
 - **Email dedup:** If a DRA nominates the same email twice, the existing row is updated (DRA fields only). Token and referee data are preserved.
 - **Late submissions:** After the deadline date in Z1, referees can still submit but get a late banner and LateFlag=Y in the sheet. After deadline + 3 days (hard close), the form locks completely.
-- **Re-edits:** Referees can revisit their token link and update their details until the deadline. Previously submitted data is pre-filled.
-- **markSent idempotency:** Clicking a mailto link marks the referee as "Sent" via an API call. If the referee is already "Confirmed", the status is not overwritten back to "Sent".
+- **Re-edits:** Referees can revisit their token link and update their details until the hard close (deadline + 3 days). Previously submitted data is pre-filled. Edits after the deadline keep the original on-time/late flag.
+- **markSent:** The referee is marked "Sent" only after the assignor clicks "Sent — Next Referee" on the admin page. A status that is already Sent, Confirmed or Declined is never overwritten. Sent rows get a Re-send button.
+- **Admin password:** `getAllNominees` and `markSent` require the `ADMIN_KEY` Script Property. The admin page asks for it once per browser.
+- **DRA view:** `dra-nominees.html` looks up nominations by the DRA's email (column C) and shows only referee name, max age groups and DRA notes.

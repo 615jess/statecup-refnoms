@@ -327,6 +327,7 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbyUY052Oo8EeVFlf7zfez
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 const AGES = ['U15','U16','U17','U18','U19'];
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 let rc = 0;
 
 document.getElementById('dra-sel').addEventListener('change', function () {
@@ -390,7 +391,8 @@ document.getElementById('nom-form').addEventListener('submit', async function(e)
     // Validate required text/email fields
     ['_fn','_ln','_em'].forEach(s => {
       const f = ent.querySelector(`[name$="${s}"]`);
-      if (f && !f.value.trim()) { f.classList.add('err'); ok = false; }
+      const bad = f && (!f.value.trim() || (s === '_em' && !EMAIL_RE.test(f.value.trim())));
+      if (bad) { f.classList.add('err'); ok = false; }
       else if (f) f.classList.remove('err');
     });
     // Validate required age dropdowns
@@ -400,7 +402,12 @@ document.getElementById('nom-form').addEventListener('submit', async function(e)
       else if (f) f.classList.remove('err');
     });
   });
-  if (!ok) { alert('Please complete all required fields (marked *).'); return; }
+  if (!ok) {
+    alert('Please complete all required fields (marked *) and check that each email address is valid.');
+    const firstErr = document.querySelector('.ref-entry .err');
+    if (firstErr) { firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' }); firstErr.focus(); }
+    return;
+  }
 
   const rows = [];
   entries.forEach((ent, i) => {
@@ -473,7 +480,7 @@ const TEMPLATE_HEADERS = [
 function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS, [
-    'Jane', 'Smith', 'jane@example.com', 'U19', 'U17', 'Strong center referee'
+    'EXAMPLE - delete this row', 'Smith', 'jane@example.com', 'U19', 'U17', 'Strong center referee'
   ]]);
   // Set column widths
   ws['!cols'] = TEMPLATE_HEADERS.map(h => ({ wch: Math.max(h.length + 2, 18) }));
@@ -499,7 +506,9 @@ function handleUpload(file) {
     try {
       const wb = XLSX.read(e.target.result, { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      // Skip the template's example row (and any other example.com rows)
+      const data = XLSX.utils.sheet_to_json(ws, { defval: '' })
+        .filter(r => !Object.values(r).some(v => /@example\.com\s*$/i.test(String(v))));
 
       if (!data.length) {
         showUploadErr('The spreadsheet appears to be empty. Please add referee data below the header row.');
@@ -526,7 +535,9 @@ function handleUpload(file) {
         const rn = i + 2; // spreadsheet row (1=header)
         if (!val(row, col('First Name'))) errors.push(`Row ${rn}: Missing First Name`);
         if (!val(row, col('Last Name')))  errors.push(`Row ${rn}: Missing Last Name`);
-        if (!val(row, col('Email')))      errors.push(`Row ${rn}: Missing Email`);
+        const em = val(row, col('Email'));
+        if (!em) errors.push(`Row ${rn}: Missing Email`);
+        else if (!EMAIL_RE.test(em)) errors.push(`Row ${rn}: "${em}" is not a valid email address`);
       });
       if (errors.length) {
         showUploadErr('Validation errors:\n' + errors.slice(0, 10).join('\n') + (errors.length > 10 ? `\n\u2026and ${errors.length - 10} more` : ''));
@@ -546,15 +557,18 @@ function handleUpload(file) {
       const countBefore = document.querySelectorAll('.ref-entry').length;
 
       // APPEND mode: do NOT clear existing entries
-      data.forEach((row) => {
+      const ageWarnings = [];
+      data.forEach((row, i) => {
         addRef();
         const n = rc;
         const f = document.getElementById(`r-${n}`);
         setVal(f, `r${n}_fn`, val(row, col('First Name')));
         setVal(f, `r${n}_ln`, val(row, col('Last Name')));
         setVal(f, `r${n}_em`, val(row, col('Email')));
-        setSelect(f, `r${n}_mar`, val(row, col('Max Age Group as AR')) || val(row, col('Max Age as AR')));
-        setSelect(f, `r${n}_mrf`, val(row, col('Max Age Group as Referee')) || val(row, col('Max Age as Referee')));
+        const ar  = val(row, col('Max Age Group as AR')) || val(row, col('Max Age as AR'));
+        const ref = val(row, col('Max Age Group as Referee')) || val(row, col('Max Age as Referee'));
+        if (!setSelect(f, `r${n}_mar`, ar))  ageWarnings.push(`Row ${i + 2}: AR age "${ar || 'blank'}"`);
+        if (!setSelect(f, `r${n}_mrf`, ref)) ageWarnings.push(`Row ${i + 2}: Referee age "${ref || 'blank'}"`);
         setTextarea(f, `r${n}_nt`, val(row, col('DRA Notes')));
       });
 
@@ -566,7 +580,11 @@ function handleUpload(file) {
         countMsg += ` (${totalAfter} total nominees)`;
       }
       document.getElementById('ur-count').textContent = countMsg;
-      document.getElementById('ur-detail').textContent = 'Review the entries below, make any changes, then submit.';
+      document.getElementById('ur-detail').textContent = ageWarnings.length
+        ? 'Age groups must be U15\u2013U19. Please choose these in the entries below before submitting:\n' +
+          ageWarnings.slice(0, 10).join('\n') + (ageWarnings.length > 10 ? `\n\u2026and ${ageWarnings.length - 10} more` : '')
+        : 'Review the entries below, make any changes, then submit.';
+      document.getElementById('ur-detail').style.whiteSpace = 'pre-wrap';
       resEl.style.display = 'block';
       // Keep upload zone visible so DRA can upload additional files
       document.getElementById('upload-zone').style.display = '';
@@ -595,16 +613,19 @@ function setVal(container, name, value) {
   if (el && value) el.value = value;
 }
 
+// Accepts "U17", "u17", "17", "U-17", "17U", "U 17". Returns true if an option was selected.
 function setSelect(container, name, value) {
   const el = container.querySelector(`[name="${name}"]`);
-  if (!el || !value) return;
-  // Try exact match first, then case-insensitive
+  if (!el || !value) return false;
+  const digits = String(value).replace(/\D/g, '');
+  const want = digits ? 'U' + digits : String(value).trim().toUpperCase();
   for (const opt of el.options) {
-    if (opt.value === value || opt.value.toLowerCase() === value.toLowerCase()) {
+    if (opt.value && opt.value.toUpperCase() === want) {
       el.value = opt.value;
-      return;
+      return true;
     }
   }
+  return false;
 }
 
 function setTextarea(container, name, value) {

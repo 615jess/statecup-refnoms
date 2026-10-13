@@ -123,6 +123,7 @@ function doPost(e) {
 
     // Phase 4: Admin page — mark referee as Sent — handler in adminemail.gs
     if (payload.action === 'markSent') {
+      if (!_isAdminKey(payload.key)) return _adminDenied();
       return _handleMarkSent(payload);
     }
 

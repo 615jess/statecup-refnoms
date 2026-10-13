@@ -113,6 +113,18 @@
   }
   .late-banner strong { color: #3a2900; }
 
+  /* decline note (unavailable both weekends) */
+  .callout-decline {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--navy);
+    border-radius: var(--r);
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    font-size: 14px;
+    color: var(--text);
+  }
+
   /* yes/no toggle buttons */
   .toggle-group { display: flex; gap: 8px; }
   .toggle-btn {
@@ -223,6 +235,7 @@
       <div class="greeting-meta">
         <div class="greeting-meta-item"><strong>Weekend 1:</strong> <span id="greeting-wkd1"></span></div>
         <div class="greeting-meta-item"><strong>Weekend 2:</strong> <span id="greeting-wkd2"></span></div>
+        <div class="greeting-meta-item" id="greeting-deadline-wrap" style="display:none;"><strong>Please respond by:</strong> <span id="greeting-deadline"></span></div>
         <div class="greeting-meta-item" id="greeting-contact-wrap" style="display:none;"><strong>Questions?</strong> <a id="greeting-contact" href="#"></a></div>
       </div>
     </div>
@@ -289,6 +302,12 @@
 
       </div><!-- /card availability -->
 
+      <!-- Shown when the referee is unavailable both weekends -->
+      <div class="callout-decline" id="decline-note" style="display:none;">
+        Sorry you can&rsquo;t make it this time. No other details are needed &mdash; just submit so your DRA and the assignor know.
+      </div>
+
+      <div id="contact-section">
       <!-- ── Section 2: Contact Details ─────────────────────── -->
       <div class="sec-head">
         <span class="sec-num">2</span>
@@ -325,6 +344,7 @@
           </div>
         </div>
       </div>
+      </div><!-- /contact-section -->
 
       <!-- ── Section 3: Notes ───────────────────────────────── -->
       <div class="sec-head">
@@ -444,6 +464,24 @@ function updateHotelVisibility() {
     document.getElementById('hotel-wkd2-value').value = '';
     clearToggleGroup('hotel-wkd2');
   }
+
+  updateDeclineMode();
+}
+
+// ─── DECLINE MODE ────────────────────────────────────────────
+// Unavailable both weekends: contact details aren't needed, so hide them.
+function isDeclining() {
+  return document.getElementById('wkd1-value').value === 'No' &&
+         document.getElementById('wkd2-value').value === 'No';
+}
+
+function updateDeclineMode() {
+  var declining = isDeclining();
+  document.getElementById('contact-section').style.display = declining ? 'none' : '';
+  document.getElementById('decline-note').style.display = declining ? '' : 'none';
+  document.getElementById('sub-btn').textContent = declining
+    ? 'Submit \u2014 I can\u2019t make it'
+    : (isReturnVisit ? 'Update Details' : 'Submit Details');
 }
 
 // Deactivate both buttons in a hotel toggle group without clearing the underlying hidden value
@@ -561,8 +599,15 @@ function populateForm(data) {
   // Submit button text
   document.getElementById('sub-btn').textContent = isReturnVisit ? 'Update Details' : 'Submit Details';
 
-  // Late banner
-  if (data.deadlineState === 'late' && data.deadlineDisplay) {
+  // Response deadline (always shown when set)
+  if (data.deadlineDisplay) {
+    document.getElementById('greeting-deadline').textContent = data.deadlineDisplay;
+    document.getElementById('greeting-deadline-wrap').style.display = '';
+  }
+
+  // Late banner — only for first-time late responses (on-time edits keep their on-time status)
+  if (data.deadlineState === 'late' && data.deadlineDisplay &&
+      (!data.submittedAt || data.lateFlag === 'Y')) {
     document.getElementById('late-banner-date').textContent = data.deadlineDisplay;
     document.getElementById('late-banner').style.display = '';
   }
@@ -697,6 +742,9 @@ function validateForm() {
     }
   }
 
+  // Declining both weekends — contact details not required
+  if (isDeclining()) { return ok; }
+
   // Age
   var ageEl = document.getElementById('inp-age');
   if (!ageEl.value.trim()) { ageEl.classList.add('err'); ok = false; }
@@ -757,12 +805,12 @@ document.getElementById('detail-form').addEventListener('submit', async function
 
   // Both-weekends-no warning
   if (wkd1 === 'No' && wkd2 === 'No') {
-    var confirmed = confirm('You indicated you are not available either weekend. Are you sure you want to submit?');
+    var confirmed = confirm('You are not available either weekend, so you will be removed from consideration for this tournament. Submit?');
     if (!confirmed) { return; }
   }
 
   var btn = document.getElementById('sub-btn');
-  var origText = isReturnVisit ? 'Update Details' : 'Submit Details';
+  var origText = btn.textContent;
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span>Submitting\u2026';
 
@@ -817,10 +865,13 @@ document.getElementById('detail-form').addEventListener('submit', async function
 });
 
 function showSuccessState(payload, wasReturnVisit) {
+  var declined = payload.refWeekend1 === 'No' && payload.refWeekend2 === 'No';
   document.getElementById('success-heading').textContent =
-    wasReturnVisit ? '\u2713 Details Updated' : '\u2713 Details Submitted';
+    declined ? '\u2713 Response Recorded'
+             : (wasReturnVisit ? '\u2713 Details Updated' : '\u2713 Details Submitted');
   document.getElementById('success-sub').textContent =
-    wasReturnVisit ? 'Your details have been updated.' : 'Your details have been recorded.';
+    declined ? 'Thanks for letting us know you can\u2019t make it. If your plans change, return to this link before the deadline.'
+             : (wasReturnVisit ? 'Your details have been updated.' : 'Your details have been recorded.');
 
   var wkd1Label = payload.refWeekend1 === 'Yes' ? 'Available' : 'Not Available';
   var wkd2Label = payload.refWeekend2 === 'Yes' ? 'Available' : 'Not Available';
@@ -837,9 +888,9 @@ function showSuccessState(payload, wasReturnVisit) {
   var html = '';
   html += '<div class="sum-item"><strong>Weekend 1:</strong> ' + esc(wkd1Display) + '</div>';
   html += '<div class="sum-item"><strong>Weekend 2:</strong> ' + esc(wkd2Display) + '</div>';
-  html += '<div class="sum-item"><strong>Phone:</strong> ' + esc(payload.phone) + '</div>';
-  html += '<div class="sum-item"><strong>Age:</strong> ' + esc(payload.age) + '</div>';
-  html += '<div class="sum-item"><strong>Gender:</strong> ' + esc(payload.gender) + '</div>';
+  if (payload.phone)  html += '<div class="sum-item"><strong>Phone:</strong> ' + esc(payload.phone) + '</div>';
+  if (payload.age)    html += '<div class="sum-item"><strong>Age:</strong> ' + esc(payload.age) + '</div>';
+  if (payload.gender) html += '<div class="sum-item"><strong>Gender:</strong> ' + esc(payload.gender) + '</div>';
   if (payload.parentEmail) {
     html += '<div class="sum-item"><strong>Parent/Guardian Email:</strong> ' + esc(payload.parentEmail) + '</div>';
   }

@@ -57,39 +57,34 @@
   .sec-head { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; }
   .sec-head h2 { font-family: 'Open Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); }
 
-  /* DRA selector */
-  .dra-select-wrap { max-width: 380px; margin-bottom: 24px; }
-  #dra-select {
-    width: 100%; background: var(--off);
+  /* email lookup */
+  .lookup { display: flex; gap: 10px; flex-wrap: wrap; max-width: 520px; margin-bottom: 8px; }
+  #dra-email {
+    flex: 1 1 260px; background: var(--white);
     border: 1.5px solid var(--border); border-radius: var(--r);
-    padding: 10px 12px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 14px;
-    transition: border-color .18s, box-shadow .18s; outline: none; appearance: none; -webkit-appearance: none;
-    cursor: pointer;
+    padding: 10px 12px; color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 16px;
+    transition: border-color .18s, box-shadow .18s; outline: none;
   }
-  #dra-select:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13,33,72,0.09); }
+  #dra-email:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13,33,72,0.09); }
+  .lookup-btn {
+    background: var(--navy); border: none; border-radius: var(--r);
+    color: #fff; font-family: 'Open Sans', sans-serif; font-size: 13px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase; padding: 0 22px; min-height: 44px; cursor: pointer;
+  }
+  .lookup-btn:hover { background: #162d5a; }
+  .lookup-btn:disabled { opacity: .6; cursor: default; }
+  .hint { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .back-link { display: inline-block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 20px; text-decoration: none; }
+  .back-link:hover { text-decoration: underline; }
 
-  /* summary counts bar */
+  /* summary bar */
   #summary {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
     background: var(--white); border: 1px solid var(--border); border-radius: var(--r);
     padding: 12px 16px; margin-bottom: 16px;
     font-size: 13px; font-weight: 600; color: var(--muted);
   }
-  #summary .sum-total { color: var(--navy); font-size: 14px; font-weight: 700; margin-right: 4px; }
-  #summary .sum-sep { color: var(--border); user-select: none; }
-
-  /* status badges */
-  .badge {
-    display: inline-block; border-radius: 4px;
-    font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
-    padding: 3px 9px; white-space: nowrap;
-  }
-  .badge-responded { background: #dcfce7; color: #166534; }
-  .badge-pending   { background: #e8eaed; color: #3c4043; }
-
-  /* summary count badges */
-  .sum-badge { display: inline-flex; align-items: center; gap: 5px; }
-  .sum-badge .badge { font-size: 12px; padding: 3px 9px; }
+  #summary strong { color: var(--navy); font-size: 14px; }
+  #summary.err { color: var(--red); }
 
   /* table */
   .table-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--border); background: var(--white); }
@@ -101,24 +96,10 @@
   }
   tbody tr { border-bottom: 1px solid var(--border); }
   tbody tr:last-child { border-bottom: none; }
-
-  /* compact rows */
-  .row-compact { cursor: pointer; transition: background .12s; }
-  .row-compact:hover { background: var(--slate); }
-  .row-compact td { padding: 11px 14px; vertical-align: middle; }
-  .row-compact .td-name { font-weight: 600; color: var(--navy); white-space: nowrap; }
-  .chevron { float: right; transition: transform .2s; color: var(--muted); font-size: 12px; }
-  .row-compact.expanded .chevron { transform: rotate(90deg); }
-
-  /* detail rows */
-  .row-detail { display: none; }
-  .row-detail.open { display: table-row; }
-  .row-detail td { background: var(--off); padding: 16px 20px; border-bottom: 1px solid var(--border); }
-  .detail-grid { display: grid; grid-template-columns: 140px 1fr; gap: 8px 16px; }
-  .detail-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
-  .detail-value { font-size: 14px; color: var(--text); }
-  .pending-msg { text-align: center; color: var(--muted); font-style: italic; padding: 16px; }
-  .empty-state { text-align: center; padding: 40px; color: var(--muted); font-style: italic; }
+  tbody td { padding: 11px 14px; vertical-align: top; }
+  .td-name { font-weight: 600; color: var(--navy); white-space: nowrap; }
+  .td-age { white-space: nowrap; }
+  .td-notes { color: var(--text); min-width: 200px; }
 
   /* loading / error states */
   .state-card {
@@ -146,11 +127,6 @@
   @media(max-width:700px) {
     .dates-inner { flex-direction: column; }
     .date-blk { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    #summary { gap: 8px; }
-  }
-  @media(max-width:560px) {
-    .detail-grid { grid-template-columns: 1fr; }
-    .dra-select-wrap { max-width: 100%; }
   }
 </style>
 </head>
@@ -189,57 +165,33 @@
 
 <main class="main">
 
-  <!-- loading state -->
-  <div id="state-loading">
-    <div class="state-card">
-      <div class="spin-dk" style="margin:0 auto 18px;"></div>
-      <p>Loading&hellip;</p>
-    </div>
+  <a href="state-cup-nomination.html" class="back-link">&larr; Submit more nominations</a>
+
+  <div class="sec-head">
+    <h2>View Your Nominations</h2>
   </div>
 
-  <!-- error state -->
-  <div id="state-error" style="display:none;">
-    <div class="state-card er">
-      <h2>Could not load data</h2>
-      <p>There was a problem connecting to the spreadsheet.</p>
-      <p class="err-msg" id="err-detail"></p>
-      <button class="try-btn" onclick="loadDRANames()">Retry</button>
+  <form class="lookup" id="lookup-form" novalidate>
+    <input type="email" id="dra-email" placeholder="Your DRA email address" autocomplete="email" required>
+    <button type="submit" class="lookup-btn" id="lookup-btn">View</button>
+  </form>
+  <p class="hint">Enter the email address shown for you on the nomination form.</p>
+
+  <div id="results" style="display:none;">
+    <div id="summary"></div>
+    <div class="table-wrap" id="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Max Age &mdash; Referee</th>
+            <th>Max Age &mdash; AR</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="nominee-tbody"></tbody>
+      </table>
     </div>
-  </div>
-
-  <!-- main content -->
-  <div id="state-content" style="display:none;">
-
-    <div class="sec-head">
-      <h2>Select Your Name</h2>
-    </div>
-
-    <div class="dra-select-wrap">
-      <select id="dra-select">
-        <option value="">Choose your name&hellip;</option>
-      </select>
-    </div>
-
-    <div id="nominee-area" style="display:none;">
-
-      <!-- summary counts -->
-      <div id="summary"></div>
-
-      <!-- table -->
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th style="text-align:right;">Status</th>
-            </tr>
-          </thead>
-          <tbody id="nominee-tbody"></tbody>
-        </table>
-      </div>
-
-    </div>
-
   </div>
 
 </main>
@@ -254,195 +206,77 @@
 // ---------------------------------------------------------------------------
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyUY052Oo8EeVFlf7zfezUVjwsjal_u17SIHKJoF7DBwUlZNXau4fRiaDJjB3u49JNz/exec';
 
-// ---------------------------------------------------------------------------
-// STATE
-// ---------------------------------------------------------------------------
-var draNames = [];
-var nominees = [];
-var counts = { responded: 0, pending: 0 };
+var EMAIL_STORE = 'draNomineeView_email';
 
 // ---------------------------------------------------------------------------
-// BOOTSTRAP
+// BOOTSTRAP — pre-fill the last email used on this browser
 // ---------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', function() {
-  loadDRANames();
-  document.getElementById('dra-select').addEventListener('change', onDRASelect);
+  var saved = '';
+  try { saved = localStorage.getItem(EMAIL_STORE) || ''; } catch (e) {}
+  if (saved) document.getElementById('dra-email').value = saved;
+
+  document.getElementById('lookup-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    loadNominees(document.getElementById('dra-email').value.trim());
+  });
 });
 
 // ---------------------------------------------------------------------------
-// loadDRANames — fetch distinct DRA names for the dropdown
+// loadNominees — fetch the nominations submitted under this DRA email
 // ---------------------------------------------------------------------------
-async function loadDRANames() {
-  showState('loading');
-  try {
-    var res = await fetch(SCRIPT_URL + '?action=getDRANominees');
-    var data = await res.json();
-    if (!data.ok) {
-      throw new Error(data.message || 'Server returned ok:false');
-    }
-    draNames = data.draNames || [];
-    var sel = document.getElementById('dra-select');
-    sel.innerHTML = '<option value="">Choose your name\u2026</option>';
-    for (var i = 0; i < draNames.length; i++) {
-      var opt = document.createElement('option');
-      opt.value = draNames[i];
-      opt.textContent = draNames[i];
-      sel.appendChild(opt);
-    }
+async function loadNominees(email) {
+  var summary = document.getElementById('summary');
+  var btn = document.getElementById('lookup-btn');
+  if (!email) { document.getElementById('dra-email').focus(); return; }
 
-    // Restore from localStorage
-    var saved = localStorage.getItem('draNomineeView_selectedDRA');
-    if (saved && draNames.indexOf(saved) !== -1) {
-      sel.value = saved;
-      showState('content');
-      loadNominees(saved);
-    } else {
-      showState('content');
-    }
-  } catch (err) {
-    document.getElementById('err-detail').textContent = String(err);
-    showState('error');
-  }
-}
-
-// ---------------------------------------------------------------------------
-// onDRASelect — handle dropdown selection change
-// ---------------------------------------------------------------------------
-function onDRASelect() {
-  var name = document.getElementById('dra-select').value;
-  if (!name) {
-    document.getElementById('nominee-area').style.display = 'none';
-    localStorage.removeItem('draNomineeView_selectedDRA');
-    return;
-  }
-  localStorage.setItem('draNomineeView_selectedDRA', name);
-  loadNominees(name);
-}
-
-// ---------------------------------------------------------------------------
-// loadNominees — fetch nominees for a specific DRA
-// ---------------------------------------------------------------------------
-async function loadNominees(draName) {
-  var area = document.getElementById('nominee-area');
-  area.style.display = '';
-  document.getElementById('summary').innerHTML = '<span style="color:var(--muted);">Loading nominees&hellip;</span>';
-  document.getElementById('nominee-tbody').innerHTML = '';
+  document.getElementById('results').style.display = '';
+  document.getElementById('table-wrap').style.display = 'none';
+  summary.className = '';
+  summary.textContent = 'Loading\u2026';
+  btn.disabled = true;
 
   try {
-    var res = await fetch(SCRIPT_URL + '?action=getDRANominees&draName=' + encodeURIComponent(draName));
+    var res = await fetch(SCRIPT_URL + '?action=getDRANominees&draEmail=' + encodeURIComponent(email));
     var data = await res.json();
-    if (!data.ok) {
-      throw new Error(data.message || 'Server returned ok:false');
+    if (!data.ok) throw new Error(data.message || 'Server returned ok:false');
+
+    var nominees = data.nominees || [];
+    if (!nominees.length) {
+      summary.className = 'err';
+      summary.textContent = 'No nominations found for ' + email + '. Check that this is the email shown for you on the nomination form.';
+      return;
     }
-    nominees = data.nominees || [];
-    counts = data.counts || { responded: 0, pending: 0 };
-    renderSummary();
-    renderTable(draName);
+
+    try { localStorage.setItem(EMAIL_STORE, email); } catch (e) {}
+    summary.innerHTML = '<strong>' + nominees.length + ' nominee' + (nominees.length === 1 ? '' : 's') + '</strong>' +
+      (data.draName ? ' submitted by ' + esc(data.draName) : '');
+    renderTable(nominees);
+    document.getElementById('table-wrap').style.display = '';
   } catch (err) {
-    document.getElementById('summary').innerHTML = '<span style="color:var(--red);">Error loading nominees: ' + esc(String(err)) + '</span>';
+    summary.className = 'err';
+    summary.textContent = 'Could not load nominations: ' + err.message;
+  } finally {
+    btn.disabled = false;
   }
 }
 
 // ---------------------------------------------------------------------------
-// renderSummary — update the counts bar
+// renderTable — one row per nominee
 // ---------------------------------------------------------------------------
-function renderSummary() {
-  var total = nominees.length;
-  var el = document.getElementById('summary');
-  el.innerHTML =
-    '<span class="sum-total">' + total + ' Nominee' + (total === 1 ? '' : 's') + '</span>' +
-    '<span class="sum-sep">|</span>' +
-    '<span class="sum-badge"><span class="badge badge-responded">' + counts.responded + ' Responded</span></span>' +
-    '<span class="sum-sep">|</span>' +
-    '<span class="sum-badge"><span class="badge badge-pending">' + counts.pending + ' Pending</span></span>';
-}
-
-// ---------------------------------------------------------------------------
-// renderTable — clear and rebuild tbody
-// ---------------------------------------------------------------------------
-function renderTable(draName) {
+function renderTable(nominees) {
   var tbody = document.getElementById('nominee-tbody');
   tbody.innerHTML = '';
-
-  if (nominees.length === 0) {
-    var emptyRow = document.createElement('tr');
-    var emptyCell = document.createElement('td');
-    emptyCell.colSpan = 2;
-    emptyCell.className = 'empty-state';
-    emptyCell.textContent = 'No nominees found for ' + draName;
-    emptyRow.appendChild(emptyCell);
-    tbody.appendChild(emptyRow);
-    return;
-  }
-
   for (var i = 0; i < nominees.length; i++) {
     var n = nominees[i];
-    var badgeClass = (n.status === 'Responded') ? 'badge-responded' : 'badge-pending';
-
-    // Compact row
-    var compact = document.createElement('tr');
-    compact.className = 'row-compact';
-    compact.innerHTML =
+    var tr = document.createElement('tr');
+    tr.innerHTML =
       '<td class="td-name">' + esc(n.lastName + ', ' + n.firstName) + '</td>' +
-      '<td style="text-align:right;">' +
-        '<span class="badge ' + badgeClass + '">' + esc(n.status) + '</span>' +
-        '<span class="chevron">&#9654;</span>' +
-      '</td>';
-
-    // Detail row
-    var detail = document.createElement('tr');
-    detail.className = 'row-detail';
-    var detailCell = document.createElement('td');
-    detailCell.colSpan = 2;
-
-    if (n.status === 'Responded') {
-      var html = '<div class="detail-grid">';
-      html += detailPair('Availability', n.availability);
-      html += detailPair('Weekend 1', n.refWeekend1);
-      html += detailPair('Weekend 2', n.refWeekend2);
-      html += detailPair('Hotel Weekend 1', n.hotelWkd1);
-      html += detailPair('Hotel Weekend 2', n.hotelWkd2);
-      html += detailPair('Age', n.age);
-      html += detailPair('Gender', n.gender);
-      html += detailPair('Phone', n.phone);
-      if (n.refNotes) {
-        html += detailPair('Notes', n.refNotes);
-      }
-      html += '</div>';
-      detailCell.innerHTML = html;
-    } else {
-      detailCell.innerHTML = '<div class="pending-msg">Waiting for response</div>';
-    }
-
-    detail.appendChild(detailCell);
-    tbody.appendChild(compact);
-    tbody.appendChild(detail);
-
-    // Wire up toggle
-    (function(c, d) {
-      c.addEventListener('click', function() {
-        c.classList.toggle('expanded');
-        d.classList.toggle('open');
-      });
-    })(compact, detail);
+      '<td class="td-age">' + esc(n.maxRef || '\u2014') + '</td>' +
+      '<td class="td-age">' + esc(n.maxAr || '\u2014') + '</td>' +
+      '<td class="td-notes">' + esc(n.notes || '\u2014') + '</td>';
+    tbody.appendChild(tr);
   }
-}
-
-// ---------------------------------------------------------------------------
-// detailPair — build a label/value pair for the detail grid
-// ---------------------------------------------------------------------------
-function detailPair(label, value) {
-  return '<div class="detail-label">' + esc(label) + '</div>' +
-         '<div class="detail-value">' + esc(value || '\u2014') + '</div>';
-}
-
-// ---------------------------------------------------------------------------
-// showState — toggle which state panel is visible
-// ---------------------------------------------------------------------------
-function showState(which) {
-  document.getElementById('state-loading').style.display = (which === 'loading') ? '' : 'none';
-  document.getElementById('state-error').style.display   = (which === 'error')   ? '' : 'none';
-  document.getElementById('state-content').style.display = (which === 'content') ? '' : 'none';
 }
 
 // ---------------------------------------------------------------------------

@@ -76,6 +76,7 @@
   .badge-not-sent   { background: #e8eaed; color: #3c4043; }
   .badge-sent       { background: #fef9c3; color: #854d0e; }
   .badge-confirmed  { background: #dcfce7; color: #166534; }
+  .badge-declined   { background: #fee2e2; color: #991b1b; }
 
   /* summary count badges */
   .sum-badge { display: inline-flex; align-items: center; gap: 5px; }
@@ -155,6 +156,7 @@
   }
   #paste-banner .pb-again { background: rgba(255,255,255,.12); color: #fff; }
   #paste-banner .pb-done  { background: var(--red); color: #fff; }
+  #paste-banner .pb-cancel { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.4); }
   @media(max-width:700px) { #paste-banner { flex-direction: column; align-items: stretch; } }
 
   /* not-sent filter button */
@@ -348,13 +350,42 @@ function toggleNotSentFilter() {
 }
 
 // ---------------------------------------------------------------------------
+// Admin password — matches the ADMIN_KEY Script Property. Remembered on this
+// browser so it's only asked for once.
+// ---------------------------------------------------------------------------
+var ADMIN_KEY_STORE = 'stateCupAdminKey';
+
+function getAdminKey(forcePrompt) {
+  var key = '';
+  if (!forcePrompt) {
+    try { key = localStorage.getItem(ADMIN_KEY_STORE) || ''; } catch (e) {}
+  }
+  if (!key) {
+    key = (prompt('Admin password:') || '').trim();
+    if (key) { try { localStorage.setItem(ADMIN_KEY_STORE, key); } catch (e) {} }
+  }
+  return key;
+}
+
+function forgetAdminKey() {
+  try { localStorage.removeItem(ADMIN_KEY_STORE); } catch (e) {}
+}
+
+// ---------------------------------------------------------------------------
 // loadNominees — fetch all nominees from the backend
 // ---------------------------------------------------------------------------
-async function loadNominees() {
+async function loadNominees(forcePrompt) {
   showState('loading');
   try {
-    var res = await fetch(SCRIPT_URL + '?action=getAllNominees');
+    var key = getAdminKey(forcePrompt);
+    if (!key) throw new Error('Admin password required.');
+    var res = await fetch(SCRIPT_URL + '?action=getAllNominees&key=' + encodeURIComponent(key));
     var data = await res.json();
+    if (!data.ok && data.error === 'unauthorized') {
+      forgetAdminKey();
+      alert('Wrong admin password. Please try again.');
+      return loadNominees(true);
+    }
     if (!data.ok) {
       throw new Error(data.message || 'Server returned ok:false');
     }
@@ -383,9 +414,9 @@ function showState(which) {
 // renderSummary — update the counts bar
 // ---------------------------------------------------------------------------
 function renderSummary(nominees) {
-  var counts = { 'Not Sent': 0, 'Sent': 0, 'Confirmed': 0 };
+  var counts = { 'Not Sent': 0, 'Sent': 0, 'Confirmed': 0, 'Declined': 0 };
   for (var i = 0; i < nominees.length; i++) {
-    var s = nominees[i].status;
+    var s = nominees[i].status || 'Not Sent';
     if (counts.hasOwnProperty(s)) counts[s]++;
   }
   var total = nominees.length;
@@ -397,19 +428,23 @@ function renderSummary(nominees) {
     '<span class="sum-sep">|</span>' +
     '<span class="sum-badge"><span class="badge badge-sent">' + counts['Sent'] + ' Sent</span></span>' +
     '<span class="sum-sep">|</span>' +
-    '<span class="sum-badge"><span class="badge badge-confirmed">' + counts['Confirmed'] + ' Confirmed</span></span>';
+    '<span class="sum-badge"><span class="badge badge-confirmed">' + counts['Confirmed'] + ' Confirmed</span></span>' +
+    '<span class="sum-sep">|</span>' +
+    '<span class="sum-badge"><span class="badge badge-declined">' + counts['Declined'] + ' Declined</span></span>';
 }
 
 // ---------------------------------------------------------------------------
 // sortNominees — return a new sorted array (does not mutate allNominees)
 // ---------------------------------------------------------------------------
 function sortNominees(nominees, col, dir) {
-  var statusOrder = { 'Not Sent': 0, 'Sent': 1, 'Confirmed': 2 };
+  var statusOrder = { 'Not Sent': 0, 'Sent': 1, 'Confirmed': 2, 'Declined': 3 };
   return nominees.slice().sort(function(a, b) {
     var av, bv;
     if (col === 'status') {
-      av = statusOrder.hasOwnProperty(a.status) ? statusOrder[a.status] : 99;
-      bv = statusOrder.hasOwnProperty(b.status) ? statusOrder[b.status] : 99;
+      av = statusOrder[a.status || 'Not Sent'];
+      bv = statusOrder[b.status || 'Not Sent'];
+      if (av === undefined) av = 99;
+      if (bv === undefined) bv = 99;
     } else if (col === 'name') {
       av = (a.lastName + ' ' + a.firstName).toLowerCase();
       bv = (b.lastName + ' ' + b.firstName).toLowerCase();
@@ -497,16 +532,6 @@ function renderTable() {
 
     var status = n.status || 'Not Sent';
     var badgeClass = statusBadgeClass(status);
-    var isActionable = (status === 'Not Sent');
-
-    var btnText, btnDisabled;
-    if (status === 'Confirmed') {
-      btnText = 'Confirmed'; btnDisabled = true;
-    } else if (status === 'Sent') {
-      btnText = 'Sent'; btnDisabled = true;
-    } else {
-      btnText = 'Send Email'; btnDisabled = false;
-    }
 
     tr.innerHTML =
       '<td class="td-name">' + esc(n.lastName + ', ' + n.firstName) + '</td>' +
@@ -516,18 +541,7 @@ function renderTable() {
       '<td class="td-wkd">' + esc(n.refWeekend1 || '\u2014') + '</td>' +
       '<td class="td-wkd">' + esc(n.refWeekend2 || '\u2014') + '</td>' +
       '<td>' + (n.parentEmail ? esc(n.parentEmail) : '<span style="color:var(--muted);">\u2014</span>') + '</td>' +
-      '<td class="td-action">' +
-        '<button class="btn-email" ' +
-          (btnDisabled ? 'disabled ' : '') +
-          'onclick="handleEmailClick(this)" ' +
-          'data-token="' + esc(n.token) + '">' +
-          btnText +
-        '</button>' +
-        (btnDisabled ? '' :
-          '<button class="btn-plain" title="Backup: plain-text email" ' +
-            'onclick="handlePlainClick(this)" ' +
-            'data-token="' + esc(n.token) + '">Plain</button>') +
-      '</td>';
+      '<td class="td-action">' + actionButtonsHtml(n.token, status) + '</td>';
 
     tbody.appendChild(tr);
   }
@@ -539,7 +553,22 @@ function renderTable() {
 function statusBadgeClass(status) {
   if (status === 'Sent')      return 'badge-sent';
   if (status === 'Confirmed') return 'badge-confirmed';
+  if (status === 'Declined')  return 'badge-declined';
   return 'badge-not-sent';
+}
+
+// ---------------------------------------------------------------------------
+// actionButtonsHtml — Send (Not Sent), Re-send (Sent), or a disabled label
+// once the referee has responded
+// ---------------------------------------------------------------------------
+function actionButtonsHtml(token, status) {
+  if (status === 'Confirmed' || status === 'Declined') {
+    return '<button class="btn-email" disabled>' + esc(status) + '</button>';
+  }
+  var label = (status === 'Sent') ? 'Re-send' : 'Send Email';
+  return '<button class="btn-email" onclick="handleEmailClick(this)" data-token="' + esc(token) + '">' + label + '</button>' +
+         '<button class="btn-plain" title="Backup: plain-text email" ' +
+           'onclick="handlePlainClick(this)" data-token="' + esc(token) + '">Plain</button>';
 }
 
 // ---------------------------------------------------------------------------
@@ -751,8 +780,9 @@ function findNominee(token) {
 
 // ---------------------------------------------------------------------------
 // handleEmailClick — copy the formatted email, open Outlook addressed
-// (To + CC + subject), mark Sent. One referee at a time: every send button
-// stays locked until "Done" is clicked in the paste banner.
+// (To + CC + subject). One referee at a time: every send button stays locked
+// until the paste banner is answered. Status is marked Sent only when the
+// admin confirms the email went out ("Sent — Next Referee").
 // ---------------------------------------------------------------------------
 var pendingToken = null;
 
@@ -770,16 +800,14 @@ function handleEmailClick(btn) {
   copyHtmlToClipboard(buildEmailHtml(n, tournamentProps), buildPlainBody(n, tournamentProps))
     .then(function(copied) {
       if (copied) {
-        showPasteBanner(n);
+        showPasteBanner(n, false);
         window.location.href = buildMailtoHref(n, tournamentProps, false);
       } else {
         // Couldn't copy — fall back to the plain-text email so nothing is lost.
         alert('Could not copy the formatted email. Opening the plain-text version instead.');
-        pendingToken = null;
-        setSendLock(false);
+        showPasteBanner(n, true);
         window.location.href = buildMailtoHref(n, tournamentProps, true);
       }
-      markSent(token);
     });
 }
 
@@ -791,43 +819,52 @@ function handlePlainClick(btn) {
   var token = btn.getAttribute('data-token');
   var n = findNominee(token);
   if (!n) return;
+  pendingToken = token;
+  setSendLock(true);
+  showPasteBanner(n, true);
   window.location.href = buildMailtoHref(n, tournamentProps, true);
-  markSent(token);
 }
 
 // ---------------------------------------------------------------------------
-// markSent — record Sent in the sheet (non-blocking; UI is optimistic)
+// markSent — record Sent in the sheet; the row only changes once the sheet
+// has actually been updated
 // ---------------------------------------------------------------------------
 async function markSent(token) {
+  var n = findNominee(token);
+  var name = n ? (n.firstName + ' ' + n.lastName) : 'this referee';
   try {
     var res = await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'markSent', token: token })
+      body: JSON.stringify({ action: 'markSent', token: token, key: getAdminKey(false) })
       // No Content-Type header — avoids CORS preflight (proven pattern from Phase 2/3)
     });
     var data = await res.json();
-    if (!data.ok) console.warn('markSent returned ok:false —', data.message || data.error);
+    if (!data.ok) throw new Error(data.message || data.error || 'unknown error');
+    if (!data.alreadyMarked) updateRowStatus(token, 'Sent');
   } catch (err) {
-    console.warn('markSent network error (non-blocking):', err);
+    alert('The email for ' + name + ' could not be marked Sent in the sheet (' + err.message + '). ' +
+          'Reload the page and check their status.');
   }
-  updateRowStatus(token, 'Sent');
 }
 
 // ---------------------------------------------------------------------------
 // Paste banner — tells the admin which referee's email is on the clipboard
 // ---------------------------------------------------------------------------
-function showPasteBanner(n) {
+function showPasteBanner(n, plain) {
   var el = document.getElementById('paste-banner');
-  el.innerHTML =
-    '<div class="pb-text">' +
-      '<strong>Copied: ' + esc(n.firstName + ' ' + n.lastName) + '</strong> &lt;' + esc(n.refEmail) + '&gt;<br>' +
+  var instructions = plain
+    ? '<strong>Plain-text email: ' + esc(n.firstName + ' ' + n.lastName) + '</strong> &lt;' + esc(n.refEmail) + '&gt;<br>' +
+      'Check the email in Outlook and send it.'
+    : '<strong>Copied: ' + esc(n.firstName + ' ' + n.lastName) + '</strong> &lt;' + esc(n.refEmail) + '&gt;<br>' +
       'In Outlook, click in the message body and press <kbd>\u2318V</kbd>. ' +
       'Check that it says <em>Dear ' + esc(n.firstName) + '</em> and is addressed to ' + esc(n.refEmail) +
-      (n.parentEmail ? ' (CC parent: ' + esc(n.parentEmail) + ')' : '') + ', then send.' +
-    '</div>' +
+      (n.parentEmail ? ' (CC parent: ' + esc(n.parentEmail) + ')' : '') + ', then send.';
+  el.innerHTML =
+    '<div class="pb-text">' + instructions + '</div>' +
     '<div class="pb-actions">' +
-      '<button class="pb-again" onclick="copyAgain()">Copy Again</button>' +
-      '<button class="pb-done" onclick="finishPaste()">Done &mdash; Next Referee</button>' +
+      (plain ? '' : '<button class="pb-again" onclick="copyAgain()">Copy Again</button>') +
+      '<button class="pb-cancel" onclick="finishPaste(false)">Didn&rsquo;t Send</button>' +
+      '<button class="pb-done" onclick="finishPaste(true)">Sent &mdash; Next Referee</button>' +
     '</div>';
   el.style.display = 'flex';
 }
@@ -839,10 +876,19 @@ function copyAgain() {
     .then(function(ok) { if (!ok) alert('Copy failed. Use the Plain button for this referee instead.'); });
 }
 
-function finishPaste() {
+function finishPaste(sent) {
+  var token = pendingToken;
   pendingToken = null;
   document.getElementById('paste-banner').style.display = 'none';
   setSendLock(false);
+
+  var n = findNominee(token);
+  var status = n ? (n.status || 'Not Sent') : '';
+  // Restore the button label ("Copying…") on the row
+  var tr = token && document.querySelector('tr[data-token="' + CSS.escape(token) + '"]');
+  if (tr) tr.cells[tr.cells.length - 1].innerHTML = actionButtonsHtml(token, status);
+
+  if (sent && status === 'Not Sent') markSent(token);
 }
 
 function setSendLock(locked) {
@@ -871,14 +917,8 @@ function updateRowStatus(token, newStatus) {
     badgeCell.innerHTML = '<span class="badge ' + statusBadgeClass(newStatus) + '">' + esc(newStatus) + '</span>';
   }
 
-  // Update button
-  var btn = tr.querySelector('.btn-email');
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = newStatus === 'Confirmed' ? 'Confirmed' : 'Sent';
-  }
-  var plainBtn = tr.querySelector('.btn-plain');
-  if (plainBtn) plainBtn.remove();
+  // Update buttons (Sent rows get Re-send)
+  tr.cells[tr.cells.length - 1].innerHTML = actionButtonsHtml(token, newStatus);
 
   // Re-render summary counts with updated allNominees
   renderSummary(allNominees);

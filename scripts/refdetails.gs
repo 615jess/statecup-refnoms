@@ -28,7 +28,7 @@
  *   O  = col 15 (0-based 14)  Hotel Weekend 1
  *   P  = col 16 (0-based 15)  Hotel Weekend 2
  *   R  = col 18 (0-based 17)  Token (scan target)
- *   S  = col 19 (0-based 18)  Status (set to 'Confirmed' on submit)
+ *   S  = col 19 (0-based 18)  Status (set to 'Confirmed', or 'Declined' if No both weekends)
  *   U  = col 21 (0-based 20)  SubmittedAt (written by system)
  *   V  = col 22 (0-based 21)  RefWeekend1
  *   W  = col 23 (0-based 22)  RefWeekend2
@@ -194,14 +194,14 @@ function doGet(e) {
     // Phase 4: Admin page — return all nominees as JSON.
     // _handleGetAllNominees is defined in adminemail.gs (same GAS project scope).
     if (action === 'getAllNominees') {
+      if (!_isAdminKey(e.parameter.key)) return _adminDenied();
       return _handleGetAllNominees();
     }
 
-    // Phase 7: DRA nominee view — return nominees for a specific DRA.
-    // _handleGetDRANominees is defined in adminemail.gs (same GAS project scope).
+    // Phase 7: DRA nominee view — return the nominations a DRA submitted,
+    // looked up by DRA email. Defined in adminemail.gs (same GAS project scope).
     if (action === 'getDRANominees') {
-      var draName = (e.parameter.draName || '').trim();
-      return _handleGetDRANominees(draName);
+      return _handleGetDRANominees(e.parameter.draEmail || '');
     }
 
     // Phase 3: Referee detail form — token-based lookup (existing behavior).
@@ -331,7 +331,7 @@ function _handleGetDetails(token) {
  *   4. Read existing SubmittedAt to determine if this is a first submission or an edit
  *   5. Read existing LateFlag to preserve it on edits
  *   6. Write referee-provided columns: I, J (single cells), M-P (one 4-col range), V-Y (one 4-col range)
- *   7. Write system columns: Status = 'Confirmed' (S), SubmittedAt = new Date() (U)
+ *   7. Write system columns: Status = 'Confirmed' or 'Declined' (S), SubmittedAt = new Date() (U)
  *   8. Return { ok: true, lateFlag: 'Y' | null }
  *
  * LateFlag logic (column X):
@@ -409,7 +409,9 @@ function _handleSubmitDetails(payload) {
     ]]);
 
     // Step 8: Write system columns.
-    sheet.getRange(rowNum, COL_STATUS).setValue('Confirmed'); // S
+    //   Unavailable both weekends = 'Declined' so they aren't counted as confirmed.
+    var declined = payload.refWeekend1 === 'No' && payload.refWeekend2 === 'No';
+    sheet.getRange(rowNum, COL_STATUS).setValue(declined ? 'Declined' : 'Confirmed'); // S
     sheet.getRange(rowNum, COL_SUBMITTED_AT).setValue(new Date()); // U
 
     // Step 9: Write parent/guardian email (column AB) — only present for minors.

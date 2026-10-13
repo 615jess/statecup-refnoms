@@ -58,7 +58,7 @@
  *   P  = 16  Hotel Weekend 2
  *   Q  = 17  DRA Notes
  *   R  = 18  Token
- *   S  = 19  Status          <-- 3-value dropdown: Not Sent / Sent / Confirmed
+ *   S  = 19  Status          <-- 4-value dropdown: Not Sent / Sent / Confirmed / Declined
  *   T  = 20  SentAt
  *   U  = 21  SubmittedAt
  *   V  = 22  RefWeekend1
@@ -112,10 +112,11 @@ var COL_DEADLINE     = 26; // Z — named range target
 var COL_LABEL        = 27; // AA — "Confirmation Deadline:" label
 var COL_PARENT_EMAIL = 28; // AB — Parent/Guardian Email (Phase 5.1)
 
-// Status values (v2.0 — exactly 3)
+// Status values (exactly 4). Declined = referee answered No to both weekends.
 var STATUS_NOT_SENT  = 'Not Sent';
 var STATUS_SENT      = 'Sent';
 var STATUS_CONFIRMED = 'Confirmed';
+var STATUS_DECLINED  = 'Declined';
 
 // Locked header array (A-AB, 28 columns).
 // Index 0 = column A, index 25 = column Z, index 27 = column AB.
@@ -291,7 +292,7 @@ function _applyStatusValidation(sheet) {
   Logger.log('  Old validation cleared from column S.');
 
   var rule = SpreadsheetApp.newDataValidation()
-    .requireValueInList([STATUS_NOT_SENT, STATUS_SENT, STATUS_CONFIRMED], true)
+    .requireValueInList([STATUS_NOT_SENT, STATUS_SENT, STATUS_CONFIRMED, STATUS_DECLINED], true)
     .setAllowInvalid(false)
     .build();
 
@@ -299,7 +300,7 @@ function _applyStatusValidation(sheet) {
   sheet.getRange('S2:S500').setDataValidation(rule);
 
   Logger.log('  Validation applied to S2:S500.');
-  Logger.log('  Allowed values: Not Sent / Sent / Confirmed');
+  Logger.log('  Allowed values: Not Sent / Sent / Confirmed / Declined');
   Logger.log('  Invalid values: REJECTED (not just warned)');
 }
 
@@ -362,10 +363,11 @@ function applyConditionalFormatting() {
  * WARNING: clearConditionalFormatRules() is sheet-wide. Any custom conditional
  * formatting you added manually will be removed. Re-apply after running setup.
  *
- * Color scheme (v2.0 — 3 values, no Pending/Declined):
+ * Color scheme (4 values):
  *   Not Sent  — gray   background (#e8eaed), dark gray text (#3c4043)
  *   Sent      — yellow background (#fef9c3), dark yellow text (#854d0e)
  *   Confirmed — green  background (#dcfce7), dark green text (#166534)
+ *   Declined  — red    background (#fee2e2), dark red text (#991b1b)
  */
 function _applyConditionalFormatting(sheet) {
   Logger.log('Step 5: Applying conditional formatting...');
@@ -407,8 +409,18 @@ function _applyConditionalFormatting(sheet) {
       .build()
   );
 
+  // Declined — red
+  rules.push(
+    SpreadsheetApp.newConditionalFormatRule()
+      .whenTextEqualTo(STATUS_DECLINED)
+      .setBackground('#fee2e2')
+      .setFontColor('#991b1b')
+      .setRanges([range])
+      .build()
+  );
+
   sheet.setConditionalFormatRules(rules);
 
-  Logger.log('  3 conditional format rules applied to S2:S500.');
-  Logger.log('  Not Sent=gray, Sent=yellow, Confirmed=green');
+  Logger.log('  4 conditional format rules applied to S2:S500.');
+  Logger.log('  Not Sent=gray, Sent=yellow, Confirmed=green, Declined=red');
 }

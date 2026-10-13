@@ -36,7 +36,7 @@
  *   Check 2:  All 26 headers A-Z (was: 8 headers R-Y only)
  *   Check 3:  3 status values: Not Sent / Sent / Confirmed (was: 4 values)
  *   Check 5:  lastRow = 1 = header only (was: all rows have Status value)
- *   Check 6:  3 conditional format rules (was: 4 rules including Pending/Declined)
+ *   Check 6:  4 conditional format rules (Not Sent, Sent, Confirmed, Declined)
  */
 
 
@@ -74,10 +74,10 @@ var EXPECTED_HEADERS = [
 ];
 
 // Expected status validation values (v2.0 — exactly 3)
-var EXPECTED_STATUS_LIST = ['Not Sent', 'Sent', 'Confirmed'];
+var EXPECTED_STATUS_LIST = ['Not Sent', 'Sent', 'Confirmed', 'Declined'];
 
 // Expected conditional format rule text values (must match above)
-var EXPECTED_FORMAT_STATUSES = ['Not Sent', 'Sent', 'Confirmed'];
+var EXPECTED_FORMAT_STATUSES = ['Not Sent', 'Sent', 'Confirmed', 'Declined'];
 
 
 // ---------------------------------------------------------------------------
@@ -153,7 +153,7 @@ function verifySchemaV2() {
   }
 
   // ------------------------------------------------------------------
-  // Check 3: Column S validation — VALUE_IN_LIST with exactly 3 values
+  // Check 3: Column S validation — VALUE_IN_LIST with exactly 4 values
   // ------------------------------------------------------------------
   Logger.log('');
   Logger.log('Check 3: Column S data validation');
@@ -193,7 +193,7 @@ function verifySchemaV2() {
       if (listMatchFailed) {
         fail('Column S validation values', listDetail);
       } else {
-        pass('Column S validation: VALUE_IN_LIST [Not Sent, Sent, Confirmed] — 3 values exactly');
+        pass('Column S validation: VALUE_IN_LIST [Not Sent, Sent, Confirmed, Declined] — 4 values exactly');
       }
     }
   }
@@ -234,15 +234,15 @@ function verifySchemaV2() {
   }
 
   // ------------------------------------------------------------------
-  // Check 6: Conditional formatting — exactly 3 rules, matching v2.0 statuses
+  // Check 6: Conditional formatting — one rule per status
   // ------------------------------------------------------------------
   Logger.log('');
   Logger.log('Check 6: Conditional formatting rules');
   var cfRules = sheet.getConditionalFormatRules();
 
-  if (cfRules.length !== 3) {
+  if (cfRules.length !== EXPECTED_FORMAT_STATUSES.length) {
     fail('Conditional format rule count',
-         'Expected 3, got ' + cfRules.length + '. Run setupSchemaV2 to reset formatting.');
+         'Expected ' + EXPECTED_FORMAT_STATUSES.length + ', got ' + cfRules.length + '. Run setupSchemaV2 to reset formatting.');
   } else {
     // Verify each rule's text-equals value matches the expected statuses.
     // Apps Script conditional format rules store criteria as BooleanCondition.
@@ -268,7 +268,7 @@ function verifySchemaV2() {
     }
 
     if (cfFails.length === 0) {
-      pass('3 conditional format rules correct: Not Sent=gray, Sent=yellow, Confirmed=green');
+      pass('4 conditional format rules correct: Not Sent=gray, Sent=yellow, Confirmed=green, Declined=red');
     } else {
       fail('Conditional format rule content', cfFails.join('; '));
     }

@@ -13,9 +13,8 @@
  *     timestamp (column T). Idempotent: if the referee is already Sent or Confirmed, returns
  *     ok:true without overwriting. Uses LockService to serialize concurrent writes.
  *
- *   _handleGetDRANominees(draName) — Phase 7: returns nominees filtered by DRA name with
- *     simplified status labels (Responded/Pending). When draName is empty, returns distinct
- *     DRA names for the dropdown. Excludes email, token, and admin-only fields.
+ *   _handleGetDRANominees(draEmail) — Phase 7: returns the nominations a DRA submitted,
+ *     looked up by DRA email. Only referee name, max age groups and DRA notes are returned.
  *
  * COLUMN REFERENCES USED (1-based for getRange; 0-based for array indexing):
  *   B  = col  2 (0-based  1)  DRA Name
@@ -214,9 +213,9 @@ function _handleMarkSent(payload) {
     var currentStatus = sheet.getRange(rowNum, COL_STATUS).getValue();
 
     // Step 4: Idempotency check.
-    // Only update if status is exactly 'Not Sent'. A referee who is already
-    // 'Sent' or 'Confirmed' must not have their status overwritten.
-    if (currentStatus !== 'Not Sent') {
+    // Only update if status is 'Not Sent' (or blank). A referee who is already
+    // 'Sent', 'Confirmed' or 'Declined' must not have their status overwritten.
+    if (currentStatus !== 'Not Sent' && currentStatus !== '') {
       Logger.log('_handleMarkSent: Row ' + rowNum + ' already has status "' + currentStatus + '" — skipping write.');
       return _jsonResponse({ ok: true, alreadyMarked: true });
     }
@@ -238,95 +237,74 @@ function _handleMarkSent(payload) {
 
 
 // ---------------------------------------------------------------------------
-// _handleGetDRANominees — Return Nominees for a Specific DRA (Phase 7)
+// Admin password — protects getAllNominees and markSent
 // ---------------------------------------------------------------------------
 
 /**
- * Returns nominee data for the DRA nominee view page.
+ * True when key matches the ADMIN_KEY Script Property. Set ADMIN_KEY by hand in
+ * Project Settings > Script Properties — never in code, since this repo is public.
+ * If ADMIN_KEY is not set, admin access is refused.
+ */
+function _isAdminKey(key) {
+  var expected = PropertiesService.getScriptProperties().getProperty('ADMIN_KEY');
+  return !!expected && String(key || '') === expected;
+}
+
+function _adminDenied() {
+  return _jsonResponse({ ok: false, error: 'unauthorized', message: 'Wrong admin password.' });
+}
+
+
+// ---------------------------------------------------------------------------
+// _handleGetDRANominees — Return a DRA's Own Nominations (Phase 7)
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the nominations a DRA submitted, looked up by the DRA's email
+ * (column C, which the nomination form fills from the DRA dropdown).
  *
- * Two modes based on the draName parameter:
- *   - draName empty/null → returns sorted distinct DRA names from column B
- *   - draName provided   → returns filtered nominees with simplified status
+ * Privacy: returns only what the DRA entered themselves — referee name,
+ * max age groups and DRA notes. No referee email, phone, age, gender,
+ * availability, token or status.
  *
- * Simplified status mapping (DRA-facing):
- *   'Confirmed' → 'Responded'
- *   anything else ('Not Sent', 'Sent', blank) → 'Pending'
+ * Returned nominee fields:
+ *   firstName (F/5), lastName (G/6), maxRef (L/11), maxAr (K/10), notes (Q/16)
  *
- * Returned nominee fields (DRA-relevant only — no email, token, or admin fields):
- *   firstName (F/5), lastName (G/6), status (simplified), phone (I/8),
- *   age (J/9), availability (M/12), gender (N/13), hotelWkd1 (O/14),
- *   hotelWkd2 (P/15), refWeekend1 (V/21), refWeekend2 (W/22), refNotes (Y/24)
- *
- * @param {string} draName — DRA name to filter by, or empty for name list
+ * @param {string} draEmail — the DRA's email address (case-insensitive)
  * @returns {ContentService.TextOutput} JSON response
  */
-function _handleGetDRANominees(draName) {
-  var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getActiveSheet();
+function _handleGetDRANominees(draEmail) {
+  var email = String(draEmail || '').trim().toLowerCase();
+  if (!email) {
+    return _jsonResponse({ ok: false, error: 'missing_email', message: 'Enter your email address.' });
+  }
+
+  var sheet   = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var lastRow = sheet.getLastRow();
+  var rows    = lastRow > 1 ? sheet.getRange(2, 1, lastRow - 1, 17).getValues() : [];
 
-  // --- Mode 1: Return distinct DRA names ---
-  if (!draName) {
-    if (lastRow <= 1) {
-      return _jsonResponse({ ok: true, draNames: [] });
-    }
-
-    var dataRowCount = lastRow - 1;
-    var draCol = sheet.getRange(2, COL_DRA_NAME, dataRowCount, 1).getValues();
-    var nameSet = {};
-    for (var i = 0; i < draCol.length; i++) {
-      var name = String(draCol[i][0] || '').trim();
-      if (name) nameSet[name] = true;
-    }
-    var draNames = Object.keys(nameSet).sort();
-
-    Logger.log('_handleGetDRANominees: Returning ' + draNames.length + ' distinct DRA name(s).');
-    return _jsonResponse({ ok: true, draNames: draNames });
-  }
-
-  // --- Mode 2: Return filtered nominees for a specific DRA ---
-  if (lastRow <= 1) {
-    return _jsonResponse({ ok: true, nominees: [], counts: { responded: 0, pending: 0 } });
-  }
-
-  var dataRowCount = lastRow - 1;
-  var rows = sheet.getRange(2, 1, dataRowCount, 28).getValues();
-
+  var draName  = '';
   var nominees = [];
-  var responded = 0;
-  var pending = 0;
 
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i];
-    if (String(r[1] || '').trim() !== draName) continue;
+    if (String(r[2] || '').trim().toLowerCase() !== email) continue;
 
-    var rawStatus = String(r[18] || '');
-    var status = (rawStatus === 'Confirmed') ? 'Responded' : 'Pending';
-
-    if (status === 'Responded') responded++;
-    else pending++;
-
+    draName = draName || String(r[1] || '');
     nominees.push({
-      firstName:    String(r[5]  || ''),
-      lastName:     String(r[6]  || ''),
-      status:       status,
-      phone:        String(r[8]  || ''),
-      age:          String(r[9]  || ''),
-      availability: String(r[12] || ''),
-      gender:       String(r[13] || ''),
-      hotelWkd1:    String(r[14] || ''),
-      hotelWkd2:    String(r[15] || ''),
-      refWeekend1:  String(r[21] || ''),
-      refWeekend2:  String(r[22] || ''),
-      refNotes:     String(r[24] || '')
+      firstName: String(r[5]  || ''), // F
+      lastName:  String(r[6]  || ''), // G
+      maxRef:    String(r[11] || ''), // L — Max Age as Ref
+      maxAr:     String(r[10] || ''), // K — Max Age as AR
+      notes:     String(r[16] || '')  // Q — DRA Notes
     });
   }
 
-  Logger.log('_handleGetDRANominees: Returning ' + nominees.length + ' nominee(s) for DRA "' + draName + '".');
-
-  return _jsonResponse({
-    ok: true,
-    nominees: nominees,
-    counts: { responded: responded, pending: pending }
+  nominees.sort(function(a, b) {
+    return (a.lastName + ' ' + a.firstName).localeCompare(b.lastName + ' ' + b.firstName);
   });
+
+  Logger.log('_handleGetDRANominees: Returning ' + nominees.length + ' nominee(s) for ' + email + '.');
+
+  return _jsonResponse({ ok: true, draName: draName, nominees: nominees });
 }

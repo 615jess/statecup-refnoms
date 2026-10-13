@@ -224,6 +224,10 @@
     <div><strong>Fall State Cup is Boys U15&ndash;U19 only</strong> (NCS, Premier Cup, Governor&rsquo;s Cup, Mayor&rsquo;s Cup). Please nominate referees who can work U15 or older as a referee or AR.</div>
   </div>
 
+  <div class="callout">
+    <div><strong>Please submit nominations as early as possible.</strong> The hard deadline is <strong>Thursday, October 29, 2026</strong>.</div>
+  </div>
+
   <form id="nom-form" novalidate>
     <!-- Honeypot field — hidden from real users, catches bots -->
     <div style="position:absolute;left:-9999px;" aria-hidden="true">
@@ -322,7 +326,7 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbyUY052Oo8EeVFlf7zfez
 // HTML-escape user input to prevent XSS when rendering summaries
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-const AGES = ['U12','U13','U14','U15','U16','U17','U18','U19'];
+const AGES = ['U15','U16','U17','U18','U19'];
 let rc = 0;
 
 document.getElementById('dra-sel').addEventListener('change', function () {

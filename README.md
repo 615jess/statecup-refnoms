@@ -85,7 +85,9 @@ You need to do this each season. The system has three pieces: the Google Sheet, 
    - Who has access: **Anyone**
 4. Click **Deploy** and copy the `/exec` URL
 
-**Important:** Every time you change Apps Script code, you must create a **new deployment** (Deploy > New deployment). You cannot update an existing deployment in-place.
+**Important:** Every time you change Apps Script code, publish it with **Deploy > Manage deployments > Edit > Version: New version**. This keeps the same `/exec` URL, so the HTML pages don't need updating. (Deploy > New deployment creates a new URL instead.)
+
+**Admin password:** set an `ADMIN_KEY` Script Property by hand (Project Settings > Script Properties). The admin page asks for it. Never put it in code — this repo is public.
 
 ### 4. Update the HTML Files with the New Deployment URL
 

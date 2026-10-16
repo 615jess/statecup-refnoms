@@ -380,7 +380,17 @@ async function loadNominees(forcePrompt) {
     var key = getAdminKey(forcePrompt);
     if (!key) throw new Error('Admin password required.');
     var res = await fetch(SCRIPT_URL + '?action=getAllNominees&key=' + encodeURIComponent(key));
-    var data = await res.json();
+    var text = await res.text();
+    var data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      // Google sent a web page instead of data — usually a browser extension
+      // or being signed into several Google accounts.
+      throw new Error('Google returned a web page instead of data. Try an incognito/private ' +
+        'window, turn off browser extensions (ad or privacy blockers), or sign out of ' +
+        'other Google accounts.');
+    }
     if (!data.ok && data.error === 'unauthorized') {
       forgetAdminKey();
       alert('Wrong admin password. Please try again.');

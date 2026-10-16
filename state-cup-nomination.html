@@ -336,8 +336,12 @@ document.getElementById('dra-sel').addEventListener('change', function () {
   document.getElementById('dra-email').value = p[1] || '';
 });
 
-function ageOpts() {
-  return '<option value="">— Select —</option>' + AGES.map(a => `<option>${a}</option>`).join('');
+// AR_ONLY — Referee dropdown choice for refs who can't center U15 or older
+const AR_ONLY = 'AR Only';
+
+function ageOpts(withArOnly) {
+  return '<option value="">— Select —</option>' + AGES.map(a => `<option>${a}</option>`).join('') +
+    (withArOnly ? `<option value="${AR_ONLY}">AR only (can't center U15+)</option>` : '');
 }
 
 function addRef() {
@@ -361,7 +365,7 @@ function addRef() {
       <div class="sep"></div>
       <p class="lbl" style="margin-bottom:10px;">Game Capacity <span class="req">*</span></p>
       <div class="cap-grid" style="margin-bottom:12px;">
-        <div class="cap-blk"><span class="cap-lbl">Maximum Age Group as Referee</span><select name="r${n}_mrf" required>${ageOpts()}</select></div>
+        <div class="cap-blk"><span class="cap-lbl">Maximum Age Group as Referee</span><select name="r${n}_mrf" required>${ageOpts(true)}</select></div>
         <div class="cap-blk"><span class="cap-lbl">Maximum Age Group as AR</span><select name="r${n}_mar" required>${ageOpts()}</select></div>
       </div>
 
@@ -581,7 +585,7 @@ function handleUpload(file) {
       }
       document.getElementById('ur-count').textContent = countMsg;
       document.getElementById('ur-detail').textContent = ageWarnings.length
-        ? 'Age groups must be U15\u2013U19. Please choose these in the entries below before submitting:\n' +
+        ? 'Age groups must be U15\u2013U19 (or "AR Only" for Referee). Please choose these in the entries below before submitting:\n' +
           ageWarnings.slice(0, 10).join('\n') + (ageWarnings.length > 10 ? `\n\u2026and ${ageWarnings.length - 10} more` : '')
         : 'Review the entries below, make any changes, then submit.';
       document.getElementById('ur-detail').style.whiteSpace = 'pre-wrap';
@@ -613,10 +617,12 @@ function setVal(container, name, value) {
   if (el && value) el.value = value;
 }
 
-// Accepts "U17", "u17", "17", "U-17", "17U", "U 17". Returns true if an option was selected.
+// Accepts "U17", "u17", "17", "U-17", "17U", "U 17", and "AR only..." (Referee
+// dropdown). Returns true if an option was selected.
 function setSelect(container, name, value) {
   const el = container.querySelector(`[name="${name}"]`);
   if (!el || !value) return false;
+  if (/^\s*AR[\s-]*only/i.test(value)) value = AR_ONLY;
   const digits = String(value).replace(/\D/g, '');
   const want = digits ? 'U' + digits : String(value).trim().toUpperCase();
   for (const opt of el.options) {
